@@ -1,0 +1,28 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "package": {
+    "productName": "Dress roomshow",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "title": "Dress roomshow",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 1024,
+        "minHeight": 700
+      }
+    ],
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "com.dressroomshow.app"
+    }
+  }
+}
