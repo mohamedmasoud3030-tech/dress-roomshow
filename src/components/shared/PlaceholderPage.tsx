@@ -1,12 +1,20 @@
+import { useLocation } from 'react-router-dom';
 import { CustomersPage } from '../../features/customers/CustomersPage';
+import { ReservationsPage } from '../../features/reservations/ReservationsPage';
 
 type PlaceholderPageProps = {
   title: string;
 };
 
 export function PlaceholderPage({ title }: PlaceholderPageProps) {
-  if (title === '\u0627\u0644\u0639\u0645\u0644\u0627\u0621') {
+  const location = useLocation();
+
+  if (location.pathname === '/customers') {
     return <CustomersPage />;
+  }
+
+  if (location.pathname === '/reservations') {
+    return <ReservationsPage />;
   }
 
   return (
