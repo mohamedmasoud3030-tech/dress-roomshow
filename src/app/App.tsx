@@ -1,14 +1,15 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
-import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { PlaceholderPage } from '../components/shared/PlaceholderPage';
+import { DashboardPage } from '../features/dashboard/DashboardPage';
+import { DressesPage } from '../features/dresses/DressesPage';
 
 export function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
         <Route index element={<DashboardPage />} />
-        <Route path="dresses" element={<PlaceholderPage title="الفساتين" />} />
+        <Route path="dresses" element={<DressesPage />} />
         <Route path="customers" element={<PlaceholderPage title="العملاء" />} />
         <Route path="reservations" element={<PlaceholderPage title="الحجوزات" />} />
         <Route path="delivery-return" element={<PlaceholderPage title="التسليم والاسترجاع" />} />
