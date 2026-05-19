@@ -5,6 +5,7 @@ import { PlaceholderPage } from '../components/shared/PlaceholderPage';
 import { DeliveryReturnPage } from '../features/delivery-return/DeliveryReturnPage';
 import { PaymentsPage } from '../features/payments/PaymentsPage';
 import { ExpensesPage } from '../features/expenses/ExpensesPage';
+import { ReportsPage } from '../features/reports/ReportsPage';
 
 export function App() {
   return (
@@ -17,7 +18,7 @@ export function App() {
         <Route path="delivery-return" element={<DeliveryReturnPage />} />
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
-        <Route path="reports" element={<PlaceholderPage title="التقارير البسيطة" />} />
+        <Route path="reports" element={<ReportsPage />} />
       </Route>
     </Routes>
   );
