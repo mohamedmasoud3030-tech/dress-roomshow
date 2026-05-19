@@ -1,7 +1,29 @@
-export type CustomerRecord = {
+export type CustomerStatus = 'normal' | 'trusted' | 'warning' | 'blocked';
+
+export type Customer = {
   id: string;
-  fullName: string;
+  name: string;
   phone: string;
-  city: string;
+  address: string;
+  measurements: string;
+  notes?: string;
+  status: CustomerStatus;
+  totalReservations: number;
   activeReservations: number;
+  totalPaid: number;
+  remainingBalance: number;
+  lastReservationDate?: string;
+};
+
+export type CustomerFilters = {
+  search: string;
+  status: 'all' | CustomerStatus;
+  balance: 'all' | 'with_balance' | 'clear';
+};
+
+export type CustomerSummary = {
+  total: number;
+  trusted: number;
+  withBalance: number;
+  blockedOrWarning: number;
 };
