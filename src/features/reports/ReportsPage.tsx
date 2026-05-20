@@ -17,6 +17,7 @@ const statusLabel: Record<string, string> = {
 
 export function ReportsPage() {
   const [range, setRange] = useState<DateRangeFilter>({ from: '', to: '' });
+  const [appliedRange, setAppliedRange] = useState<DateRangeFilter>({ from: '', to: '' });
 
   const summary = useMemo(() => getReportSummary(), []);
   const today = useMemo(() => getTodayReport(), []);
@@ -32,7 +33,13 @@ export function ReportsPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">إجمالي الفساتين</p><p className="mt-2 text-2xl font-bold">{summary.totalDresses}</p></article>
+        {appliedRange.from || appliedRange.to ? (
+        <p className="rounded-xl bg-[#FAF7F2] px-3 py-2 text-sm text-[#7A7168]">
+          الفترة المطبقة: {appliedRange.from || '—'} إلى {appliedRange.to || '—'}
+        </p>
+      ) : null}
+
+      <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">إجمالي الفساتين</p><p className="mt-2 text-2xl font-bold">{summary.totalDresses}</p></article>
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">الحجوزات النشطة</p><p className="mt-2 text-2xl font-bold">{summary.activeReservations}</p></article>
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">إجمالي التحصيل</p><p className="mt-2 text-2xl font-bold">{formatReportMoney(summary.totalCollected)}</p></article>
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">إجمالي المصروفات</p><p className="mt-2 text-2xl font-bold">{formatReportMoney(summary.totalExpenses)}</p></article>
@@ -45,7 +52,7 @@ export function ReportsPage() {
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <input type="date" value={range.from} onChange={(e)=>setRange((p)=>({...p,from:e.target.value}))} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
           <input type="date" value={range.to} onChange={(e)=>setRange((p)=>({...p,to:e.target.value}))} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-          <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7A5133]">تطبيق الفترة</button>
+          <button onClick={() => setAppliedRange(range)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7A5133]">تطبيق الفترة</button>
         </div>
       </article>
 

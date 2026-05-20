@@ -3,6 +3,7 @@ import { AlertTriangle, Search, ShieldCheck, Users, WalletCards } from 'lucide-r
 import { filterCustomers, getCustomers, summarizeCustomers } from './customer.service';
 import type { Customer, CustomerFilters, CustomerStatus } from './customer.types';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { SimpleModal } from '../../components/shared/SimpleModal';
 
 const statusLabels: Record<CustomerStatus, string> = {
   normal: 'عادية',
@@ -66,6 +67,9 @@ function CustomerCard({ customer }: CustomerCardProps) {
 
 export function CustomersPage() {
   const [filters, setFilters] = useState<CustomerFilters>({ search: '', status: 'all', balance: 'all' });
+  const [openAdd, setOpenAdd] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftPhone, setDraftPhone] = useState('');
   const customers = getCustomers();
 
   const filteredCustomers = useMemo(() => filterCustomers(customers, filters), [customers, filters]);
@@ -79,7 +83,7 @@ export function CustomersPage() {
           <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#1F1B18]">إدارة العملاء</h1>
           <p className="mt-2 text-[#7A7168]">عرض بيانات العملاء، الحالة، الأرصدة، وسجل التعامل المختصر.</p>
         </div>
-        <button className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
+        <button onClick={() => setOpenAdd(true)} className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
           إضافة عميلة
         </button>
       </div>
@@ -155,6 +159,11 @@ export function CustomersPage() {
           <p className="mt-2 text-sm text-[#7A7168]">غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
         </div>
       )}
+      <SimpleModal open={openAdd} onClose={() => setOpenAdd(false)} title="إضافة عميلة" footer={<button onClick={() => setOpenAdd(false)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white">حفظ محلي</button>}>
+        <input value={draftName} onChange={(e)=>setDraftName(e.target.value)} placeholder="اسم العميلة" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+        <input value={draftPhone} onChange={(e)=>setDraftPhone(e.target.value)} placeholder="رقم الهاتف" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+        <p className="text-xs text-[#7A7168]">هذا نموذج محلي فقط ولا يغيّر بيانات mock الحالية.</p>
+      </SimpleModal>
     </section>
   );
 }

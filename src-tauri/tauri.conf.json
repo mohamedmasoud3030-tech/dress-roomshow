@@ -1,6 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Dress roomshow",
+  "identifier": "com.dressroomshow.app",
   "version": "0.1.0",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -21,7 +22,6 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "identifier": "com.dressroomshow.app"
+    "targets": "all"
   }
 }

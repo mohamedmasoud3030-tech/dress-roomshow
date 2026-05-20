@@ -3,6 +3,7 @@ import { Search, Shirt, Sparkles, Wrench } from 'lucide-react';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { SimpleModal } from '../../components/shared/SimpleModal';
 
 const statusLabels: Record<DressStatus, string> = {
   available: 'متاح',
@@ -29,9 +30,9 @@ const statusStyles: Record<DressStatus, string> = {
 const categories: Array<'all' | DressCategory> = ['all', 'زفاف', 'خطوبة', 'سهرة', 'أطفال', 'أخرى'];
 const statuses: Array<'all' | DressStatus> = ['all', 'available', 'reserved', 'rented', 'laundry', 'maintenance', 'damaged', 'sold', 'inactive'];
 
-type DressCardProps = Readonly<{ dress: Dress }>;
+type DressCardProps = Readonly<{ dress: Dress; onQuickReserve: (dress: Dress) => void; onViewDetails: (dress: Dress) => void }>;
 
-function DressCard({ dress }: DressCardProps) {
+function DressCard({ dress, onQuickReserve, onViewDetails }: DressCardProps) {
   return (
     <article className="overflow-hidden rounded-2xl border border-[#E8DED2] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex h-48 items-center justify-center bg-gradient-to-br from-[#B08A5B]/20 via-white to-amber-50">
@@ -82,6 +83,11 @@ function DressCard({ dress }: DressCardProps) {
           {dress.isForSale && <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">للبيع</span>}
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-[#7A7168]">تأجر {dress.timesRented} مرات</span>
         </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={() => onQuickReserve(dress)} className="rounded-xl bg-[#8B5E3C] px-3 py-2 text-sm font-semibold text-white">حجز سريع</button>
+          <button onClick={() => onViewDetails(dress)} className="rounded-xl border border-[#E8DED2] px-3 py-2 text-sm font-semibold text-[#8B5E3C]">تفاصيل</button>
+        </div>
       </div>
     </article>
   );
@@ -89,6 +95,8 @@ function DressCard({ dress }: DressCardProps) {
 
 export function DressesPage() {
   const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
+  const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
+  const [modalType, setModalType] = useState<'reserve' | 'details' | null>(null);
   const dresses = getDresses();
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
@@ -179,7 +187,7 @@ export function DressesPage() {
       {filteredDresses.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
           {filteredDresses.map((dress) => (
-            <DressCard key={dress.id} dress={dress} />
+            <DressCard key={dress.id} dress={dress} onQuickReserve={(item)=>{setSelectedDress(item);setModalType('reserve');}} onViewDetails={(item)=>{setSelectedDress(item);setModalType('details');}} />
           ))}
         </div>
       ) : (
@@ -188,6 +196,20 @@ export function DressesPage() {
           <p className="mt-2 text-sm text-[#7A7168]">غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
         </div>
       )}
+      <SimpleModal
+        open={modalType !== null && !!selectedDress}
+        onClose={() => { setModalType(null); setSelectedDress(null); }}
+        title={modalType === 'reserve' ? 'حجز سريع' : 'تفاصيل الفستان'}
+        footer={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white" onClick={() => { setModalType(null); setSelectedDress(null); }}>تم</button>}
+      >
+        {selectedDress && (
+          <>
+            <p className="text-sm text-[#7A7168]">{selectedDress.code} — {selectedDress.name}</p>
+            <p className="text-sm">المقاس: <span className="font-semibold">{selectedDress.size}</span> | اللون: <span className="font-semibold">{selectedDress.color}</span></p>
+            <p className="text-sm">الإيجار: <span className="font-semibold">{formatMoneyOMR(selectedDress.rentalPrice)}</span> | التأمين: <span className="font-semibold">{formatMoneyOMR(selectedDress.depositAmount)}</span></p>
+          </>
+        )}
+      </SimpleModal>
     </section>
   );
 }

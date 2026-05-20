@@ -6,6 +6,7 @@ import {
   getExpenses,
   summarizeExpenses,
 } from './expense.service';
+import { SimpleModal } from '../../components/shared/SimpleModal';
 import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod } from './expense.types';
 
 const categoryOptions: Array<{ value: ExpenseCategory | 'all'; label: string }> = [
@@ -54,6 +55,9 @@ function formatDate(date: string): string {
 }
 
 export function ExpensesPage() {
+  const [openModal, setOpenModal] = useState(false);
+  const [localNote, setLocalNote] = useState('');
+
   const [filters, setFilters] = useState<ExpenseFilters>({
     search: '',
     category: 'all',
@@ -71,7 +75,7 @@ export function ExpensesPage() {
           <h1 className="text-3xl font-bold tracking-tight">إدارة المصروفات</h1>
           <p className="mt-2 text-[#7A7168]">متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر.</p>
         </div>
-        <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
+        <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>
           تسجيل مصروف جديد
         </button>
       </div>
@@ -167,6 +171,10 @@ export function ExpensesPage() {
           ))}
         </div>
       )}
+      <SimpleModal open={openModal} onClose={() => setOpenModal(false)} title='تسجيل مصروف جديد' footer={<button onClick={() => setOpenModal(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <textarea value={localNote} onChange={(e)=>setLocalNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+        <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
+      </SimpleModal>
     </section>
   );
 }
