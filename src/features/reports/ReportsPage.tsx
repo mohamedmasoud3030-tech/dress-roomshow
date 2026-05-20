@@ -3,11 +3,12 @@ import {
   formatReportMoney,
   getCustomerBalances,
   getDressPerformance,
+  getFilteredReservationsCount,
   getFinancialSummary,
   getReportSummary,
   getTodayReport,
 } from './report.service';
-import type { DateRangeFilter } from './report.types';
+import type { DateRangeApplied, DateRangeFilter } from './report.types';
 import type { DressStatus } from '../dresses/dress.types';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
@@ -22,19 +23,36 @@ const statusLabel: Record<Extract<DressStatus, 'available' | 'reserved' | 'maint
 
 export function ReportsPage() {
   const [range, setRange] = useState<DateRangeFilter>({ from: '', to: '' });
-  const [appliedRange, setAppliedRange] = useState<DateRangeFilter>({ from: '', to: '' });
+  const [appliedRange, setAppliedRange] = useState<DateRangeApplied>({});
 
   const summary = useMemo(() => getReportSummary(), []);
   const today = useMemo(() => getTodayReport(), []);
   const dressPerformance = useMemo(() => getDressPerformance(), []);
   const customerBalances = useMemo(() => getCustomerBalances(), []);
   const financial = useMemo(() => getFinancialSummary(), []);
+  const reservationsInRange = useMemo(() => getFilteredReservationsCount(appliedRange), [appliedRange]);
+
+  const hasAppliedRange = Boolean(appliedRange.from || appliedRange.to);
+
+  const applyDateRange = () => {
+    if (!range.from && !range.to) {
+      setAppliedRange({});
+      return;
+    }
+
+    if (range.from && range.to && range.from > range.to) {
+      setAppliedRange({ from: range.to, to: range.from });
+      return;
+    }
+
+    setAppliedRange({ from: range.from || undefined, to: range.to || undefined });
+  };
 
   return (
     <section className="space-y-6">
       <PageHeader eyebrow="التقارير" title="التقارير البسيطة" description="نظرة سريعة على الأداء التشغيلي والمالي اعتماداً على بيانات النظام الحالية." />
 
-      {appliedRange.from || appliedRange.to ? (
+      {hasAppliedRange ? (
         <p className="rounded-xl bg-[#FAF7F2] px-3 py-2 text-sm text-[#7A7168]">
           الفترة المطبقة: {appliedRange.from || '—'} إلى {appliedRange.to || '—'}
         </p>
@@ -53,7 +71,7 @@ export function ReportsPage() {
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <input type="date" value={range.from} onChange={(e)=>setRange((p)=>({...p,from:e.target.value}))} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
           <input type="date" value={range.to} onChange={(e)=>setRange((p)=>({...p,to:e.target.value}))} className="rounded-xl border border-slate-300 px-3 py-2 text-sm" />
-          <button onClick={() => setAppliedRange(range)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7A5133]">تطبيق الفترة</button>
+          <button onClick={applyDateRange} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7A5133]">تطبيق الفترة</button>
         </div>
       </FilterPanel>
 
@@ -91,6 +109,19 @@ export function ReportsPage() {
           <p>المصروفات: <span className="font-bold">{formatReportMoney(financial.totalExpenses)}</span></p>
           <p>الصافي: <span className="font-bold">{formatReportMoney(financial.netAmount)}</span></p>
         </div>
+      </article>
+
+      <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold">الحجوزات ضمن الفترة</h2>
+        {hasAppliedRange && reservationsInRange === 0 ? (
+          <div className="mt-3">
+            <EmptyState title="لا توجد حجوزات في الفترة" description="جرّبي فترة أخرى لعرض حجوزات ضمن النطاق المحدد." />
+          </div>
+        ) : (
+          <p className="mt-3 text-sm text-[#7A7168]">
+            عدد الحجوزات المطابقة للفترة الحالية: <span className="font-bold text-[#1F1B18]">{reservationsInRange}</span>
+          </p>
+        )}
       </article>
     </section>
   );
