@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 type SimpleModalProps = Readonly<{
   title: string;
   open: boolean;
@@ -8,7 +10,7 @@ type SimpleModalProps = Readonly<{
 
 export function SimpleModal({ title, open, onClose, children, footer }: SimpleModalProps) {
   if (!open) return null;
-  const titleId = 'simple-modal-title';
+  const titleId = useId();
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center">
