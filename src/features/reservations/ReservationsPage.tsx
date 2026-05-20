@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import { filterReservations, getReservations, summarizeReservations } from './reservation.service';
 import type { ReservationFilters } from './reservation.types';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { FilterPanel } from '../../components/shared/FilterPanel';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { SummaryCard } from '../../components/shared/SummaryCard';
 
 export function ReservationsPage() {
   const [filters, setFilters] = useState<ReservationFilters>({ search: '', status: 'all', timing: 'all' });
@@ -11,32 +15,16 @@ export function ReservationsPage() {
 
   return (
     <section className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold text-[#8B5E3C]">الحجوزات</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#1F1B18]">إدارة الحجوزات</h1>
-        <p className="mt-2 text-[#7A7168]">متابعة الحجوزات ومواعيد الاستلام والإرجاع.</p>
-      </div>
+      <PageHeader eyebrow="الحجوزات" title="إدارة الحجوزات" description="متابعة الحجوزات ومواعيد الاستلام والإرجاع." />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">إجمالي الحجوزات</p>
-          <p className="mt-2 text-3xl font-bold">{summary.total}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">حجوزات نشطة</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-700">{summary.active}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">اليوم</p>
-          <p className="mt-2 text-3xl font-bold text-sky-700">{summary.today}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">متأخرة</p>
-          <p className="mt-2 text-3xl font-bold text-red-700">{summary.overdue}</p>
-        </article>
+        <SummaryCard label="إجمالي الحجوزات" value={summary.total} />
+        <SummaryCard label="حجوزات نشطة" value={summary.active} valueClassName="text-emerald-700" />
+        <SummaryCard label="اليوم" value={summary.today} valueClassName="text-sky-700" />
+        <SummaryCard label="متأخرة" value={summary.overdue} valueClassName="text-red-700" />
       </div>
 
-      <div className="rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm">
+      <FilterPanel>
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px]">
           <input
             value={filters.search}
@@ -70,8 +58,11 @@ export function ReservationsPage() {
             <option value="overdue">متأخرة</option>
           </select>
         </div>
-      </div>
+      </FilterPanel>
 
+      {filteredReservations.length === 0 ? (
+        <EmptyState title="لا توجد حجوزات مطابقة" description="غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى." />
+      ) : (
       <div className="rounded-2xl border border-[#E8DED2] bg-white shadow-sm">
         {filteredReservations.map((reservation) => (
           <div key={reservation.id} className="border-b border-slate-100 p-5 last:border-b-0">
@@ -82,6 +73,7 @@ export function ReservationsPage() {
           </div>
         ))}
       </div>
+      )}
     </section>
   );
 }
