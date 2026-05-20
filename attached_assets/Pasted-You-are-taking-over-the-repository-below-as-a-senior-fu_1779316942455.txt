@@ -1,0 +1,342 @@
+You are taking over the repository below as a senior full-stack engineer.
+
+Repository:
+https://github.com/mohamedmasoud3030-tech/dress-roomshow
+
+Work only inside this repository. Clone it, inspect it from the root, and do not create a new project or parallel codebase.
+
+Mission:
+Audit, stabilize, complete, and clean the current Dress roomshow app until it reaches a first usable v0.1 release for one dress showroom.
+
+The app is an offline-first showroom operations system, not a SaaS, ERP, marketing site, or multi-tenant platform.
+
+Core product scope:
+- Dresses
+- Customers
+- Reservations
+- Delivery / Return
+- Payments
+- Expenses
+- Operational Dashboard
+- Simple Reports
+
+Expected business flow:
+Customer → Dress → Reservation → Payment/Deposit → Delivery → Return → Fees/Refund → Dress status update → Dashboard/Reports.
+
+==================================================
+NON-NEGOTIABLE ARCHITECTURE RULES
+==================================================
+
+Do not change the stack or introduce new architecture.
+
+Keep:
+- React
+- Vite
+- TypeScript
+- Tailwind / existing styling system
+- Existing component/service/page structure
+- Tauri desktop app
+- SQLite local DB as primary runtime database
+- src/services/localDatabase.ts adapter boundary
+- src-tauri/src/main.rs Tauri command layer
+- Offline-first behavior
+- Web/PWA fallback behavior
+
+Do not add:
+- Supabase integration
+- auth
+- multi-tenant/company model
+- ERP/accounting ledger
+- new backend framework
+- new ORM
+- new database
+- new state management library
+- new UI kit
+- sync engine
+- workflow engine
+- AI features
+- advanced analytics
+
+Allowed:
+- Improve UI/UX inside the current architecture
+- Improve visual identity
+- Improve Arabic RTL
+- Improve mobile responsiveness
+- Improve forms, spacing, cards, navigation, dashboard clarity
+- Improve operational wording
+
+Not allowed:
+- Marketing copy
+- Landing page sections
+- slogans
+- sales text
+- brand storytelling
+- unnecessary welcome/intro paragraphs
+
+The app must feel like an internal operations tool, not a promotional website.
+
+==================================================
+PHASE 1 — ROOT AUDIT FIRST
+==================================================
+
+Before editing code, audit the full repo.
+
+Inspect:
+- package.json
+- src/app
+- src/components
+- src/features
+- src/services
+- src/shared
+- src/styles
+- src-tauri
+- docs
+- public
+- config/deploy files
+- routes
+- mocks
+- services
+- types
+- adapters
+- utilities
+
+Find and document:
+
+1. Correct product goal
+2. Current architecture
+3. Existing routes/pages
+4. Current data flow
+5. SQLite/Tauri command coverage
+6. Which pages read/write local DB
+7. Which pages still use mocks only
+8. Working features
+9. Broken/incomplete features
+10. Placeholder buttons or fake flows
+11. Duplicate files/components/services
+12. Dead or unused code
+13. Misleading docs
+14. Misleading UI text
+15. Mobile-only layout issues
+16. Risks
+17. Prioritized Todo List
+18. v0.1 release plan
+
+Update an existing audit doc if one exists. Do not create a new audit file unless no suitable audit doc exists.
+
+==================================================
+PHASE 2 — FILE CREATION / CLEANUP RULES
+==================================================
+
+Before creating any new file, search the repo for an existing equivalent or similar file.
+
+Prefer:
+- reuse
+- extend
+- connect
+- refactor
+- repair
+
+Only create a new file if:
+- no suitable file exists
+- it has a clear purpose
+- it is connected immediately
+- it reduces duplication
+
+Delete unused code when there is a better working replacement, but only after confirming:
+- no imports
+- no route usage
+- no config usage
+- no docs/test dependency
+
+Do not leave orphan files, unused components, duplicate services, or dead placeholders in the project.
+
+==================================================
+PHASE 3 — MOBILE AUDIT REQUIRED
+==================================================
+
+A bug may exist only on mobile while desktop works correctly.
+
+Perform a separate mobile audit for:
+- bottom navigation
+- header spacing
+- small-screen padding
+- cards/grid layout
+- modals
+- forms
+- date/select/input controls
+- horizontal overflow
+- sticky/fixed elements
+- safe bottom spacing above nav
+- touch target size
+- RTL alignment
+- Arabic text wrapping
+- buttons hidden behind bottom nav
+
+When fixing UI:
+- classify issue as mobile-only, desktop-only, or shared
+- do not break desktop while fixing mobile
+- use existing responsive Tailwind patterns
+- do not create separate duplicate mobile pages unless unavoidable
+
+==================================================
+PHASE 4 — IMPLEMENTATION PRIORITY
+==================================================
+
+Implement in this order.
+
+P0. Real reservation workflow
+- Create reservation from existing customer + existing dress
+- Validate pickup/return dates
+- Prevent overlapping active reservations for the same dress
+- Calculate rental, deposit, paid, remaining
+- Save to SQLite through existing adapter/Tauri pattern
+- Keep web fallback working
+
+P0. Dress status automation
+- Reservation → reserved
+- Delivery → rented
+- Return → available / laundry / maintenance / damaged
+- Prevent booking unavailable dresses
+
+P0. Payments linked to reservations
+- Payment must link to an existing reservation
+- Avoid manual duplicated reservation/customer/dress entry where possible
+- Add payment from reservation details
+- Maintain consistent paid/remaining calculation
+- Show payment history per reservation
+
+P0. Delivery / Return workflow
+- Deliver from active reservation
+- Record delivery condition
+- Return from delivered reservation
+- Record return condition
+- Calculate late fee / damage fee / deposit refund
+- Update reservation and dress status
+
+P1. Dashboard from actual local data
+- Reservations today
+- Deliveries today
+- Returns today
+- Overdue reservations
+- Available dresses
+- Daily income
+- Daily expenses
+- Operational alerts
+
+P1. Simple reports
+- Daily report
+- Date range report
+- Income
+- Expenses
+- Net result
+- Top rented dresses
+- Customers with remaining balance
+
+P1. UI/mobile polish
+- Improve existing UI only
+- Reduce excessive whitespace
+- Improve cards and hierarchy
+- Improve mobile layout
+- Keep Arabic RTL clean
+- No marketing sections or promotional copy
+
+P2. Final cleanup/docs
+- Update docs to match actual architecture
+- Remove obsolete text
+- Remove dead/duplicate files
+- Ensure every remaining file is used or justified
+
+==================================================
+QUALITY GATES
+==================================================
+
+After each meaningful chunk, run:
+
+npm run lint
+npm run build
+npm run tauri -- info
+
+Run cargo check if the environment allows it.
+If cargo check is blocked by network/crates access, document that clearly.
+
+Do not mark complete if:
+- TypeScript build fails
+- routes crash
+- primary buttons do nothing without explanation
+- frontend calls missing Tauri commands
+- SQLite persistence is claimed but not wired
+- page says “mock only” while local DB exists
+- mobile has obvious overflow or hidden buttons
+- new files are unused
+
+==================================================
+v0.1 ACCEPTANCE CRITERIA
+==================================================
+
+The first release can be simple, but it must be coherent and usable.
+
+v0.1 must support:
+
+1. Add customer
+2. Add dress
+3. Create reservation from customer + dress
+4. Prevent overlapping reservation for same dress
+5. Register payment for reservation
+6. Deliver dress
+7. Return dress
+8. Update dress status correctly
+9. Show dashboard from actual local data
+10. Show simple reports
+11. Persist data in Tauri SQLite after restart
+12. Web/PWA fallback works without crashing
+13. Desktop layout usable
+14. Mobile layout usable
+15. No obvious dead/duplicate files
+16. No misleading docs/UI text
+17. lint passes
+18. build passes
+
+==================================================
+WORK STYLE
+==================================================
+
+Work as an engineer, not as a generator.
+
+For every step:
+- inspect before editing
+- reuse before creating
+- connect before claiming
+- delete obsolete code when safe
+- test before summarizing
+- keep changes focused
+
+Use focused commits/PRs:
+1. audit/docs/todo
+2. reservation workflow
+3. dress status automation
+4. payments linkage
+5. delivery-return workflow
+6. dashboard/reports
+7. UI/mobile polish
+8. cleanup/final QA
+
+Do not pause after every small task.
+Continue through the Todo List until the cleanest possible v0.1 release is delivered within the existing architecture.
+
+==================================================
+FINAL OUTPUT
+==================================================
+
+At the end, provide:
+
+- Audit summary
+- Implemented changes
+- Deleted/cleaned files
+- Remaining intentional limitations
+- Test results
+- How to run
+- Known risks
+- Recommended v0.2 tasks
+
+Target:
+A clean, connected, one-showroom, offline-first Dress roomshow v0.1 app with no dead duplicated code, no misleading text, and usable desktop/mobile operation.

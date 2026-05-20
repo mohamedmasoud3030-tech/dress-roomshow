@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Dress Roomshow"
+version = "1.0.0"
+id = "artifacts/dress-showroom"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19748
+
+[services.development]
+run = "pnpm --filter @workspace/dress-showroom run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dress-showroom", "run", "build" ]
+publicDir = "artifacts/dress-showroom/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19748"
+BASE_PATH = "/"
