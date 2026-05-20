@@ -1,5 +1,6 @@
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
+import { useNavigate } from 'react-router-dom';
 
 const todayCards = [
   { label: 'حجوزات اليوم', value: 6 },
@@ -9,6 +10,15 @@ const todayCards = [
 ];
 
 export function DashboardPage() {
+  const navigate = useNavigate();
+
+  const quickActions = [
+    { label: 'حجز جديد', to: '/reservations' },
+    { label: 'إضافة فستان', to: '/dresses' },
+    { label: 'إضافة عميلة', to: '/customers' },
+    { label: 'تسجيل دفعة', to: '/payments' },
+  ];
+
   return (
     <section className="space-y-6">
       <PageHeader eyebrow="لوحة التشغيل" title="لوحة العمليات اليومية" description="نظرة أنيقة على الحجوزات، التسليمات، الاسترجاعات، والمدفوعات لضمان تشغيل منظم." />
@@ -21,7 +31,15 @@ export function DashboardPage() {
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
           <h3 className="text-lg font-semibold">إجراءات سريعة</h3>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {['حجز جديد','إضافة فستان','إضافة عميلة','تسجيل دفعة'].map((label)=><button key={label} className="rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-4 py-3 text-sm font-semibold text-[#8B5E3C]">{label}</button>)}
+            {quickActions.map((action) => (
+              <button
+                key={action.label}
+                onClick={() => navigate(action.to)}
+                className="rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-4 py-3 text-sm font-semibold text-[#8B5E3C]"
+              >
+                {action.label}
+              </button>
+            ))}
           </div>
         </article>
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
