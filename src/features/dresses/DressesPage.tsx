@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Search, Shirt, Sparkles, Wrench } from 'lucide-react';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
+import { formatMoneyOMR } from '../../shared/utils/format';
 
 const statusLabels: Record<DressStatus, string> = {
   available: 'متاح',
@@ -27,14 +28,6 @@ const statusStyles: Record<DressStatus, string> = {
 
 const categories: Array<'all' | DressCategory> = ['all', 'زفاف', 'خطوبة', 'سهرة', 'أطفال', 'أخرى'];
 const statuses: Array<'all' | DressStatus> = ['all', 'available', 'reserved', 'rented', 'laundry', 'maintenance', 'damaged', 'sold', 'inactive'];
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('ar-OM', {
-    style: 'currency',
-    currency: 'OMR',
-    minimumFractionDigits: 3,
-  }).format(value);
-}
 
 function DressCard({ dress }: { dress: Dress }) {
   return (
@@ -74,11 +67,11 @@ function DressCard({ dress }: { dress: Dress }) {
         <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm">
           <div>
             <p className="text-slate-400">سعر الإيجار</p>
-            <p className="font-bold text-slate-950">{formatMoney(dress.rentalPrice)}</p>
+            <p className="font-bold text-slate-950">{formatMoneyOMR(dress.rentalPrice)}</p>
           </div>
           <div>
             <p className="text-slate-400">التأمين</p>
-            <p className="font-bold text-slate-950">{formatMoney(dress.depositAmount)}</p>
+            <p className="font-bold text-slate-950">{formatMoneyOMR(dress.depositAmount)}</p>
           </div>
         </div>
 

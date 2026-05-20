@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { AlertTriangle, Search, ShieldCheck, Users, WalletCards } from 'lucide-react';
 import { filterCustomers, getCustomers, summarizeCustomers } from './customer.service';
 import type { Customer, CustomerFilters, CustomerStatus } from './customer.types';
+import { formatMoneyOMR } from '../../shared/utils/format';
 
 const statusLabels: Record<CustomerStatus, string> = {
   normal: 'عادية',
@@ -18,14 +19,6 @@ const statusStyles: Record<CustomerStatus, string> = {
 };
 
 const statuses: Array<'all' | CustomerStatus> = ['all', 'normal', 'trusted', 'warning', 'blocked'];
-
-function formatMoney(value: number) {
-  return new Intl.NumberFormat('ar-OM', {
-    style: 'currency',
-    currency: 'OMR',
-    minimumFractionDigits: 3,
-  }).format(value);
-}
 
 function CustomerCard({ customer }: { customer: Customer }) {
   return (
@@ -53,7 +46,7 @@ function CustomerCard({ customer }: { customer: Customer }) {
         <div className="rounded-xl bg-slate-50 p-3">
           <p className="text-sm text-slate-400">المتبقي</p>
           <p className={`mt-1 font-bold ${customer.remainingBalance > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
-            {formatMoney(customer.remainingBalance)}
+            {formatMoneyOMR(customer.remainingBalance)}
           </p>
         </div>
       </div>
