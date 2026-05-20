@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  addDeliveryReturnToLocalDb,
   calculateDepositRefund,
   filterDeliveryReturnRecords,
   getDeliveryReturnRecords,
+  getDeliveryReturnRecordsFromLocalDb,
   summarizeDeliveryReturnRecords,
 } from './deliveryReturn.service';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -67,6 +69,13 @@ export function DeliveryReturnPage() {
     status: 'all',
   });
 
+  useEffect(() => {
+    void (async () => {
+      const rows = await getDeliveryReturnRecordsFromLocalDb();
+      if (rows) setRecords(rows);
+    })();
+  }, []);
+
   const filteredRecords = useMemo(
     () => filterDeliveryReturnRecords(records, filters),
     [records, filters],
@@ -118,8 +127,11 @@ export function DeliveryReturnPage() {
       notes: payload.notes || undefined,
     };
 
-    setRecords((current) => [newRecord, ...current]);
-    closeCreateModal();
+    void (async () => {
+      await addDeliveryReturnToLocalDb(newRecord);
+      setRecords((current) => [newRecord, ...current]);
+      closeCreateModal();
+    })();
   }
 
   return (

@@ -1,3 +1,4 @@
+import { loadLocalDeliveryReturns, saveLocalDeliveryReturn, type LocalDeliveryReturnRecord } from '../../services/localDatabase';
 import { deliveryReturnMockRecords } from './deliveryReturn.mock';
 import type {
   DeliveryReturnFilters,
@@ -70,4 +71,12 @@ export function summarizeDeliveryReturnRecords(
       lateOrDamaged: 0,
     },
   );
+}
+
+export async function getDeliveryReturnRecordsFromLocalDb(): Promise<DeliveryReturnRecord[] | null> {
+  try { const rows = await loadLocalDeliveryReturns(); if (!rows) return null; return rows.map((row)=>({ ...row, status: row.status as DeliveryReturnRecord['status'] })); } catch { return null; }
+}
+
+export async function addDeliveryReturnToLocalDb(record: DeliveryReturnRecord): Promise<boolean> {
+  try { const row: LocalDeliveryReturnRecord = { ...record, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; return await saveLocalDeliveryReturn(row); } catch { return false; }
 }

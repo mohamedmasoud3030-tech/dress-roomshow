@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   filterExpenses,
   formatExpenseCategoryLabel,
   formatExpensePaymentMethodLabel,
   getExpenses,
+  getExpensesFromLocalDb,
   summarizeExpenses,
 } from './expense.service';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -63,6 +64,13 @@ export function ExpensesPage() {
     category: 'all',
     paymentMethod: 'all',
   });
+
+  useEffect(() => {
+    void (async () => {
+      const rows = await getExpensesFromLocalDb();
+      if (rows) setExpenses(rows);
+    })();
+  }, []);
 
   const filteredExpenses = useMemo(() => filterExpenses(expenses, filters), [expenses, filters]);
   const summary = useMemo(() => summarizeExpenses(filteredExpenses), [filteredExpenses]);

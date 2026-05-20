@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Search, ShieldCheck, Users, WalletCards } from 'lucide-react';
-import { filterCustomers, getCustomers, summarizeCustomers } from './customer.service';
+import { addCustomerToLocalDb, filterCustomers, getCustomers, getCustomersFromLocalDb, summarizeCustomers } from './customer.service';
 import type { Customer, CustomerFilters, CustomerStatus } from './customer.types';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -74,11 +74,25 @@ export function CustomersPage() {
   const [draftName, setDraftName] = useState('');
   const [draftPhone, setDraftPhone] = useState('');
   const [localCustomers, setLocalCustomers] = useState<Customer[]>([]);
+  const [isDbMode, setIsDbMode] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
-  const customers = [...getCustomers(), ...localCustomers];
+  const customers = isDbMode ? localCustomers : [...getCustomers(), ...localCustomers];
 
   const normalizeName = (value: string) => value.replace(/\s+/g, ' ').trim();
   const normalizePhone = (value: string) => value.replace(/[^\d+]/g, '').trim();
+
+
+  useEffect(() => {
+    const loadCustomers = async () => {
+      const dbCustomers = await getCustomersFromLocalDb();
+      if (dbCustomers) {
+        setLocalCustomers(dbCustomers);
+        setIsDbMode(true);
+      }
+    };
+
+    void loadCustomers();
+  }, []);
 
   const closeAddModal = () => {
     setIsAddModalOpen(false);
@@ -98,22 +112,27 @@ export function CustomersPage() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    setLocalCustomers((current) => [
-      {
-        id: `local-customer-${Date.now()}`,
-        name: normalizedName,
-        phone: normalizedPhone,
-        address: 'غير محدد',
-        measurements: 'غير مسجل',
-        status: 'normal',
-        totalReservations: 0,
-        activeReservations: 0,
-        totalPaid: 0,
-        remainingBalance: 0,
-      },
-      ...current,
-    ]);
-    closeAddModal();
+    const customerDraft: Customer = {
+      id: `local-customer-${Date.now()}`,
+      name: normalizedName,
+      phone: normalizedPhone,
+      address: 'غير محدد',
+      measurements: 'غير مسجل',
+      status: 'normal',
+      totalReservations: 0,
+      activeReservations: 0,
+      totalPaid: 0,
+      remainingBalance: 0,
+    };
+
+    void (async () => {
+      const persisted = await addCustomerToLocalDb(customerDraft);
+      setLocalCustomers((current) => [customerDraft, ...current]);
+      if (persisted) {
+        setIsDbMode(true);
+      }
+      closeAddModal();
+    })();
   };
 
   const filteredCustomers = useMemo(() => filterCustomers(customers, filters), [customers, filters]);
@@ -205,7 +224,7 @@ export function CustomersPage() {
         {errors.name && <p className="text-xs text-red-700">{errors.name}</p>}
         <input value={draftPhone} onChange={(e)=>setDraftPhone(normalizePhone(e.target.value))} placeholder="رقم الهاتف" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
         {errors.phone && <p className="text-xs text-red-700">{errors.phone}</p>}
-        <p className="text-xs text-[#7A7168]">هذا نموذج محلي فقط ولا يغيّر بيانات mock الحالية.</p>
+        <p className="text-xs text-[#7A7168]">يتم الحفظ في قاعدة البيانات المحلية داخل تطبيق سطح المكتب، مع fallback محلي في وضع الويب.</p>
       </SimpleModal>
     </section>
   );

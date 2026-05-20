@@ -1,3 +1,4 @@
+import { loadLocalReservations } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
 import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
@@ -66,4 +67,8 @@ function getEffectiveReservationStatus(reservation: Reservation, today: string):
   }
 
   return reservation.status;
+}
+
+export async function getReservationsFromLocalDb(): Promise<Reservation[] | null> {
+  try { const rows = await loadLocalReservations(); if (!rows) return null; return rows.map((row)=>({ ...row, status: row.status as Reservation['status'] })); } catch { return null; }
 }

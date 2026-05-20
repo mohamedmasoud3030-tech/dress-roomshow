@@ -1,3 +1,4 @@
+import { loadLocalExpenses, saveLocalExpense, type LocalExpenseRecord } from '../../services/localDatabase';
 import { expenseMockRecords } from './expense.mock';
 import type {
   ExpenseCategory,
@@ -90,4 +91,29 @@ export function formatExpensePaymentMethodLabel(method: ExpensePaymentMethod): s
   };
 
   return labels[method];
+}
+
+export async function getExpensesFromLocalDb(): Promise<ExpenseRecord[] | null> {
+  try {
+    const rows = await loadLocalExpenses();
+    if (!rows) return null;
+    return rows.map((row) => ({
+      id: row.id,
+      expenseNumber: row.expenseNumber,
+      expenseDate: row.expenseDate,
+      title: row.title,
+      category: row.category as ExpenseRecord['category'],
+      amount: row.amount,
+      paymentMethod: row.paymentMethod as ExpenseRecord['paymentMethod'],
+      relatedDressCode: row.relatedDressCode,
+      relatedDressName: row.relatedDressName,
+      notes: row.notes,
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function addExpenseToLocalDb(expense: ExpenseRecord): Promise<boolean> {
+  try { const row: LocalExpenseRecord = { ...expense, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; return await saveLocalExpense(row); } catch { return false; }
 }
