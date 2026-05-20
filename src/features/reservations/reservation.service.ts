@@ -3,6 +3,7 @@ import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
 
 const activeStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
+const closedStatuses = new Set(['returned', 'cancelled']);
 
 export function getReservations(): Reservation[] {
   return mockReservations;
@@ -13,6 +14,7 @@ export function filterReservations(reservations: Reservation[], filters: Reserva
   const today = getTodayISO();
 
   return reservations.filter((reservation) => {
+    const reservationStatus = getEffectiveReservationStatus(reservation, today);
     const matchesSearch =
       !search ||
       reservation.reservationNumber.toLowerCase().includes(search) ||
@@ -21,12 +23,12 @@ export function filterReservations(reservations: Reservation[], filters: Reserva
       reservation.dressCode.toLowerCase().includes(search) ||
       reservation.dressName.toLowerCase().includes(search);
 
-    const matchesStatus = filters.status === 'all' || reservation.status === filters.status;
+    const matchesStatus = filters.status === 'all' || reservationStatus === filters.status;
     const matchesTiming =
       filters.timing === 'all' ||
       (filters.timing === 'today' && (reservation.pickupDate === today || reservation.returnDate === today)) ||
       (filters.timing === 'upcoming' && reservation.pickupDate > today) ||
-      (filters.timing === 'overdue' && reservation.status === 'overdue');
+      (filters.timing === 'overdue' && reservationStatus === 'overdue');
 
     return matchesSearch && matchesStatus && matchesTiming;
   });
@@ -37,17 +39,31 @@ export function summarizeReservations(reservations: Reservation[]): ReservationS
 
   return {
     total: reservations.length,
-    active: reservations.filter((reservation) => activeStatuses.has(reservation.status)).length,
+    active: reservations.filter((reservation) => activeStatuses.has(getEffectiveReservationStatus(reservation, today))).length,
     today: reservations.filter((reservation) => reservation.pickupDate === today || reservation.returnDate === today).length,
-    overdue: reservations.filter((reservation) => reservation.status === 'overdue').length,
+    overdue: reservations.filter((reservation) => getEffectiveReservationStatus(reservation, today) === 'overdue').length,
   };
 }
 
 export function hasReservationOverlap(check: AvailabilityCheck, reservations: Reservation[]): boolean {
+  const today = getTodayISO();
+
   return reservations.some((reservation) => {
     if (reservation.dressCode !== check.dressCode) return false;
-    if (!activeStatuses.has(reservation.status)) return false;
+    if (!activeStatuses.has(getEffectiveReservationStatus(reservation, today))) return false;
 
     return reservation.pickupDate <= check.returnDate && check.pickupDate <= reservation.returnDate;
   });
+}
+
+function getEffectiveReservationStatus(reservation: Reservation, today: string): Reservation['status'] {
+  if (closedStatuses.has(reservation.status)) {
+    return reservation.status;
+  }
+
+  if (reservation.returnDate < today) {
+    return 'overdue';
+  }
+
+  return reservation.status;
 }

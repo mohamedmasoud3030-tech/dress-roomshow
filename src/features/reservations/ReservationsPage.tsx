@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { filterReservations, getReservations, summarizeReservations } from './reservation.service';
-import type { ReservationFilters } from './reservation.types';
+import type { ReservationFilters, ReservationStatus } from './reservation.types';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
 import { PageHeader } from '../../components/shared/PageHeader';
@@ -8,10 +8,15 @@ import { SummaryCard } from '../../components/shared/SummaryCard';
 
 export function ReservationsPage() {
   const [filters, setFilters] = useState<ReservationFilters>({ search: '', status: 'all', timing: 'all' });
+  const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
   const reservations = getReservations();
 
   const filteredReservations = useMemo(() => filterReservations(reservations, filters), [reservations, filters]);
   const summary = useMemo(() => summarizeReservations(reservations), [reservations]);
+  const selectedReservation = useMemo(
+    () => filteredReservations.find((reservation) => reservation.id === selectedReservationId) ?? filteredReservations[0] ?? null,
+    [filteredReservations, selectedReservationId],
+  );
 
   return (
     <section className="space-y-6">
@@ -65,15 +70,41 @@ export function ReservationsPage() {
       ) : (
       <div className="rounded-2xl border border-[#E8DED2] bg-white shadow-sm">
         {filteredReservations.map((reservation) => (
-          <div key={reservation.id} className="border-b border-slate-100 p-5 last:border-b-0">
+          <button
+            type="button"
+            key={reservation.id}
+            onClick={() => setSelectedReservationId(reservation.id)}
+            className={`block w-full border-b border-slate-100 p-5 text-start last:border-b-0 ${selectedReservation?.id === reservation.id ? 'bg-[#FAF7F2]' : ''}`}
+          >
             <p className="text-sm font-semibold text-slate-400">{reservation.reservationNumber}</p>
             <h3 className="mt-1 text-lg font-bold text-[#1F1B18]">{reservation.customerName}</h3>
             <p className="mt-1 text-sm text-[#7A7168]">{reservation.dressCode} - {reservation.dressName}</p>
             <p className="mt-2 text-sm text-[#7A7168]">{reservation.pickupDate} / {reservation.returnDate}</p>
-          </div>
+            <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses[reservation.status]}`}>
+              {statusLabels[reservation.status]}
+            </span>
+          </button>
         ))}
       </div>
       )}
     </section>
   );
 }
+
+const statusLabels: Record<ReservationStatus, string> = {
+  pending: 'قيد الانتظار',
+  confirmed: 'مؤكد',
+  delivered: 'تم التسليم',
+  returned: 'تم الإرجاع',
+  cancelled: 'ملغي',
+  overdue: 'متأخر',
+};
+
+const statusBadgeClasses: Record<ReservationStatus, string> = {
+  pending: 'bg-amber-100 text-amber-800',
+  confirmed: 'bg-blue-100 text-blue-800',
+  delivered: 'bg-indigo-100 text-indigo-800',
+  returned: 'bg-emerald-100 text-emerald-800',
+  cancelled: 'bg-slate-100 text-slate-700',
+  overdue: 'bg-rose-100 text-rose-800',
+};
