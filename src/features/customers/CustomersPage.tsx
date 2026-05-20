@@ -73,7 +73,48 @@ export function CustomersPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [draftPhone, setDraftPhone] = useState('');
-  const customers = getCustomers();
+  const [localCustomers, setLocalCustomers] = useState<Customer[]>([]);
+  const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
+  const customers = [...getCustomers(), ...localCustomers];
+
+  const normalizeName = (value: string) => value.replace(/\s+/g, ' ').trim();
+  const normalizePhone = (value: string) => value.replace(/[^\d+]/g, '').trim();
+
+  const closeAddModal = () => {
+    setIsAddModalOpen(false);
+    setDraftName('');
+    setDraftPhone('');
+    setErrors({});
+  };
+
+  const submitAddCustomer = () => {
+    const normalizedName = normalizeName(draftName);
+    const normalizedPhone = normalizePhone(draftPhone);
+    const nextErrors: { name?: string; phone?: string } = {};
+
+    if (!normalizedName) nextErrors.name = 'اسم العميلة مطلوب.';
+    if (!normalizedPhone) nextErrors.phone = 'رقم الهاتف مطلوب.';
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setLocalCustomers((current) => [
+      {
+        id: `local-customer-${Date.now()}`,
+        name: normalizedName,
+        phone: normalizedPhone,
+        address: 'غير محدد',
+        measurements: 'غير مسجل',
+        status: 'normal',
+        totalReservations: 0,
+        activeReservations: 0,
+        totalPaid: 0,
+        remainingBalance: 0,
+      },
+      ...current,
+    ]);
+    closeAddModal();
+  };
 
   const filteredCustomers = useMemo(() => filterCustomers(customers, filters), [customers, filters]);
   const summary = useMemo(() => summarizeCustomers(customers), [customers]);
@@ -159,9 +200,11 @@ export function CustomersPage() {
       ) : (
         <EmptyState title="لا توجد عميلات مطابقات" description="غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى." />
       )}
-      <SimpleModal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="إضافة عميلة" footer={<button onClick={() => setIsAddModalOpen(false)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white">حفظ محلي</button>}>
-        <input value={draftName} onChange={(e)=>setDraftName(e.target.value)} placeholder="اسم العميلة" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
-        <input value={draftPhone} onChange={(e)=>setDraftPhone(e.target.value)} placeholder="رقم الهاتف" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+      <SimpleModal open={isAddModalOpen} onClose={closeAddModal} title="إضافة عميلة" footer={<button onClick={submitAddCustomer} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white">حفظ محلي</button>}>
+        <input value={draftName} onChange={(e)=>setDraftName(normalizeName(e.target.value))} placeholder="اسم العميلة" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+        {errors.name && <p className="text-xs text-red-700">{errors.name}</p>}
+        <input value={draftPhone} onChange={(e)=>setDraftPhone(normalizePhone(e.target.value))} placeholder="رقم الهاتف" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+        {errors.phone && <p className="text-xs text-red-700">{errors.phone}</p>}
         <p className="text-xs text-[#7A7168]">هذا نموذج محلي فقط ولا يغيّر بيانات mock الحالية.</p>
       </SimpleModal>
     </section>

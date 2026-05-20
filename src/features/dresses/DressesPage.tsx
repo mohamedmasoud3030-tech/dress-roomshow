@@ -9,6 +9,28 @@ import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 
+type DressDraft = {
+  code: string;
+  name: string;
+  description: string;
+  category: DressCategory;
+  color: string;
+  size: string;
+  rentalPrice: string;
+  depositAmount: string;
+};
+
+const createInitialDressDraft = (): DressDraft => ({
+  code: '',
+  name: '',
+  description: '',
+  category: 'زفاف',
+  color: '',
+  size: '',
+  rentalPrice: '',
+  depositAmount: '',
+});
+
 const statusLabels: Record<DressStatus, string> = {
   available: 'متاح',
   reserved: 'محجوز',
@@ -101,7 +123,56 @@ export function DressesPage() {
   const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [modalType, setModalType] = useState<'add' | 'reserve' | 'details' | null>(null);
-  const dresses = getDresses();
+  const [localDresses, setLocalDresses] = useState<Dress[]>([]);
+  const [dressDraft, setDressDraft] = useState<DressDraft>(createInitialDressDraft());
+  const [dressErrors, setDressErrors] = useState<Partial<Record<keyof DressDraft, string>>>({});
+  const dresses = [...getDresses(), ...localDresses];
+
+  const closeModal = () => {
+    setModalType(null);
+    setSelectedDress(null);
+    setDressDraft(createInitialDressDraft());
+    setDressErrors({});
+  };
+
+  const validateDressDraft = () => {
+    const errors: Partial<Record<keyof DressDraft, string>> = {};
+    if (!dressDraft.code.trim()) errors.code = 'الكود مطلوب.';
+    if (!dressDraft.name.trim()) errors.name = 'اسم الفستان مطلوب.';
+    if (!dressDraft.category) errors.category = 'الفئة مطلوبة.';
+    if (!dressDraft.color.trim()) errors.color = 'اللون مطلوب.';
+    if (!dressDraft.size.trim()) errors.size = 'المقاس مطلوب.';
+    if (!dressDraft.rentalPrice.trim() || Number(dressDraft.rentalPrice) <= 0) errors.rentalPrice = 'سعر الإيجار مطلوب ويكون أكبر من صفر.';
+    if (!dressDraft.depositAmount.trim() || Number(dressDraft.depositAmount) < 0) errors.depositAmount = 'التأمين مطلوب ولا يكون سالباً.';
+    setDressErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const submitDress = () => {
+    if (!validateDressDraft()) return;
+    const nowId = `local-dress-${Date.now()}`;
+    setLocalDresses((current) => [
+      {
+        id: nowId,
+        code: dressDraft.code.trim().toUpperCase(),
+        name: dressDraft.name.trim(),
+        description: dressDraft.description.trim() || 'بدون وصف',
+        category: dressDraft.category,
+        color: dressDraft.color.trim(),
+        size: dressDraft.size.trim(),
+        purchasePrice: 0,
+        rentalPrice: Number(dressDraft.rentalPrice),
+        salePrice: 0,
+        depositAmount: Number(dressDraft.depositAmount),
+        status: 'available',
+        isForRent: true,
+        isForSale: false,
+        timesRented: 0,
+      },
+      ...current,
+    ]);
+    closeModal();
+  };
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
   const summary = useMemo(() => summarizeDresses(dresses), [dresses]);
@@ -189,21 +260,47 @@ export function DressesPage() {
       )}
       <SimpleModal
         open={modalType !== null}
-        onClose={() => { setModalType(null); setSelectedDress(null); }}
+        onClose={closeModal}
         title={modalType === 'add' ? 'إضافة فستان' : modalType === 'reserve' ? 'حجز سريع' : 'تفاصيل الفستان'}
-        footer={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white" onClick={() => { setModalType(null); setSelectedDress(null); }}>تم</button>}
+        footer={
+          modalType === 'add' ? (
+            <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white" onClick={submitDress}>حفظ محلي</button>
+          ) : (
+            <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white" onClick={closeModal}>تم</button>
+          )
+        }
       >
         {modalType === 'add' && (
           <>
-            <p className="text-sm text-[#7A7168]">نموذج إضافة محلي لواجهة التشغيل فقط.</p>
+            <input value={dressDraft.code} onChange={(event) => setDressDraft((current) => ({ ...current, code: event.target.value }))} placeholder="كود الفستان" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+            {dressErrors.code && <p className="text-xs text-red-700">{dressErrors.code}</p>}
+            <input value={dressDraft.name} onChange={(event) => setDressDraft((current) => ({ ...current, name: event.target.value }))} placeholder="اسم الفستان" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+            {dressErrors.name && <p className="text-xs text-red-700">{dressErrors.name}</p>}
+            <textarea value={dressDraft.description} onChange={(event) => setDressDraft((current) => ({ ...current, description: event.target.value }))} placeholder="الوصف" className="h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+            <select value={dressDraft.category} onChange={(event) => setDressDraft((current) => ({ ...current, category: event.target.value as DressCategory }))} className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm">
+              {categories.filter((category): category is DressCategory => category !== 'all').map((category) => <option key={category} value={category}>{category}</option>)}
+            </select>
+            <div className="grid grid-cols-2 gap-2">
+              <input value={dressDraft.color} onChange={(event) => setDressDraft((current) => ({ ...current, color: event.target.value }))} placeholder="اللون" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+              <input value={dressDraft.size} onChange={(event) => setDressDraft((current) => ({ ...current, size: event.target.value }))} placeholder="المقاس" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+            </div>
+            {(dressErrors.color || dressErrors.size) && <p className="text-xs text-red-700">{dressErrors.color ?? dressErrors.size}</p>}
+            <div className="grid grid-cols-2 gap-2">
+              <input type="number" min="0" step="0.001" value={dressDraft.rentalPrice} onChange={(event) => setDressDraft((current) => ({ ...current, rentalPrice: event.target.value }))} placeholder="سعر الإيجار" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+              <input type="number" min="0" step="0.001" value={dressDraft.depositAmount} onChange={(event) => setDressDraft((current) => ({ ...current, depositAmount: event.target.value }))} placeholder="مبلغ التأمين" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
+            </div>
+            {(dressErrors.rentalPrice || dressErrors.depositAmount) && <p className="text-xs text-red-700">{dressErrors.rentalPrice ?? dressErrors.depositAmount}</p>}
             <p className="text-xs text-[#7A7168]">لا يتم حفظ الفستان في بيانات mock الحالية ضمن هذا الإصدار.</p>
           </>
         )}
+        {modalType === 'reserve' && selectedDress && <p className="text-sm text-[#7A7168]">نقطة دخول الحجز السريع جاهزة للفستان: <span className="font-semibold">{selectedDress.name}</span>. سيتم ربطها بتدفق الحجوزات لاحقاً.</p>}
         {selectedDress && (
           <>
             <p className="text-sm text-[#7A7168]">{selectedDress.code} — {selectedDress.name}</p>
             <p className="text-sm">المقاس: <span className="font-semibold">{selectedDress.size}</span> | اللون: <span className="font-semibold">{selectedDress.color}</span></p>
             <p className="text-sm">الإيجار: <span className="font-semibold">{formatMoneyOMR(selectedDress.rentalPrice)}</span> | التأمين: <span className="font-semibold">{formatMoneyOMR(selectedDress.depositAmount)}</span></p>
+            <p className="text-sm">الفئة: <span className="font-semibold">{selectedDress.category}</span> | الحالة: <span className="font-semibold">{statusLabels[selectedDress.status]}</span></p>
+            <p className="text-sm">الوصف: <span className="font-semibold">{selectedDress.description}</span></p>
           </>
         )}
       </SimpleModal>
