@@ -1,45 +1,85 @@
-# [Project name]
+# Dress Roomshow — نظام إدارة محل الفساتين
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+نظام إدارة محل فساتين المناسبات — أوف-لاين أولاً، بدون إنترنت مطلوب.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/dress-showroom run dev` — run the dress-showroom app
+- `pnpm --filter @workspace/dress-showroom run typecheck` — typecheck
+- `pnpm install` — install all workspace packages
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- **Frontend**: React 19 + Vite 7 + TypeScript 5 + Tailwind CSS v4
+- **Routing**: React Router DOM v7
+- **Forms**: react-hook-form v7 + Zod v3 + @hookform/resolvers
+- **Storage**: localStorage (web/PWA) — Tauri SQLite (desktop, future)
+- **Font**: Cairo (Google Fonts) — Arabic RTL
+
+## Architecture
+
+```
+artifacts/dress-showroom/src/
+├── app/App.tsx                      # Route definitions
+├── services/localDatabase.ts        # PRIMARY data adapter (localStorage ↔ Tauri SQLite)
+├── shared/utils/
+│   ├── date.ts                      # getTodayISO(), formatDateAr()
+│   └── format.ts                    # formatMoneyOMR() → OMR currency
+├── components/
+│   ├── layout/AppLayout.tsx         # Sidebar + mobile bottom nav
+│   └── shared/                      # PageHeader, SummaryCard, Modal, StatusBadge
+└── features/
+    ├── dashboard/                   # Real-time KPI from localDatabase
+    ├── dresses/                     # CRUD: add + list + filter + status badges
+    ├── customers/                   # CRUD: add + list + filter + balance tracking
+    ├── reservations/                # CRUD: create + list + cancel + overlap check
+    ├── payments/                    # CRUD: add payment linked to reservation
+    ├── delivery-return/             # Deliver + Return flows (status automation)
+    ├── expenses/                    # CRUD: add + delete + category filter
+    └── reports/                     # Today report, financial summary, dress performance
+```
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- **DB schema boundary**: `src/services/localDatabase.ts` — all reads/writes go through here
+- **Money format**: `src/shared/utils/format.ts` → `formatMoneyOMR()`
+- **Date utilities**: `src/shared/utils/date.ts` → `getTodayISO()`, `formatDateAr()`
 
-## Architecture decisions
+## Architecture Decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **Adapter pattern**: `localDatabase.ts` is the only file that touches localStorage. When Tauri SQLite support is added, only this one file changes.
+- **No React Query**: Simple `useState` + callback pattern. State is refreshed explicitly after mutations — keeps bundle small and avoids network-oriented abstractions.
+- **Tailwind v4** via `@tailwindcss/vite` plugin — no `tailwind.config.ts` needed.
+- **Zod v3** (from `import { z } from 'zod'`) — **not** `zod/v4` — required for `@hookform/resolvers` compatibility.
+- **Dress status automation**: reservation → `reserved`, delivery → `rented`, return → `available/laundry/maintenance/damaged` based on condition.
+- **Reservation payment tracking**: every `addPayment()` call recalculates `paidAmount` and `remainingAmount` on the linked reservation.
+- Sidebar visible on desktop (≥md), bottom nav visible on mobile (<md).
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+8 fully-wired modules:
+1. **Dashboard** — real-time KPIs, today's pickups/returns, alerts
+2. **Dresses** — add, filter by status/category/color, summary cards
+3. **Customers** — add, track balance, filter by status/balance
+4. **Reservations** — create (overlap-checked), cancel, status lifecycle
+5. **Delivery-Return** — deliver form (confirmed→delivered→rented), return form (delivered→returned, dress status automation)
+6. **Payments** — add payment linked to reservation, auto-updates remaining balance
+7. **Expenses** — add, delete, category filter, financial summary
+8. **Reports** — today summary, financial P&L, dress performance table, customer balances
 
-## User preferences
+## User Preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Arabic RTL first. Font: Cairo.
+- Currency: Omani Rial (ر.ع) — 3 decimal places.
+- Offline-first (no cloud, no Supabase).
+- Stack: React + Vite + TypeScript + Tailwind + Tauri (desktop) + SQLite (via localDatabase adapter).
+- Do NOT use localStorage as the architectural source of truth — it's the web fallback only.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Always import `z` from `'zod'` (not `'zod/v4'`) for `@hookform/resolvers` compatibility.
+- `localDatabase.ts` is the ONLY file that should touch `localStorage` directly.
+- `generateId()` and `generateNumber()` live in `localDatabase.ts` — import from there, not from a separate utils file.
+- Tailwind v4 uses `@import "tailwindcss"` in CSS, not `@tailwind base/components/utilities`.
+- The vite.config.ts requires `PORT` and `BASE_PATH` env vars — provided by the Replit workflow system.
+- Do not add Radix/shadcn components (they're not installed). All UI is raw Tailwind.
