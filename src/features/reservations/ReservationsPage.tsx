@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { filterReservations, getReservations, summarizeReservations } from './reservation.service';
+import { useEffect, useMemo, useState } from 'react';
+import { filterReservations, getReservations, getReservationsFromLocalDb, summarizeReservations } from './reservation.service';
 import type { ReservationFilters, ReservationStatus } from './reservation.types';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
@@ -9,7 +9,15 @@ import { SummaryCard } from '../../components/shared/SummaryCard';
 export function ReservationsPage() {
   const [filters, setFilters] = useState<ReservationFilters>({ search: '', status: 'all', timing: 'all' });
   const [selectedReservationId, setSelectedReservationId] = useState<string | null>(null);
-  const reservations = getReservations();
+  const [localReservations, setLocalReservations] = useState(getReservations());
+  const reservations = localReservations;
+
+  useEffect(() => {
+    void (async () => {
+      const rows = await getReservationsFromLocalDb();
+      if (rows) setLocalReservations(rows);
+    })();
+  }, []);
 
   const filteredReservations = useMemo(() => filterReservations(reservations, filters), [reservations, filters]);
   const summary = useMemo(() => summarizeReservations(reservations), [reservations]);

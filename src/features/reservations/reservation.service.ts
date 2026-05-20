@@ -1,3 +1,4 @@
+import { loadLocalReservations } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
 import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
@@ -49,8 +50,13 @@ export function hasReservationOverlap(check: AvailabilityCheck, reservations: Re
   const today = getTodayISO();
 
   return reservations.some((reservation) => {
-    if (reservation.dressCode !== check.dressCode) return false;
-    if (!activeStatuses.has(getEffectiveReservationStatus(reservation, today))) return false;
+    if (reservation.dressCode !== check.dressCode) {
+      return false;
+    }
+
+    if (!activeStatuses.has(getEffectiveReservationStatus(reservation, today))) {
+      return false;
+    }
 
     return reservation.pickupDate <= check.returnDate && check.pickupDate <= reservation.returnDate;
   });
@@ -66,4 +72,20 @@ function getEffectiveReservationStatus(reservation: Reservation, today: string):
   }
 
   return reservation.status;
+}
+
+export async function getReservationsFromLocalDb(): Promise<Reservation[] | null> {
+  try {
+    const rows = await loadLocalReservations();
+    if (!rows) {
+      return null;
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      status: row.status as Reservation['status'],
+    }));
+  } catch {
+    return null;
+  }
 }

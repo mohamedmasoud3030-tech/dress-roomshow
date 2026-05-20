@@ -1,3 +1,4 @@
+import { loadLocalPayments, saveLocalPayment, type LocalPaymentRecord } from '../../services/localDatabase';
 import { paymentMockRecords } from './payment.mock';
 import type {
   PaymentDirection,
@@ -123,4 +124,32 @@ export function formatPaymentDirectionLabel(direction: PaymentDirection): string
   };
 
   return labels[direction];
+}
+
+export async function getPaymentsFromLocalDb(): Promise<PaymentRecord[] | null> {
+  try {
+    const rows = await loadLocalPayments();
+    if (!rows) return null;
+    return rows.map((row) => ({
+      id: row.id,
+      paymentNumber: row.paymentNumber,
+      reservationNumber: row.reservationNumber,
+      customerName: row.customerName,
+      dressCode: row.dressCode,
+      dressName: row.dressName,
+      paymentDate: row.paymentDate,
+      type: row.paymentType as PaymentRecord['type'],
+      method: row.method as PaymentRecord['method'],
+      direction: row.direction as PaymentRecord['direction'],
+      amount: row.amount,
+      reservationTotal: row.reservationTotal,
+      notes: row.notes,
+    }));
+  } catch {
+    return null;
+  }
+}
+
+export async function addPaymentToLocalDb(payment: PaymentRecord): Promise<boolean> {
+  try { const row: LocalPaymentRecord = { ...payment, paymentType: payment.type, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; return await saveLocalPayment(row); } catch { return false; }
 }

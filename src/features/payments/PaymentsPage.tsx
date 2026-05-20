@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   filterPayments,
   formatPaymentDirectionLabel,
   formatPaymentMethodLabel,
   formatPaymentTypeLabel,
   getPayments,
+  getPaymentsFromLocalDb,
   summarizePayments,
 } from './payment.service';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -87,6 +88,13 @@ export function PaymentsPage() {
     method: 'all',
     direction: 'all',
   });
+
+  useEffect(() => {
+    void (async () => {
+      const rows = await getPaymentsFromLocalDb();
+      if (rows) setPayments(rows);
+    })();
+  }, []);
 
   const filteredPayments = useMemo(
     () => filterPayments(payments, filters),

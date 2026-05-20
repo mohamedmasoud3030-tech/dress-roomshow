@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Search, Shirt, Sparkles, Wrench } from 'lucide-react';
-import { filterDresses, getDresses, summarizeDresses } from './dress.service';
+import { addDressToLocalDb, filterDresses, getDresses, getDressesFromLocalDb, summarizeDresses } from './dress.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -124,9 +124,17 @@ export function DressesPage() {
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
   const [modalType, setModalType] = useState<'add' | 'reserve' | 'details' | null>(null);
   const [localDresses, setLocalDresses] = useState<Dress[]>([]);
+  const [isDbMode, setIsDbMode] = useState(false);
   const [dressDraft, setDressDraft] = useState<DressDraft>(createInitialDressDraft());
   const [dressErrors, setDressErrors] = useState<Partial<Record<keyof DressDraft, string>>>({});
-  const dresses = [...getDresses(), ...localDresses];
+  const dresses = isDbMode ? localDresses : [...getDresses(), ...localDresses];
+
+  useEffect(() => {
+    void (async () => {
+      const rows = await getDressesFromLocalDb();
+      if (rows) { setLocalDresses(rows); setIsDbMode(true); }
+    })();
+  }, []);
 
   const closeModal = () => {
     setModalType(null);
@@ -151,27 +159,30 @@ export function DressesPage() {
   const submitDress = () => {
     if (!validateDressDraft()) return;
     const nowId = `local-dress-${Date.now()}`;
-    setLocalDresses((current) => [
-      {
-        id: nowId,
-        code: dressDraft.code.trim().toUpperCase(),
-        name: dressDraft.name.trim(),
-        description: dressDraft.description.trim() || 'بدون وصف',
-        category: dressDraft.category,
-        color: dressDraft.color.trim(),
-        size: dressDraft.size.trim(),
-        purchasePrice: 0,
-        rentalPrice: Number(dressDraft.rentalPrice),
-        salePrice: 0,
-        depositAmount: Number(dressDraft.depositAmount),
-        status: 'available',
-        isForRent: true,
-        isForSale: false,
-        timesRented: 0,
-      },
-      ...current,
-    ]);
-    closeModal();
+    const newDress: Dress = {
+      id: nowId,
+      code: dressDraft.code.trim().toUpperCase(),
+      name: dressDraft.name.trim(),
+      description: dressDraft.description.trim() || 'بدون وصف',
+      category: dressDraft.category,
+      color: dressDraft.color.trim(),
+      size: dressDraft.size.trim(),
+      purchasePrice: 0,
+      rentalPrice: Number(dressDraft.rentalPrice),
+      salePrice: 0,
+      depositAmount: Number(dressDraft.depositAmount),
+      status: 'available',
+      isForRent: true,
+      isForSale: false,
+      timesRented: 0,
+    };
+
+    void (async () => {
+      const persisted = await addDressToLocalDb(newDress);
+      setLocalDresses((current) => [newDress, ...current]);
+      if (persisted) setIsDbMode(true);
+      closeModal();
+    })();
   };
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
