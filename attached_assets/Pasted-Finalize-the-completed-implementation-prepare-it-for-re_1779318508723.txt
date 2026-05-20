@@ -1,0 +1,76 @@
+Finalize the completed implementation, prepare it for review, and make it Vercel-ready.
+
+Tasks:
+1. Review all changed files and ensure the work stays within the MVP scope only:
+   dresses, customers, reservations, delivery/return, payments, expenses, dashboard, simple reports.
+
+2. Do not remove Supabase permanently. Keep the app local-first, but leave Supabase available for optional future sync/backup.
+
+3. Ensure mock data is no longer the runtime source of truth where CRUD was implemented.
+
+4. Verify Add/Edit/Delete flows are functional where implemented.
+
+5. Verify Dashboard and Reports read from real local data, not hardcoded values.
+
+6. Prepare Vercel deployment files/config:
+   - Ensure package.json has correct scripts:
+     build, lint, typecheck if applicable.
+   - Ensure Vite build output is dist.
+   - Add or fix vercel.json if needed.
+   - Use SPA fallback routing:
+     rewrites should route all paths to /index.html.
+   - Ensure there are no Tauri-only imports executed in the web/PWA runtime.
+   - Ensure localStorage fallback works correctly on Vercel/web.
+   - Do not require SQLite/Tauri APIs for the Vercel build.
+
+7. Run available checks:
+   - npm run lint
+   - npm run build
+   - npm run typecheck, if available
+   - npm run tauri -- info, if available
+
+8. Fix any blocking lint/build/type errors.
+
+9. If Vercel CLI is available and authenticated, deploy or create a preview deployment.
+   If not available/authenticated, only prepare the repo for Vercel and document the exact Vercel settings:
+   - Framework: Vite
+   - Build Command: npm run build
+   - Output Directory: dist
+   - Install Command: npm install
+   - SPA fallback enabled through vercel.json
+
+10. Commit the changes with:
+   feat: implement local-first MVP workflows
+
+11. Push the branch and create a Pull Request.
+
+PR title:
+Implement local-first Dress Showroom MVP workflows
+
+PR body must include:
+- Summary of implemented changes
+- Main files/modules changed
+- Storage approach used
+- Vercel deployment readiness
+- Testing results
+- Known limitations or environment-only warnings
+
+Do not merge directly into main unless explicitly required and all checks pass.
+
+Return the final response in this format:
+
+Summary
+- ...
+
+Testing
+- ...
+
+Vercel
+- Preview URL if deployed
+- Otherwise exact deployment settings and reason deployment was not executed
+
+PR
+- ...
+
+Remaining notes
+- ...
