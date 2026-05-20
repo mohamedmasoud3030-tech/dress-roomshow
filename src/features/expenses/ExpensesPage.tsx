@@ -45,7 +45,18 @@ const categoryBadgeClasses: Record<ExpenseCategory, string> = {
 
 export function ExpensesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [draftNote, setDraftNote] = useState('');
+  const [expenses, setExpenses] = useState(() => getExpenses());
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [draftExpense, setDraftExpense] = useState({
+    title: '',
+    category: 'laundry' as ExpenseCategory,
+    amount: '',
+    paymentMethod: 'cash' as ExpensePaymentMethod,
+    expenseDate: '',
+    relatedDressCode: '',
+    relatedDressName: '',
+    notes: '',
+  });
 
   const [filters, setFilters] = useState<ExpenseFilters>({
     search: '',
@@ -53,9 +64,69 @@ export function ExpensesPage() {
     paymentMethod: 'all',
   });
 
-  const expenses = useMemo(() => getExpenses(), []);
   const filteredExpenses = useMemo(() => filterExpenses(expenses, filters), [expenses, filters]);
   const summary = useMemo(() => summarizeExpenses(filteredExpenses), [filteredExpenses]);
+
+  const resetCreateState = () => {
+    setDraftExpense({
+      title: '',
+      category: 'laundry',
+      amount: '',
+      paymentMethod: 'cash',
+      expenseDate: '',
+      relatedDressCode: '',
+      relatedDressName: '',
+      notes: '',
+    });
+    setFormErrors({});
+  };
+
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    resetCreateState();
+  };
+
+  const submitCreateExpense = () => {
+    const trimmed = {
+      title: draftExpense.title.trim(),
+      relatedDressCode: draftExpense.relatedDressCode.trim(),
+      relatedDressName: draftExpense.relatedDressName.trim(),
+      notes: draftExpense.notes.trim(),
+    };
+    const amountNumber = Number(draftExpense.amount);
+    const nextErrors: Record<string, string> = {};
+
+    if (!trimmed.title) nextErrors.title = 'عنوان المصروف مطلوب';
+    if (!draftExpense.expenseDate) nextErrors.expenseDate = 'تاريخ المصروف مطلوب';
+    if (!draftExpense.amount.trim()) {
+      nextErrors.amount = 'المبلغ مطلوب';
+    } else if (Number.isNaN(amountNumber) || amountNumber <= 0) {
+      nextErrors.amount = 'المبلغ يجب أن يكون رقماً أكبر من صفر';
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFormErrors(nextErrors);
+      return;
+    }
+
+    setExpenses((prev) => [
+      {
+        id: `local-expense-${crypto.randomUUID()}`,
+        expenseNumber: `EXP-LOCAL-${String(prev.length + 1).padStart(3, '0')}`,
+        expenseDate: draftExpense.expenseDate,
+        title: trimmed.title,
+        category: draftExpense.category,
+        amount: amountNumber,
+        paymentMethod: draftExpense.paymentMethod,
+        relatedDressCode: trimmed.relatedDressCode || undefined,
+        relatedDressName: trimmed.relatedDressName || undefined,
+        notes: trimmed.notes || undefined,
+      },
+      ...prev,
+    ]);
+
+    closeCreateModal();
+  };
 
   return (
     <section className="space-y-6">
@@ -152,8 +223,18 @@ export function ExpensesPage() {
           ))}
         </div>
       )}
-      <SimpleModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title='تسجيل مصروف جديد' footer={<button onClick={() => setIsCreateModalOpen(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
-        <textarea value={draftNote} onChange={(e)=>setDraftNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+      <SimpleModal open={isCreateModalOpen} onClose={closeCreateModal} title='تسجيل مصروف جديد' footer={<button onClick={submitCreateExpense} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <div className='grid gap-3 md:grid-cols-2'>
+          <input value={draftExpense.title} onChange={(e)=>setDraftExpense((p)=>({...p,title:e.target.value}))} placeholder='عنوان المصروف*' className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm md:col-span-2' />
+          <input type='date' value={draftExpense.expenseDate} onChange={(e)=>setDraftExpense((p)=>({...p,expenseDate:e.target.value}))} className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+          <input value={draftExpense.amount} onChange={(e)=>setDraftExpense((p)=>({...p,amount:e.target.value}))} placeholder='المبلغ*' className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+          <select value={draftExpense.category} onChange={(e)=>setDraftExpense((p)=>({...p,category:e.target.value as ExpenseCategory}))} className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm'>{categoryOptions.filter((o)=>o.value!=='all').map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+          <select value={draftExpense.paymentMethod} onChange={(e)=>setDraftExpense((p)=>({...p,paymentMethod:e.target.value as ExpensePaymentMethod}))} className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm'>{paymentMethodOptions.filter((o)=>o.value!=='all').map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+          <input value={draftExpense.relatedDressCode} onChange={(e)=>setDraftExpense((p)=>({...p,relatedDressCode:e.target.value}))} placeholder='كود الفستان (اختياري)' className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+          <input value={draftExpense.relatedDressName} onChange={(e)=>setDraftExpense((p)=>({...p,relatedDressName:e.target.value}))} placeholder='اسم الفستان (اختياري)' className='rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+        </div>
+        {Object.values(formErrors).length > 0 ? <ul className='mt-3 list-disc space-y-1 pr-5 text-xs text-rose-700'>{Object.entries(formErrors).map(([key, message])=><li key={key}>{message}</li>)}</ul> : null}
+        <textarea value={draftExpense.notes} onChange={(e)=>setDraftExpense((p)=>({...p,notes:e.target.value}))} placeholder='ملاحظات العملية' className='mt-3 min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
         <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
       </SimpleModal>
     </section>
