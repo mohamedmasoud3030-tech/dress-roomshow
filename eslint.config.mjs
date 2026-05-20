@@ -11,6 +11,7 @@ export default tseslint.config(
   {
     files: ['src/**/*.{ts,tsx}'],
     languageOptions: {
+      parser: tseslint.parser,
       ecmaVersion: 2020,
       sourceType: 'module',
       globals: globals.browser,
