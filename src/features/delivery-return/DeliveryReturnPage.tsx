@@ -49,8 +49,8 @@ function formatDateTime(dateTime?: string): string {
 }
 
 export function DeliveryReturnPage() {
-  const [openModal, setOpenModal] = useState(false);
-  const [localNote, setLocalNote] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [draftNote, setDraftNote] = useState('');
 
   const [filters, setFilters] = useState<DeliveryReturnFilters>({
     search: '',
@@ -75,7 +75,7 @@ export function DeliveryReturnPage() {
         eyebrow="التسليم والاسترجاع"
         title="إدارة التسليم والاسترجاع"
         description="متابعة تسليم الفساتين واسترجاعها مع الرسوم والملاحظات التشغيلية."
-        action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>عملية تسليم / استرجاع جديدة</button>}
+        action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setIsCreateModalOpen(true)}>عملية تسليم / استرجاع جديدة</button>}
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -167,8 +167,8 @@ export function DeliveryReturnPage() {
           ))}
         </div>
       )}
-      <SimpleModal open={openModal} onClose={() => setOpenModal(false)} title='عملية تسليم / استرجاع جديدة' footer={<button onClick={() => setOpenModal(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
-        <textarea value={localNote} onChange={(e)=>setLocalNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+      <SimpleModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title='عملية تسليم / استرجاع جديدة' footer={<button onClick={() => setIsCreateModalOpen(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <textarea value={draftNote} onChange={(e)=>setDraftNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
         <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
       </SimpleModal>
     </section>

@@ -11,6 +11,7 @@ import { FilterPanel } from '../../components/shared/FilterPanel';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
 import { SummaryCard } from '../../components/shared/SummaryCard';
+import { formatDateByLocale, formatMoneyByLocale } from '../../services/localeFormatters';
 import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod } from './expense.types';
 
 const categoryOptions: Array<{ value: ExpenseCategory | 'all'; label: string }> = [
@@ -42,25 +43,9 @@ const categoryBadgeClasses: Record<ExpenseCategory, string> = {
   other: 'bg-stone-100 text-stone-700',
 };
 
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('ar-OM', {
-    style: 'currency',
-    currency: 'OMR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ar-OM', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-}
-
 export function ExpensesPage() {
-  const [openModal, setOpenModal] = useState(false);
-  const [localNote, setLocalNote] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [draftNote, setDraftNote] = useState('');
 
   const [filters, setFilters] = useState<ExpenseFilters>({
     search: '',
@@ -74,14 +59,14 @@ export function ExpensesPage() {
 
   return (
     <section className="space-y-6">
-      <PageHeader eyebrow="المصروفات" title="إدارة المصروفات" description="متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر." action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>تسجيل مصروف جديد</button>} />
+      <PageHeader eyebrow="المصروفات" title="إدارة المصروفات" description="متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر." action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setIsCreateModalOpen(true)}>تسجيل مصروف جديد</button>} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <SummaryCard label="إجمالي المصروفات" value={formatAmount(summary.totalExpenses)} />
-        <SummaryCard label="مصروفات الغسيل" value={formatAmount(summary.laundryExpenses)} />
-        <SummaryCard label="الخياطة والصيانة" value={formatAmount(summary.serviceExpenses)} />
-        <SummaryCard label="مصروفات الشراء" value={formatAmount(summary.purchaseExpenses)} />
-        <SummaryCard label="مصروفات أخرى" value={formatAmount(summary.otherExpenses)} />
+        <SummaryCard label="إجمالي المصروفات" value={formatMoneyByLocale(summary.totalExpenses)} />
+        <SummaryCard label="مصروفات الغسيل" value={formatMoneyByLocale(summary.laundryExpenses)} />
+        <SummaryCard label="الخياطة والصيانة" value={formatMoneyByLocale(summary.serviceExpenses)} />
+        <SummaryCard label="مصروفات الشراء" value={formatMoneyByLocale(summary.purchaseExpenses)} />
+        <SummaryCard label="مصروفات أخرى" value={formatMoneyByLocale(summary.otherExpenses)} />
       </div>
 
       <FilterPanel>
@@ -143,7 +128,7 @@ export function ExpensesPage() {
                     <p className="text-sm text-[#7A7168]">غير مرتبط بفستان محدد</p>
                   )}
                 </div>
-                <p className="text-sm font-bold text-rose-700">- {formatAmount(expense.amount)}</p>
+                <p className="text-sm font-bold text-rose-700">- {formatMoneyByLocale(expense.amount)}</p>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
@@ -157,7 +142,7 @@ export function ExpensesPage() {
 
               <dl className="mt-4 text-sm text-slate-700">
                 <dt className="text-[#7A7168]">تاريخ المصروف</dt>
-                <dd>{formatDate(expense.expenseDate)}</dd>
+                <dd>{formatDateByLocale(expense.expenseDate)}</dd>
               </dl>
 
               {expense.notes ? (
@@ -167,8 +152,8 @@ export function ExpensesPage() {
           ))}
         </div>
       )}
-      <SimpleModal open={openModal} onClose={() => setOpenModal(false)} title='تسجيل مصروف جديد' footer={<button onClick={() => setOpenModal(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
-        <textarea value={localNote} onChange={(e)=>setLocalNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+      <SimpleModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title='تسجيل مصروف جديد' footer={<button onClick={() => setIsCreateModalOpen(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <textarea value={draftNote} onChange={(e)=>setDraftNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
         <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
       </SimpleModal>
     </section>
