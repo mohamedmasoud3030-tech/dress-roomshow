@@ -41,3 +41,8 @@ export type DateRangeFilter = {
   from: string;
   to: string;
 };
+
+export type DateRangeApplied = {
+  from?: string;
+  to?: string;
+};

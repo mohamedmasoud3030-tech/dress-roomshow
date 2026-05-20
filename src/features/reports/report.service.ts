@@ -3,6 +3,7 @@ import { getPayments } from '../payments/payment.service';
 import { reportMockCustomers, reportMockDresses, reportMockReservations } from './report.mock';
 import type {
   CustomerBalanceRow,
+  DateRangeApplied,
   DressPerformanceRow,
   FinancialSummary,
   ReportSummary,
@@ -40,6 +41,29 @@ export function getFinancialSummary(): FinancialSummary {
 
 export function getCustomerBalances(): CustomerBalanceRow[] {
   return reportMockCustomers.filter((customer) => customer.remainingBalance > 0);
+}
+
+function isInRange(date: string, range?: DateRangeApplied): boolean {
+  if (!range) {
+    return true;
+  }
+
+  const hasFrom = Boolean(range.from);
+  const hasTo = Boolean(range.to);
+
+  if (hasFrom && range.from && date < range.from) {
+    return false;
+  }
+
+  if (hasTo && range.to && date > range.to) {
+    return false;
+  }
+
+  return true;
+}
+
+export function getFilteredReservationsCount(range?: DateRangeApplied): number {
+  return reportMockReservations.filter((reservation) => isInRange(reservation.pickupDate, range) || isInRange(reservation.returnDate, range)).length;
 }
 
 export function getDressPerformance(): DressPerformanceRow[] {

@@ -1,16 +1,22 @@
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { useNavigate } from 'react-router-dom';
-
-const todayCards = [
-  { label: 'حجوزات اليوم', value: 6 },
-  { label: 'تسليم اليوم', value: 4 },
-  { label: 'استرجاع اليوم', value: 3 },
-  { label: 'مدفوعات اليوم', value: '245 ر.ع' },
-];
+import { getTodayReport, formatReportMoney } from '../reports/report.service';
+import { getReservations, summarizeReservations } from '../reservations/reservation.service';
+import { getDresses, summarizeDresses } from '../dresses/dress.service';
 
 export function DashboardPage() {
   const navigate = useNavigate();
+  const today = getTodayReport();
+  const reservationSummary = summarizeReservations(getReservations());
+  const dressSummary = summarizeDresses(getDresses());
+
+  const todayCards = [
+    { label: 'حجوزات اليوم', value: reservationSummary.today },
+    { label: 'تسليم اليوم', value: today.pickupsToday },
+    { label: 'استرجاع اليوم', value: today.returnsToday },
+    { label: 'مدفوعات اليوم', value: formatReportMoney(today.paymentsToday) },
+  ];
 
   const quickActions = [
     { label: 'حجز جديد', to: '/reservations' },
@@ -45,9 +51,9 @@ export function DashboardPage() {
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
           <h3 className="text-lg font-semibold">تنبيهات تشغيلية</h3>
           <ul className="mt-4 space-y-3 text-sm text-[#7A7168]">
-            <li className="rounded-xl bg-[#FAF7F2] p-3">حجوزات تحتاج تأكيد: <span className="font-bold text-[#1F1B18]">2</span></li>
-            <li className="rounded-xl bg-[#FAF7F2] p-3">فساتين في المغسلة: <span className="font-bold text-[#1F1B18]">5</span></li>
-            <li className="rounded-xl bg-[#FFF3DF] p-3 text-[#D69E2E]">استرجاعات متأخرة: <span className="font-bold">1</span></li>
+            <li className="rounded-xl bg-[#FAF7F2] p-3">حجوزات نشطة: <span className="font-bold text-[#1F1B18]">{reservationSummary.active}</span></li>
+            <li className="rounded-xl bg-[#FAF7F2] p-3">فساتين بحاجة خدمة: <span className="font-bold text-[#1F1B18]">{dressSummary.inService}</span></li>
+            <li className="rounded-xl bg-[#FFF3DF] p-3 text-[#D69E2E]">استرجاعات متأخرة: <span className="font-bold">{reservationSummary.overdue}</span></li>
           </ul>
         </article>
       </div>
