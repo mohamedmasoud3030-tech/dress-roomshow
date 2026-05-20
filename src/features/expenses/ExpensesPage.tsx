@@ -6,7 +6,11 @@ import {
   getExpenses,
   summarizeExpenses,
 } from './expense.service';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { FilterPanel } from '../../components/shared/FilterPanel';
+import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
+import { SummaryCard } from '../../components/shared/SummaryCard';
 import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod } from './expense.types';
 
 const categoryOptions: Array<{ value: ExpenseCategory | 'all'; label: string }> = [
@@ -70,25 +74,18 @@ export function ExpensesPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">إدارة المصروفات</h1>
-          <p className="mt-2 text-[#7A7168]">متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر.</p>
-        </div>
-        <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>
-          تسجيل مصروف جديد
-        </button>
-      </div>
+      <PageHeader eyebrow="المصروفات" title="إدارة المصروفات" description="متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر." action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>تسجيل مصروف جديد</button>} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">إجمالي المصروفات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalExpenses)}</p></article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">مصروفات الغسيل</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.laundryExpenses)}</p></article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">الخياطة والصيانة</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.serviceExpenses)}</p></article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">مصروفات الشراء</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.purchaseExpenses)}</p></article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">مصروفات أخرى</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.otherExpenses)}</p></article>
+        <SummaryCard label="إجمالي المصروفات" value={formatAmount(summary.totalExpenses)} />
+        <SummaryCard label="مصروفات الغسيل" value={formatAmount(summary.laundryExpenses)} />
+        <SummaryCard label="الخياطة والصيانة" value={formatAmount(summary.serviceExpenses)} />
+        <SummaryCard label="مصروفات الشراء" value={formatAmount(summary.purchaseExpenses)} />
+        <SummaryCard label="مصروفات أخرى" value={formatAmount(summary.otherExpenses)} />
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm md:grid-cols-3">
+      <FilterPanel>
+      <div className="grid gap-3 md:grid-cols-3">
         <input
           value={filters.search}
           onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
@@ -125,11 +122,10 @@ export function ExpensesPage() {
           ))}
         </select>
       </div>
+      </FilterPanel>
 
       {filteredExpenses.length === 0 ? (
-        <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-[#7A7168]">لا توجد مصروفات مطابقة للفلاتر الحالية.</p>
-        </article>
+        <EmptyState title="لا توجد مصروفات مطابقة" description="غيّر الفلاتر الحالية لعرض نتائج أخرى." />
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {filteredExpenses.map((expense) => (

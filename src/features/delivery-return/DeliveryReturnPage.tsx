@@ -4,7 +4,11 @@ import {
   getDeliveryReturnRecords,
   summarizeDeliveryReturnRecords,
 } from './deliveryReturn.service';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { FilterPanel } from '../../components/shared/FilterPanel';
+import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
+import { SummaryCard } from '../../components/shared/SummaryCard';
 import type { DeliveryReturnFilters, DeliveryReturnStatus } from './deliveryReturn.types';
 
 const statusOptions: Array<{ value: DeliveryReturnStatus | 'all'; label: string }> = [
@@ -67,36 +71,22 @@ export function DeliveryReturnPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">إدارة التسليم والاسترجاع</h1>
-          <p className="mt-2 text-[#7A7168]">متابعة تسليم الفساتين واسترجاعها مع الرسوم والملاحظات التشغيلية.</p>
-        </div>
-        <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>
-          عملية تسليم / استرجاع جديدة
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="التسليم والاسترجاع"
+        title="إدارة التسليم والاسترجاع"
+        description="متابعة تسليم الفساتين واسترجاعها مع الرسوم والملاحظات التشغيلية."
+        action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>عملية تسليم / استرجاع جديدة</button>}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">بانتظار التسليم</p>
-          <p className="mt-2 text-3xl font-bold text-[#1F1B18]">{summary.pendingDelivery}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">تم التسليم / خارج المحل</p>
-          <p className="mt-2 text-3xl font-bold text-[#1F1B18]">{summary.deliveredOut}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">تم الاسترجاع</p>
-          <p className="mt-2 text-3xl font-bold text-[#1F1B18]">{summary.returned}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">متأخر أو متضرر</p>
-          <p className="mt-2 text-3xl font-bold text-[#1F1B18]">{summary.lateOrDamaged}</p>
-        </article>
+        <SummaryCard label="بانتظار التسليم" value={summary.pendingDelivery} />
+        <SummaryCard label="تم التسليم / خارج المحل" value={summary.deliveredOut} />
+        <SummaryCard label="تم الاسترجاع" value={summary.returned} />
+        <SummaryCard label="متأخر أو متضرر" value={summary.lateOrDamaged} />
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm md:grid-cols-3">
+      <FilterPanel>
+        <div className="grid gap-3 md:grid-cols-3">
         <input
           value={filters.search}
           onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
@@ -119,12 +109,11 @@ export function DeliveryReturnPage() {
             </option>
           ))}
         </select>
-      </div>
+        </div>
+      </FilterPanel>
 
       {filteredRecords.length === 0 ? (
-        <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-[#7A7168]">لا توجد نتائج مطابقة للفلتر الحالي.</p>
-        </article>
+        <EmptyState title="لا توجد نتائج مطابقة" description="غيّر الفلاتر الحالية لعرض نتائج أخرى." />
       ) : (
         <div className="grid gap-4 xl:grid-cols-2">
           {filteredRecords.map((record) => (

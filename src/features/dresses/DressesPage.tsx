@@ -3,7 +3,11 @@ import { Search, Shirt, Sparkles, Wrench } from 'lucide-react';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { FilterPanel } from '../../components/shared/FilterPanel';
+import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
+import { SummaryCard } from '../../components/shared/SummaryCard';
 
 const statusLabels: Record<DressStatus, string> = {
   available: 'متاح',
@@ -104,16 +108,12 @@ export function DressesPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-[#8B5E3C]">المخزون</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#1F1B18]">الفساتين</h1>
-          <p className="mt-2 text-[#7A7168]">إدارة فساتين المحل وحالاتها وأسعار الإيجار والتأمين.</p>
-        </div>
-        <button className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
-          إضافة فستان
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="المخزون"
+        title="الفساتين"
+        description="إدارة فساتين المحل وحالاتها وأسعار الإيجار والتأمين."
+        action={<button className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">إضافة فستان</button>}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
@@ -121,14 +121,8 @@ export function DressesPage() {
           <p className="text-sm text-[#7A7168]">إجمالي الفساتين</p>
           <p className="mt-2 text-3xl font-bold">{summary.total}</p>
         </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">متاحة الآن</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-700">{summary.available}</p>
-        </article>
-        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
-          <p className="text-sm text-[#7A7168]">مؤجرة حاليًا</p>
-          <p className="mt-2 text-3xl font-bold text-[#8B5E3C]">{summary.rented}</p>
-        </article>
+        <SummaryCard label="متاحة الآن" value={summary.available} valueClassName="text-emerald-700" />
+        <SummaryCard label="مؤجرة حاليًا" value={summary.rented} valueClassName="text-[#8B5E3C]" />
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
           <Wrench className="mb-4 h-6 w-6 text-orange-600" />
           <p className="text-sm text-[#7A7168]">مغسلة / تعديل</p>
@@ -136,7 +130,7 @@ export function DressesPage() {
         </article>
       </div>
 
-      <div className="rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm">
+      <FilterPanel>
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px]">
           <label className="relative block">
             <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -182,7 +176,7 @@ export function DressesPage() {
             <option value="sale">للبيع</option>
           </select>
         </div>
-      </div>
+      </FilterPanel>
 
       {filteredDresses.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
@@ -191,10 +185,7 @@ export function DressesPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-          <p className="text-lg font-semibold text-slate-900">لا توجد فساتين مطابقة</p>
-          <p className="mt-2 text-sm text-[#7A7168]">غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
-        </div>
+        <EmptyState title="لا توجد فساتين مطابقة" description="غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى." />
       )}
       <SimpleModal
         open={modalType !== null && !!selectedDress}
