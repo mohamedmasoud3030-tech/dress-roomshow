@@ -1,7 +1,7 @@
-type EmptyStateProps = {
+type EmptyStateProps = Readonly<{
   title: string;
   description: string;
-};
+}>;
 
 export function EmptyState({ title, description }: EmptyStateProps) {
   return (

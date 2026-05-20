@@ -12,43 +12,43 @@ export function ReservationsPage() {
   return (
     <section className="space-y-6">
       <div>
-        <p className="text-sm font-semibold text-violet-700">الحجوزات</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">إدارة الحجوزات</h1>
-        <p className="mt-2 text-slate-600">متابعة الحجوزات ومواعيد الاستلام والإرجاع.</p>
+        <p className="text-sm font-semibold text-[#8B5E3C]">الحجوزات</p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#1F1B18]">إدارة الحجوزات</h1>
+        <p className="mt-2 text-[#7A7168]">متابعة الحجوزات ومواعيد الاستلام والإرجاع.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">إجمالي الحجوزات</p>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
+          <p className="text-sm text-[#7A7168]">إجمالي الحجوزات</p>
           <p className="mt-2 text-3xl font-bold">{summary.total}</p>
         </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">حجوزات نشطة</p>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
+          <p className="text-sm text-[#7A7168]">حجوزات نشطة</p>
           <p className="mt-2 text-3xl font-bold text-emerald-700">{summary.active}</p>
         </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">اليوم</p>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
+          <p className="text-sm text-[#7A7168]">اليوم</p>
           <p className="mt-2 text-3xl font-bold text-sky-700">{summary.today}</p>
         </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">متأخرة</p>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
+          <p className="text-sm text-[#7A7168]">متأخرة</p>
           <p className="mt-2 text-3xl font-bold text-red-700">{summary.overdue}</p>
         </article>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px]">
           <input
             value={filters.search}
             onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
             placeholder="ابحث برقم الحجز، العميلة، الهاتف أو الفستان"
-            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none ring-violet-200 transition focus:border-violet-300 focus:ring-4"
+            className="h-12 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none ring-[#E8DED2] transition focus:border-[#B08A5B] focus:ring-4"
           />
 
           <select
             value={filters.status}
             onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
+            className="h-12 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B]"
           >
             <option value="all">كل الحالات</option>
             <option value="pending">قيد الانتظار</option>
@@ -62,7 +62,7 @@ export function ReservationsPage() {
           <select
             value={filters.timing}
             onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
+            className="h-12 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B]"
           >
             <option value="all">كل المواعيد</option>
             <option value="today">اليوم</option>
@@ -72,13 +72,13 @@ export function ReservationsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-2xl border border-[#E8DED2] bg-white shadow-sm">
         {filteredReservations.map((reservation) => (
           <div key={reservation.id} className="border-b border-slate-100 p-5 last:border-b-0">
             <p className="text-sm font-semibold text-slate-400">{reservation.reservationNumber}</p>
-            <h3 className="mt-1 text-lg font-bold text-slate-950">{reservation.customerName}</h3>
-            <p className="mt-1 text-sm text-slate-600">{reservation.dressCode} - {reservation.dressName}</p>
-            <p className="mt-2 text-sm text-slate-500">{reservation.pickupDate} / {reservation.returnDate}</p>
+            <h3 className="mt-1 text-lg font-bold text-[#1F1B18]">{reservation.customerName}</h3>
+            <p className="mt-1 text-sm text-[#7A7168]">{reservation.dressCode} - {reservation.dressName}</p>
+            <p className="mt-2 text-sm text-[#7A7168]">{reservation.pickupDate} / {reservation.returnDate}</p>
           </div>
         ))}
       </div>

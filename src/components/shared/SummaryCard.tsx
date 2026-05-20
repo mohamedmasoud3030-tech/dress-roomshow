@@ -1,9 +1,9 @@
-type SummaryCardProps = {
+type SummaryCardProps = Readonly<{
   label: string;
   value: string | number;
   hint?: string;
   valueClassName?: string;
-};
+}>;
 
 export function SummaryCard({ label, value, hint, valueClassName }: SummaryCardProps) {
   return (

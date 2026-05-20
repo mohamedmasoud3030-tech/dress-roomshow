@@ -1,6 +1,6 @@
-type PlaceholderPageProps = {
+type PlaceholderPageProps = Readonly<{
   title: string;
-};
+}>;
 
 export function PlaceholderPage({ title }: PlaceholderPageProps) {
   return (
