@@ -26,7 +26,7 @@ export function AppLayout() {
           <p className="text-sm text-[#7A7168]">Dress roomshow</p>
           <h1 className="text-2xl font-bold">إدارة بوتيك الفساتين</h1>
         </div>
-        <nav className="space-y-2">
+        <nav aria-label="التنقل الرئيسي" className="space-y-2">
           {navigation.map((item) => (
             <NavLink key={item.to} to={item.to} className={({ isActive }) => navClass(isActive)}>
               {item.label}
@@ -43,6 +43,7 @@ export function AppLayout() {
               <h2 className="text-xl font-semibold">تشغيل يومي فاخر ومنظم</h2>
             </div>
             <button
+              type="button"
               onClick={() => navigate('/reservations')}
               className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#7A5133]"
             >
@@ -55,12 +56,17 @@ export function AppLayout() {
         </div>
       </main>
 
-      <nav className="fixed inset-x-0 bottom-0 z-20 grid grid-cols-4 border-t border-[#E8DED2] bg-[#FFFCF8]/95 p-2 backdrop-blur lg:hidden">
+      <nav
+        aria-label="التنقل السفلي"
+        className="fixed inset-x-0 bottom-0 z-20 overflow-x-auto border-t border-[#E8DED2] bg-[#FFFCF8]/95 p-2 backdrop-blur lg:hidden"
+      >
+        <div className="grid min-w-max grid-flow-col gap-2">
         {navigation.map((item) => (
           <NavLink key={item.to} to={item.to} className={({ isActive }) => `rounded-lg px-2 py-2 text-center text-xs ${isActive ? 'bg-[#B08A5B]/25 text-[#8B5E3C] font-semibold' : 'text-[#7A7168]'}`}>
             {item.label}
           </NavLink>
         ))}
+        </div>
       </nav>
     </div>
   );
