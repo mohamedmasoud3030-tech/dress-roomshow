@@ -2,7 +2,7 @@ import { getTodayISO } from '../../shared/utils/date';
 import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
 
-const activeStatuses = ['pending', 'confirmed', 'delivered', 'overdue'];
+const activeStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
 
 export function getReservations(): Reservation[] {
   return mockReservations;
@@ -37,7 +37,7 @@ export function summarizeReservations(reservations: Reservation[]): ReservationS
 
   return {
     total: reservations.length,
-    active: reservations.filter((reservation) => activeStatuses.includes(reservation.status)).length,
+    active: reservations.filter((reservation) => activeStatuses.has(reservation.status)).length,
     today: reservations.filter((reservation) => reservation.pickupDate === today || reservation.returnDate === today).length,
     overdue: reservations.filter((reservation) => reservation.status === 'overdue').length,
   };
@@ -46,7 +46,7 @@ export function summarizeReservations(reservations: Reservation[]): ReservationS
 export function hasReservationOverlap(check: AvailabilityCheck, reservations: Reservation[]): boolean {
   return reservations.some((reservation) => {
     if (reservation.dressCode !== check.dressCode) return false;
-    if (!activeStatuses.includes(reservation.status)) return false;
+    if (!activeStatuses.has(reservation.status)) return false;
 
     return reservation.pickupDate <= check.returnDate && check.pickupDate <= reservation.returnDate;
   });

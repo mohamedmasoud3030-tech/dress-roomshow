@@ -7,6 +7,7 @@ import {
   getPayments,
   summarizePayments,
 } from './payment.service';
+import { SimpleModal } from '../../components/shared/SimpleModal';
 import type {
   PaymentDirection,
   PaymentFilters,
@@ -39,10 +40,10 @@ const directionOptions: Array<{ value: PaymentDirection | 'all'; label: string }
 
 const typeBadgeClasses: Record<PaymentType, string> = {
   rental: 'bg-blue-100 text-blue-800',
-  deposit: 'bg-violet-100 text-violet-800',
+  deposit: 'bg-[#B08A5B]/20 text-[#7A5133]',
   penalty: 'bg-orange-100 text-orange-800',
   refund: 'bg-emerald-100 text-emerald-800',
-  adjustment: 'bg-slate-200 text-slate-800',
+  adjustment: 'bg-[#E8DED2] text-slate-800',
 };
 
 const methodBadgeClasses: Record<PaymentMethod, string> = {
@@ -74,6 +75,9 @@ function formatDate(date: string): string {
 }
 
 export function PaymentsPage() {
+  const [openModal, setOpenModal] = useState(false);
+  const [localNote, setLocalNote] = useState('');
+
   const [filters, setFilters] = useState<PaymentFilters>({
     search: '',
     type: 'all',
@@ -96,31 +100,35 @@ export function PaymentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">إدارة المدفوعات</h1>
-          <p className="mt-2 text-slate-600">متابعة التحصيل والاسترجاع المرتبط بالحجوزات والتسليم والاسترجاع.</p>
+          <p className="mt-2 text-[#7A7168]">متابعة التحصيل والاسترجاع المرتبط بالحجوزات والتسليم والاسترجاع.</p>
         </div>
-        <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
+        <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>
           تسجيل دفعة جديدة
         </button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي التحصيل</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalCollected)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">العربونات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.deposits)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الغرامات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.penalties)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الاسترجاعات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalRefunded)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الرصيد المتبقي</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.remainingBalance)}</p></article>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">إجمالي التحصيل</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalCollected)}</p></article>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">العربونات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.deposits)}</p></article>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">الغرامات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.penalties)}</p></article>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">الاسترجاعات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalRefunded)}</p></article>
+        <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><p className="text-sm text-[#7A7168]">الرصيد المتبقي</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.remainingBalance)}</p></article>
       </div>
 
-      <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4">
-        <input value={filters.search} onChange={(e)=>setFilters((p)=>({...p,search:e.target.value}))} placeholder="بحث برقم الدفعة أو الحجز أو العميل أو الفستان" className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100" />
-        <select value={filters.type} onChange={(e)=>setFilters((p)=>({...p,type:e.target.value as PaymentType | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{typeOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
-        <select value={filters.method} onChange={(e)=>setFilters((p)=>({...p,method:e.target.value as PaymentMethod | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{methodOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
-        <select value={filters.direction} onChange={(e)=>setFilters((p)=>({...p,direction:e.target.value as PaymentDirection | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{directionOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+      <div className="grid gap-3 rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm md:grid-cols-4">
+        <input value={filters.search} onChange={(e)=>setFilters((p)=>({...p,search:e.target.value}))} placeholder="بحث برقم الدفعة أو الحجز أو العميل أو الفستان" className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-[#B08A5B] focus:outline-none focus:ring-2 focus:ring-[#B08A5B]/20" />
+        <select value={filters.type} onChange={(e)=>setFilters((p)=>({...p,type:e.target.value as PaymentType | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-[#B08A5B] focus:outline-none focus:ring-2 focus:ring-[#B08A5B]/20">{typeOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+        <select value={filters.method} onChange={(e)=>setFilters((p)=>({...p,method:e.target.value as PaymentMethod | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-[#B08A5B] focus:outline-none focus:ring-2 focus:ring-[#B08A5B]/20">{methodOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+        <select value={filters.direction} onChange={(e)=>setFilters((p)=>({...p,direction:e.target.value as PaymentDirection | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-[#B08A5B] focus:outline-none focus:ring-2 focus:ring-[#B08A5B]/20">{directionOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
       </div>
 
-      {filteredPayments.length === 0 ? <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm"><p className="text-sm text-slate-500">لا توجد مدفوعات مطابقة للفلاتر الحالية.</p></article> : (
-        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-slate-500">رقم الدفعة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-slate-950">{payment.customerName}</h2><p className="text-sm text-slate-600">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${payment.direction === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{payment.direction === 'income' ? '+' : '-'} {formatAmount(payment.amount)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-slate-500">تاريخ الدفع</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{payment.notes}</p> : null}</article>)}</div>
+      {filteredPayments.length === 0 ? <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm"><p className="text-sm text-[#7A7168]">لا توجد مدفوعات مطابقة للفلاتر الحالية.</p></article> : (
+        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-[#7A7168]">رقم الدفعة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-[#1F1B18]">{payment.customerName}</h2><p className="text-sm text-[#7A7168]">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${payment.direction === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{payment.direction === 'income' ? '+' : '-'} {formatAmount(payment.amount)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-[#7A7168]">تاريخ الدفع</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-[#FAF7F2] p-3 text-sm text-[#7A7168]">{payment.notes}</p> : null}</article>)}</div>
       )}
+      <SimpleModal open={openModal} onClose={() => setOpenModal(false)} title='تسجيل دفعة جديدة' footer={<button onClick={() => setOpenModal(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <textarea value={localNote} onChange={(e)=>setLocalNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+        <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
+      </SimpleModal>
     </section>
   );
 }
