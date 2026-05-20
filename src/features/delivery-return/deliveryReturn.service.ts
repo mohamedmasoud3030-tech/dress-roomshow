@@ -74,9 +74,31 @@ export function summarizeDeliveryReturnRecords(
 }
 
 export async function getDeliveryReturnRecordsFromLocalDb(): Promise<DeliveryReturnRecord[] | null> {
-  try { const rows = await loadLocalDeliveryReturns(); if (!rows) return null; return rows.map((row)=>({ ...row, status: row.status as DeliveryReturnRecord['status'] })); } catch { return null; }
+  try {
+    const rows = await loadLocalDeliveryReturns();
+    if (!rows) {
+      return null;
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      status: row.status as DeliveryReturnRecord['status'],
+    }));
+  } catch {
+    return null;
+  }
 }
 
 export async function addDeliveryReturnToLocalDb(record: DeliveryReturnRecord): Promise<boolean> {
-  try { const row: LocalDeliveryReturnRecord = { ...record, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; return await saveLocalDeliveryReturn(row); } catch { return false; }
+  try {
+    const row: LocalDeliveryReturnRecord = {
+      ...record,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    return await saveLocalDeliveryReturn(row);
+  } catch {
+    return false;
+  }
 }

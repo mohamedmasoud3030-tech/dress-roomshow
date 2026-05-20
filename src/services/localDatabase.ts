@@ -8,7 +8,18 @@ export type LocalPaymentRecord = Base & { paymentNumber:string; reservationNumbe
 export type LocalExpenseRecord = Base & { expenseNumber:string; expenseDate:string; title:string; category:string; amount:number; paymentMethod:string; relatedDressCode?:string; relatedDressName?:string; notes?:string };
 export type LocalDeliveryReturnRecord = Base & { reservationNumber:string; customerName:string; customerPhone?:string; dressCode:string; dressName:string; deliveryDateTime?:string; deliveryCondition?:string; returnDateTime?:string; returnCondition?:string; status:string; depositAmount:number; lateFee:number; damageFee:number; depositRefundAmount:number; notes?:string };
 
-const isTauriRuntime = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+const isTauriRuntime = () => {
+  if (typeof globalThis === 'undefined') {
+    return false;
+  }
+
+  const runtime = globalThis as typeof globalThis & {
+    window?: unknown;
+    __TAURI_INTERNALS__?: unknown;
+  };
+
+  return typeof runtime.window !== 'undefined' && '__TAURI_INTERNALS__' in runtime;
+};
 const db = async <T>(cmd:string, payload?:Record<string, unknown>) => invoke<T>(cmd, payload);
 export async function initializeLocalDatabase(){ if(!isTauriRuntime()) return false; await db('init_local_database'); return true; }
 

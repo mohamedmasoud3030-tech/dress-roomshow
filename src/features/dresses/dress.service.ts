@@ -1,4 +1,4 @@
-import { loadLocalDresses, saveLocalDress, type LocalDressRecord } from '../../services/localDatabase';
+import { loadLocalDresses, saveLocalDress } from '../../services/localDatabase';
 import { mockDresses } from './dress.mock';
 import type { Dress, DressFilters, DressSummary } from './dress.types';
 
@@ -37,11 +37,31 @@ export function summarizeDresses(dresses: Dress[]): DressSummary {
   };
 }
 
-
 export async function getDressesFromLocalDb(): Promise<Dress[] | null> {
-  try { const rows = await loadLocalDresses(); if (!rows) return null; return rows.map((row) => ({...row, category: row.category as Dress['category'], status: row.status as Dress['status']})); } catch { return null; }
+  try {
+    const rows = await loadLocalDresses();
+    if (!rows) {
+      return null;
+    }
+
+    return rows.map((row) => ({
+      ...row,
+      category: row.category as Dress['category'],
+      status: row.status as Dress['status'],
+    }));
+  } catch {
+    return null;
+  }
 }
 
 export async function addDressToLocalDb(dress: Dress): Promise<boolean> {
-  try { return await saveLocalDress({ ...dress, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as LocalDressRecord); } catch { return false; }
+  try {
+    return await saveLocalDress({
+      ...dress,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+  } catch {
+    return false;
+  }
 }
