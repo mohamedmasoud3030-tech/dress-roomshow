@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 type SimpleModalProps = Readonly<{
   title: string;
   open: boolean;
@@ -7,8 +9,8 @@ type SimpleModalProps = Readonly<{
 }>;
 
 export function SimpleModal({ title, open, onClose, children, footer }: SimpleModalProps) {
+  const generatedTitleId = useId();
   if (!open) return null;
-  const titleId = 'simple-modal-title';
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center">
@@ -21,11 +23,11 @@ export function SimpleModal({ title, open, onClose, children, footer }: SimpleMo
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
+        aria-labelledby={generatedTitleId}
         className="relative w-full max-w-lg rounded-2xl border border-[#E8DED2] bg-white shadow-xl"
       >
         <div className="flex items-center justify-between border-b border-[#E8DED2] px-4 py-3">
-          <h3 id={titleId} className="text-lg font-semibold text-[#1F1B18]">{title}</h3>
+          <h3 id={generatedTitleId} className="text-lg font-semibold text-[#1F1B18]">{title}</h3>
           <button type="button" className="rounded-lg px-2 py-1 text-sm text-[#7A7168] hover:bg-[#FAF7F2]" onClick={onClose}>إغلاق</button>
         </div>
         <div className="space-y-3 px-4 py-4">{children}</div>

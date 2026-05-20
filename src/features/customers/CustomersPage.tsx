@@ -3,6 +3,9 @@ import { AlertTriangle, Search, ShieldCheck, Users, WalletCards } from 'lucide-r
 import { filterCustomers, getCustomers, summarizeCustomers } from './customer.service';
 import type { Customer, CustomerFilters, CustomerStatus } from './customer.types';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { EmptyState } from '../../components/shared/EmptyState';
+import { FilterPanel } from '../../components/shared/FilterPanel';
+import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
 
 const statusLabels: Record<CustomerStatus, string> = {
@@ -77,16 +80,16 @@ export function CustomersPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-[#8B5E3C]">العملاء</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#1F1B18]">إدارة العملاء</h1>
-          <p className="mt-2 text-[#7A7168]">عرض بيانات العملاء، الحالة، الأرصدة، وسجل التعامل المختصر.</p>
-        </div>
-        <button onClick={() => setOpenAdd(true)} className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
-          إضافة عميلة
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="العملاء"
+        title="إدارة العملاء"
+        description="عرض بيانات العملاء، الحالة، الأرصدة، وسجل التعامل المختصر."
+        action={(
+          <button onClick={() => setOpenAdd(true)} className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
+            إضافة عميلة
+          </button>
+        )}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm">
@@ -111,7 +114,7 @@ export function CustomersPage() {
         </article>
       </div>
 
-      <div className="rounded-2xl border border-[#E8DED2] bg-white p-4 shadow-sm">
+      <FilterPanel>
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px]">
           <label className="relative block">
             <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -145,7 +148,7 @@ export function CustomersPage() {
             <option value="clear">بدون متبقي</option>
           </select>
         </div>
-      </div>
+      </FilterPanel>
 
       {filteredCustomers.length > 0 ? (
         <div className="grid gap-5 xl:grid-cols-2">
@@ -154,10 +157,7 @@ export function CustomersPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-          <p className="text-lg font-semibold text-slate-900">لا توجد عميلات مطابقات</p>
-          <p className="mt-2 text-sm text-[#7A7168]">غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
-        </div>
+        <EmptyState title="لا توجد عميلات مطابقات" description="غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى." />
       )}
       <SimpleModal open={openAdd} onClose={() => setOpenAdd(false)} title="إضافة عميلة" footer={<button onClick={() => setOpenAdd(false)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white">حفظ محلي</button>}>
         <input value={draftName} onChange={(e)=>setDraftName(e.target.value)} placeholder="اسم العميلة" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
