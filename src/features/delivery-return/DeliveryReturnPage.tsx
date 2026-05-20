@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
+  calculateDepositRefund,
   filterDeliveryReturnRecords,
   getDeliveryReturnRecords,
   summarizeDeliveryReturnRecords,
@@ -9,7 +10,7 @@ import { FilterPanel } from '../../components/shared/FilterPanel';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
 import { SummaryCard } from '../../components/shared/SummaryCard';
-import type { DeliveryReturnFilters, DeliveryReturnStatus } from './deliveryReturn.types';
+import type { DeliveryReturnFilters, DeliveryReturnRecord, DeliveryReturnStatus } from './deliveryReturn.types';
 
 const statusOptions: Array<{ value: DeliveryReturnStatus | 'all'; label: string }> = [
   { value: 'all', label: 'كل الحالات' },
@@ -50,14 +51,21 @@ function formatDateTime(dateTime?: string): string {
 
 export function DeliveryReturnPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [draftNote, setDraftNote] = useState('');
+  const [records, setRecords] = useState<DeliveryReturnRecord[]>(() => getDeliveryReturnRecords());
+  const [formError, setFormError] = useState('');
+  const [draft, setDraft] = useState({
+    reservationNumber: '',
+    customerName: '',
+    dressCode: '',
+    dressName: '',
+    status: 'pending_delivery' as DeliveryReturnStatus,
+    notes: '',
+  });
 
   const [filters, setFilters] = useState<DeliveryReturnFilters>({
     search: '',
     status: 'all',
   });
-
-  const records = useMemo(() => getDeliveryReturnRecords(), []);
 
   const filteredRecords = useMemo(
     () => filterDeliveryReturnRecords(records, filters),
@@ -68,6 +76,51 @@ export function DeliveryReturnPage() {
     () => summarizeDeliveryReturnRecords(filteredRecords),
     [filteredRecords],
   );
+
+  function closeCreateModal(): void {
+    setIsCreateModalOpen(false);
+    setFormError('');
+    setDraft({
+      reservationNumber: '',
+      customerName: '',
+      dressCode: '',
+      dressName: '',
+      status: 'pending_delivery',
+      notes: '',
+    });
+  }
+
+  function handleCreateRecord(): void {
+    const payload = {
+      reservationNumber: draft.reservationNumber.trim(),
+      customerName: draft.customerName.trim(),
+      dressCode: draft.dressCode.trim(),
+      dressName: draft.dressName.trim(),
+      notes: draft.notes.trim(),
+    };
+
+    if (!payload.reservationNumber || !payload.customerName || !payload.dressCode || !payload.dressName) {
+      setFormError('يرجى تعبئة الحقول المطلوبة قبل الحفظ.');
+      return;
+    }
+
+    const newRecord: DeliveryReturnRecord = {
+      id: `dr-local-${Date.now()}`,
+      reservationNumber: payload.reservationNumber,
+      customerName: payload.customerName,
+      dressCode: payload.dressCode,
+      dressName: payload.dressName,
+      status: draft.status,
+      depositAmount: 0,
+      lateFee: 0,
+      damageFee: 0,
+      depositRefundAmount: calculateDepositRefund(0, 0, 0),
+      notes: payload.notes || undefined,
+    };
+
+    setRecords((current) => [newRecord, ...current]);
+    closeCreateModal();
+  }
 
   return (
     <section className="space-y-6">
@@ -167,9 +220,19 @@ export function DeliveryReturnPage() {
           ))}
         </div>
       )}
-      <SimpleModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title='عملية تسليم / استرجاع جديدة' footer={<button onClick={() => setIsCreateModalOpen(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
-        <textarea value={draftNote} onChange={(e)=>setDraftNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
-        <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
+      <SimpleModal open={isCreateModalOpen} onClose={closeCreateModal} title='عملية تسليم / استرجاع جديدة' footer={<button onClick={handleCreateRecord} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <div className='grid gap-3 md:grid-cols-2'>
+          <input value={draft.reservationNumber} onChange={(e) => setDraft((prev) => ({ ...prev, reservationNumber: e.target.value }))} placeholder='رقم الحجز *' className='h-11 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B]' />
+          <input value={draft.customerName} onChange={(e) => setDraft((prev) => ({ ...prev, customerName: e.target.value }))} placeholder='اسم العميلة *' className='h-11 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B]' />
+          <input value={draft.dressCode} onChange={(e) => setDraft((prev) => ({ ...prev, dressCode: e.target.value }))} placeholder='كود الفستان *' className='h-11 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B]' />
+          <input value={draft.dressName} onChange={(e) => setDraft((prev) => ({ ...prev, dressName: e.target.value }))} placeholder='اسم الفستان *' className='h-11 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B]' />
+          <select value={draft.status} onChange={(e) => setDraft((prev) => ({ ...prev, status: e.target.value as DeliveryReturnStatus }))} className='h-11 rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 text-sm outline-none focus:border-[#B08A5B] md:col-span-2'>
+            {statusOptions.filter((option) => option.value !== 'all').map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+          <textarea value={draft.notes} onChange={(e)=>setDraft((prev) => ({ ...prev, notes: e.target.value }))} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm md:col-span-2' />
+        </div>
+        {formError ? <p className='mt-2 text-xs font-semibold text-rose-700'>{formError}</p> : null}
+        <p className='mt-2 text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
       </SimpleModal>
     </section>
   );
