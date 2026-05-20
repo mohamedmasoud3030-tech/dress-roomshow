@@ -7,6 +7,7 @@ import {
   getPayments,
   getPaymentsFromLocalDb,
   summarizePayments,
+  addPaymentToLocalDb,
 } from './payment.service';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
@@ -126,7 +127,7 @@ export function PaymentsPage() {
     resetCreateState();
   };
 
-  const submitCreatePayment = () => {
+  const submitCreatePayment = async () => {
     const trimmed = {
       reservationNumber: draftPayment.reservationNumber.trim(),
       customerName: draftPayment.customerName.trim(),
@@ -153,24 +154,24 @@ export function PaymentsPage() {
       return;
     }
 
-    setPayments((prev) => [
-      {
-        id: `local-payment-${crypto.randomUUID()}`,
-        paymentNumber: `PAY-LOCAL-${String(prev.length + 1).padStart(3, '0')}`,
-        reservationNumber: trimmed.reservationNumber,
-        customerName: trimmed.customerName,
-        dressCode: trimmed.dressCode,
-        dressName: trimmed.dressName,
-        paymentDate: draftPayment.paymentDate,
-        type: draftPayment.type,
-        method: draftPayment.method,
-        direction: draftPayment.direction,
-        amount: amountNumber,
-        reservationTotal: amountNumber,
-        notes: trimmed.notes || undefined,
-      },
-      ...prev,
-    ]);
+    const nextPayment = {
+      id: `local-payment-${crypto.randomUUID()}`,
+      paymentNumber: `PAY-LOCAL-${String(payments.length + 1).padStart(3, '0')}`,
+      reservationNumber: trimmed.reservationNumber,
+      customerName: trimmed.customerName,
+      dressCode: trimmed.dressCode,
+      dressName: trimmed.dressName,
+      paymentDate: draftPayment.paymentDate,
+      type: draftPayment.type,
+      method: draftPayment.method,
+      direction: draftPayment.direction,
+      amount: amountNumber,
+      reservationTotal: amountNumber,
+      notes: trimmed.notes || undefined,
+    };
+
+    await addPaymentToLocalDb(nextPayment);
+    setPayments((prev) => [nextPayment, ...prev]);
 
     closeCreateModal();
   };
