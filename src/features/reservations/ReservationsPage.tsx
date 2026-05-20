@@ -1,8 +1,13 @@
-import { getReservations, summarizeReservations } from './reservation.service';
+import { useMemo, useState } from 'react';
+import { filterReservations, getReservations, summarizeReservations } from './reservation.service';
+import type { ReservationFilters } from './reservation.types';
 
 export function ReservationsPage() {
+  const [filters, setFilters] = useState<ReservationFilters>({ search: '', status: 'all', timing: 'all' });
   const reservations = getReservations();
-  const summary = summarizeReservations(reservations);
+
+  const filteredReservations = useMemo(() => filterReservations(reservations, filters), [reservations, filters]);
+  const summary = useMemo(() => summarizeReservations(reservations), [reservations]);
 
   return (
     <section className="space-y-6">
@@ -31,8 +36,44 @@ export function ReservationsPage() {
         </article>
       </div>
 
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px]">
+          <input
+            value={filters.search}
+            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+            placeholder="ابحث برقم الحجز، العميلة، الهاتف أو الفستان"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none ring-violet-200 transition focus:border-violet-300 focus:ring-4"
+          />
+
+          <select
+            value={filters.status}
+            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))}
+            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
+          >
+            <option value="all">كل الحالات</option>
+            <option value="pending">قيد الانتظار</option>
+            <option value="confirmed">مؤكد</option>
+            <option value="delivered">تم التسليم</option>
+            <option value="returned">تم الإرجاع</option>
+            <option value="cancelled">ملغي</option>
+            <option value="overdue">متأخر</option>
+          </select>
+
+          <select
+            value={filters.timing}
+            onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))}
+            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
+          >
+            <option value="all">كل المواعيد</option>
+            <option value="today">اليوم</option>
+            <option value="upcoming">القادمة</option>
+            <option value="overdue">متأخرة</option>
+          </select>
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {reservations.map((reservation) => (
+        {filteredReservations.map((reservation) => (
           <div key={reservation.id} className="border-b border-slate-100 p-5 last:border-b-0">
             <p className="text-sm font-semibold text-slate-400">{reservation.reservationNumber}</p>
             <h3 className="mt-1 text-lg font-bold text-slate-950">{reservation.customerName}</h3>
