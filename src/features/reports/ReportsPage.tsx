@@ -8,12 +8,13 @@ import {
   getTodayReport,
 } from './report.service';
 import type { DateRangeFilter } from './report.types';
+import type { DressStatus } from '../dresses/dress.types';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 
-const statusLabel: Record<string, string> = {
+const statusLabel: Record<Extract<DressStatus, 'available' | 'reserved' | 'maintenance'>, string> = {
   available: 'متاح',
   reserved: 'محجوز',
   maintenance: 'صيانة',

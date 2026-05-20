@@ -70,7 +70,7 @@ function CustomerCard({ customer }: CustomerCardProps) {
 
 export function CustomersPage() {
   const [filters, setFilters] = useState<CustomerFilters>({ search: '', status: 'all', balance: 'all' });
-  const [openAdd, setOpenAdd] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [draftPhone, setDraftPhone] = useState('');
   const customers = getCustomers();
@@ -85,7 +85,7 @@ export function CustomersPage() {
         title="إدارة العملاء"
         description="عرض بيانات العملاء، الحالة، الأرصدة، وسجل التعامل المختصر."
         action={(
-          <button onClick={() => setOpenAdd(true)} className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
+          <button onClick={() => setIsAddModalOpen(true)} className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">
             إضافة عميلة
           </button>
         )}
@@ -159,7 +159,7 @@ export function CustomersPage() {
       ) : (
         <EmptyState title="لا توجد عميلات مطابقات" description="غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى." />
       )}
-      <SimpleModal open={openAdd} onClose={() => setOpenAdd(false)} title="إضافة عميلة" footer={<button onClick={() => setOpenAdd(false)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white">حفظ محلي</button>}>
+      <SimpleModal open={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} title="إضافة عميلة" footer={<button onClick={() => setIsAddModalOpen(false)} className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white">حفظ محلي</button>}>
         <input value={draftName} onChange={(e)=>setDraftName(e.target.value)} placeholder="اسم العميلة" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
         <input value={draftPhone} onChange={(e)=>setDraftPhone(e.target.value)} placeholder="رقم الهاتف" className="w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm" />
         <p className="text-xs text-[#7A7168]">هذا نموذج محلي فقط ولا يغيّر بيانات mock الحالية.</p>

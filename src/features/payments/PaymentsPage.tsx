@@ -12,6 +12,7 @@ import { FilterPanel } from '../../components/shared/FilterPanel';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SimpleModal } from '../../components/shared/SimpleModal';
 import { SummaryCard } from '../../components/shared/SummaryCard';
+import { formatDateByLocale, formatMoneyByLocale } from '../../services/localeFormatters';
 import type {
   PaymentDirection,
   PaymentFilters,
@@ -62,25 +63,9 @@ const directionBadgeClasses: Record<PaymentDirection, string> = {
   refund: 'bg-rose-100 text-rose-800',
 };
 
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('ar-OM', {
-    style: 'currency',
-    currency: 'OMR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ar-OM', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-}
-
 export function PaymentsPage() {
-  const [openModal, setOpenModal] = useState(false);
-  const [localNote, setLocalNote] = useState('');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [draftNote, setDraftNote] = useState('');
 
   const [filters, setFilters] = useState<PaymentFilters>({
     search: '',
@@ -101,14 +86,14 @@ export function PaymentsPage() {
 
   return (
     <section className="space-y-6">
-      <PageHeader eyebrow="المدفوعات" title="إدارة المدفوعات" description="متابعة التحصيل والاسترجاع المرتبط بالحجوزات والتسليم والاسترجاع." action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setOpenModal(true)}>تسجيل دفعة جديدة</button>} />
+      <PageHeader eyebrow="المدفوعات" title="إدارة المدفوعات" description="متابعة التحصيل والاسترجاع المرتبط بالحجوزات والتسليم والاسترجاع." action={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]" onClick={() => setIsCreateModalOpen(true)}>تسجيل دفعة جديدة</button>} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <SummaryCard label="إجمالي التحصيل" value={formatAmount(summary.totalCollected)} />
-        <SummaryCard label="العربونات" value={formatAmount(summary.deposits)} />
-        <SummaryCard label="الغرامات" value={formatAmount(summary.penalties)} />
-        <SummaryCard label="الاسترجاعات" value={formatAmount(summary.totalRefunded)} />
-        <SummaryCard label="الرصيد المتبقي" value={formatAmount(summary.remainingBalance)} />
+        <SummaryCard label="إجمالي التحصيل" value={formatMoneyByLocale(summary.totalCollected)} />
+        <SummaryCard label="العربونات" value={formatMoneyByLocale(summary.deposits)} />
+        <SummaryCard label="الغرامات" value={formatMoneyByLocale(summary.penalties)} />
+        <SummaryCard label="الاسترجاعات" value={formatMoneyByLocale(summary.totalRefunded)} />
+        <SummaryCard label="الرصيد المتبقي" value={formatMoneyByLocale(summary.remainingBalance)} />
       </div>
       <FilterPanel>
       <div className="grid gap-3 md:grid-cols-4">
@@ -120,10 +105,10 @@ export function PaymentsPage() {
       </FilterPanel>
 
       {filteredPayments.length === 0 ? <EmptyState title="لا توجد مدفوعات مطابقة" description="غيّر الفلاتر الحالية لعرض نتائج أخرى." /> : (
-        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-[#7A7168]">رقم الدفعة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-[#1F1B18]">{payment.customerName}</h2><p className="text-sm text-[#7A7168]">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${payment.direction === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{payment.direction === 'income' ? '+' : '-'} {formatAmount(payment.amount)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-[#7A7168]">تاريخ الدفع</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-[#FAF7F2] p-3 text-sm text-[#7A7168]">{payment.notes}</p> : null}</article>)}</div>
+        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-[#E8DED2] bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-[#7A7168]">رقم الدفعة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-[#1F1B18]">{payment.customerName}</h2><p className="text-sm text-[#7A7168]">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${payment.direction === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{payment.direction === 'income' ? '+' : '-'} {formatMoneyByLocale(payment.amount)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-[#7A7168]">تاريخ الدفع</dt><dd>{formatDateByLocale(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-[#FAF7F2] p-3 text-sm text-[#7A7168]">{payment.notes}</p> : null}</article>)}</div>
       )}
-      <SimpleModal open={openModal} onClose={() => setOpenModal(false)} title='تسجيل دفعة جديدة' footer={<button onClick={() => setOpenModal(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
-        <textarea value={localNote} onChange={(e)=>setLocalNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
+      <SimpleModal open={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title='تسجيل دفعة جديدة' footer={<button onClick={() => setIsCreateModalOpen(false)} className='rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white'>حفظ محلي</button>}>
+        <textarea value={draftNote} onChange={(e)=>setDraftNote(e.target.value)} placeholder='ملاحظات العملية' className='min-h-24 w-full rounded-xl border border-[#E8DED2] bg-[#FAF7F2] px-3 py-2 text-sm' />
         <p className='text-xs text-[#7A7168]'>إجراء واجهة محلي فقط بدون تعديل مصادر البيانات الحالية.</p>
       </SimpleModal>
     </section>
