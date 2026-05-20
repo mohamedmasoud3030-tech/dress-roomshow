@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useEffect, useId } from 'react';
 
 type SimpleModalProps = Readonly<{
   title: string;
@@ -6,10 +6,30 @@ type SimpleModalProps = Readonly<{
   onClose: () => void;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  className?: string;
 }>;
 
-export function SimpleModal({ title, open, onClose, children, footer }: SimpleModalProps) {
+export function SimpleModal({ title, open, onClose, children, footer, className }: SimpleModalProps) {
   const generatedTitleId = useId();
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onClose, open]);
+
   if (!open) return null;
 
   return (
@@ -24,7 +44,7 @@ export function SimpleModal({ title, open, onClose, children, footer }: SimpleMo
         role="dialog"
         aria-modal="true"
         aria-labelledby={generatedTitleId}
-        className="relative w-full max-w-lg rounded-2xl border border-[#E8DED2] bg-white shadow-xl"
+        className={`relative w-full max-w-lg rounded-2xl border border-[#E8DED2] bg-white shadow-xl ${className ?? ''}`}
       >
         <div className="flex items-center justify-between border-b border-[#E8DED2] px-4 py-3">
           <h3 id={generatedTitleId} className="text-lg font-semibold text-[#1F1B18]">{title}</h3>
