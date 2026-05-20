@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 const navigation = [
   { to: '/', label: 'لوحة التحكم' },
@@ -17,6 +17,8 @@ const navClass = (isActive: boolean) =>
   }`;
 
 export function AppLayout() {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-transparent text-[#1F1B18]" dir="rtl">
       <aside className="fixed inset-y-0 right-0 hidden w-72 border-l border-[#E8DED2] bg-[#FFFCF8] p-5 shadow-sm lg:block">
@@ -40,7 +42,10 @@ export function AppLayout() {
               <p className="text-sm text-[#7A7168]">منصة التشغيل</p>
               <h2 className="text-xl font-semibold">تشغيل يومي فاخر ومنظم</h2>
             </div>
-            <button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#7A5133]">
+            <button
+              onClick={() => navigate('/reservations')}
+              className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#7A5133]"
+            >
               حجز جديد
             </button>
           </div>

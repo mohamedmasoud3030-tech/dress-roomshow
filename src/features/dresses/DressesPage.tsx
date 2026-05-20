@@ -100,7 +100,7 @@ function DressCard({ dress, onQuickReserve, onViewDetails }: DressCardProps) {
 export function DressesPage() {
   const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
   const [selectedDress, setSelectedDress] = useState<Dress | null>(null);
-  const [modalType, setModalType] = useState<'reserve' | 'details' | null>(null);
+  const [modalType, setModalType] = useState<'add' | 'reserve' | 'details' | null>(null);
   const dresses = getDresses();
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
@@ -112,7 +112,7 @@ export function DressesPage() {
         eyebrow="المخزون"
         title="الفساتين"
         description="إدارة فساتين المحل وحالاتها وأسعار الإيجار والتأمين."
-        action={<button className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">إضافة فستان</button>}
+        action={<button onClick={() => { setSelectedDress(null); setModalType('add'); }} className="rounded-xl bg-[#8B5E3C] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#7A5133]">إضافة فستان</button>}
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -188,11 +188,17 @@ export function DressesPage() {
         <EmptyState title="لا توجد فساتين مطابقة" description="غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى." />
       )}
       <SimpleModal
-        open={modalType !== null && !!selectedDress}
+        open={modalType !== null}
         onClose={() => { setModalType(null); setSelectedDress(null); }}
-        title={modalType === 'reserve' ? 'حجز سريع' : 'تفاصيل الفستان'}
+        title={modalType === 'add' ? 'إضافة فستان' : modalType === 'reserve' ? 'حجز سريع' : 'تفاصيل الفستان'}
         footer={<button className="rounded-xl bg-[#8B5E3C] px-4 py-2 text-sm font-semibold text-white" onClick={() => { setModalType(null); setSelectedDress(null); }}>تم</button>}
       >
+        {modalType === 'add' && (
+          <>
+            <p className="text-sm text-[#7A7168]">نموذج إضافة محلي لواجهة التشغيل فقط.</p>
+            <p className="text-xs text-[#7A7168]">لا يتم حفظ الفستان في بيانات mock الحالية ضمن هذا الإصدار.</p>
+          </>
+        )}
         {selectedDress && (
           <>
             <p className="text-sm text-[#7A7168]">{selectedDress.code} — {selectedDress.name}</p>
