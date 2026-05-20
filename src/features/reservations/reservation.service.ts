@@ -1,3 +1,4 @@
+import { getTodayISO } from '../../shared/utils/date';
 import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
 
@@ -9,7 +10,7 @@ export function getReservations(): Reservation[] {
 
 export function filterReservations(reservations: Reservation[], filters: ReservationFilters): Reservation[] {
   const search = filters.search.trim().toLowerCase();
-  const today = '2026-05-19';
+  const today = getTodayISO();
 
   return reservations.filter((reservation) => {
     const matchesSearch =
@@ -32,7 +33,7 @@ export function filterReservations(reservations: Reservation[], filters: Reserva
 }
 
 export function summarizeReservations(reservations: Reservation[]): ReservationSummary {
-  const today = '2026-05-19';
+  const today = getTodayISO();
 
   return {
     total: reservations.length,

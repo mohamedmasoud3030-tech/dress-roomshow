@@ -1,22 +1,8 @@
-import { useLocation } from 'react-router-dom';
-import { CustomersPage } from '../../features/customers/CustomersPage';
-import { ReservationsPage } from '../../features/reservations/ReservationsPage';
-
 type PlaceholderPageProps = {
   title: string;
 };
 
 export function PlaceholderPage({ title }: PlaceholderPageProps) {
-  const location = useLocation();
-
-  if (location.pathname === '/customers') {
-    return <CustomersPage />;
-  }
-
-  if (location.pathname === '/reservations') {
-    return <ReservationsPage />;
-  }
-
   return (
     <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 shadow-sm">
       <p className="text-sm font-medium text-violet-700">In progress</p>
