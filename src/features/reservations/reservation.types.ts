@@ -1,10 +1,18 @@
-export type ReservationStatus = 'pending' | 'confirmed' | 'delivered' | 'returned' | 'cancelled' | 'overdue';
+export type ReservationStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'delivered'
+  | 'returned'
+  | 'cancelled'
+  | 'overdue';
 
 export type Reservation = {
   id: string;
   reservationNumber: string;
+  customerId: string;
   customerName: string;
   customerPhone: string;
+  dressId: string;
   dressCode: string;
   dressName: string;
   pickupDate: string;
@@ -16,6 +24,7 @@ export type Reservation = {
   paidAmount: number;
   remainingAmount: number;
   notes?: string;
+  createdAt: string;
 };
 
 export type ReservationFilters = {
@@ -32,7 +41,8 @@ export type ReservationSummary = {
 };
 
 export type AvailabilityCheck = {
-  dressCode: string;
+  dressId: string;
   pickupDate: string;
   returnDate: string;
+  excludeReservationId?: string;
 };

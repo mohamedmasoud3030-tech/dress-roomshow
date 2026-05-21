@@ -1,15 +1,19 @@
-type PageHeaderProps = {
-  eyebrow: string;
+import type { ReactNode } from 'react';
+
+type Props = {
   title: string;
-  description: string;
+  subtitle?: string;
+  action?: ReactNode;
 };
 
-export function PageHeader({ eyebrow, title, description }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, action }: Props) {
   return (
-    <div>
-      <p className="text-sm font-semibold text-violet-700">{eyebrow}</p>
-      <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{title}</h1>
-      <p className="mt-2 text-slate-600">{description}</p>
+    <div className="flex items-center justify-between px-4 md:px-6 py-4 md:py-5 border-b border-slate-200 bg-white sticky top-0 z-10">
+      <div>
+        <h2 className="text-xl font-bold text-slate-900">{title}</h2>
+        {subtitle && <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>}
+      </div>
+      {action && <div>{action}</div>}
     </div>
   );
 }

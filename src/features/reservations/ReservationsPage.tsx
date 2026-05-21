@@ -1,87 +1,148 @@
-import { useMemo, useState } from 'react';
-import { filterReservations, getReservations, summarizeReservations } from './reservation.service';
-import type { ReservationFilters } from './reservation.types';
+import { useState } from 'react';
+import { Plus, CalendarCheck, AlertTriangle } from 'lucide-react';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { SummaryCard } from '../../components/shared/SummaryCard';
+import { StatusBadge, reservationStatusBadge } from '../../components/shared/StatusBadge';
+import { getReservations, filterReservations, summarizeReservations, cancelReservation } from './reservation.service';
+import { CreateReservationModal } from './CreateReservationModal';
+import type { Reservation, ReservationFilters } from './reservation.types';
+import { formatDateAr } from '../../shared/utils/date';
+import { formatMoneyOMR } from '../../shared/utils/format';
 
 export function ReservationsPage() {
+  const [reservations, setReservations] = useState<Reservation[]>(() => getReservations());
   const [filters, setFilters] = useState<ReservationFilters>({ search: '', status: 'all', timing: 'all' });
-  const reservations = getReservations();
+  const [showCreate, setShowCreate] = useState(false);
 
-  const filteredReservations = useMemo(() => filterReservations(reservations, filters), [reservations, filters]);
-  const summary = useMemo(() => summarizeReservations(reservations), [reservations]);
+  const filtered = filterReservations(reservations, filters);
+  const summary = summarizeReservations(reservations);
+
+  const handleCancel = (id: string) => {
+    if (!confirm('هل أنت متأكدة من إلغاء هذا الحجز؟')) return;
+    cancelReservation(id);
+    setReservations(getReservations());
+  };
 
   return (
-    <section className="space-y-6">
-      <div>
-        <p className="text-sm font-semibold text-violet-700">الحجوزات</p>
-        <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">إدارة الحجوزات</h1>
-        <p className="mt-2 text-slate-600">متابعة الحجوزات ومواعيد الاستلام والإرجاع.</p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">إجمالي الحجوزات</p>
-          <p className="mt-2 text-3xl font-bold">{summary.total}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">حجوزات نشطة</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-700">{summary.active}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">اليوم</p>
-          <p className="mt-2 text-3xl font-bold text-sky-700">{summary.today}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">متأخرة</p>
-          <p className="mt-2 text-3xl font-bold text-red-700">{summary.overdue}</p>
-        </article>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px]">
-          <input
-            value={filters.search}
-            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-            placeholder="ابحث برقم الحجز، العميلة، الهاتف أو الفستان"
-            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none ring-violet-200 transition focus:border-violet-300 focus:ring-4"
-          />
-
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
+    <div className="min-h-full">
+      <PageHeader
+        title="الحجوزات"
+        subtitle={`${summary.total} حجز`}
+        action={
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-800 transition"
           >
-            <option value="all">كل الحالات</option>
-            <option value="pending">قيد الانتظار</option>
-            <option value="confirmed">مؤكد</option>
-            <option value="delivered">تم التسليم</option>
-            <option value="returned">تم الإرجاع</option>
-            <option value="cancelled">ملغي</option>
-            <option value="overdue">متأخر</option>
-          </select>
+            <Plus className="w-4 h-4" />
+            حجز جديد
+          </button>
+        }
+      />
 
-          <select
-            value={filters.timing}
-            onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
-          >
-            <option value="all">كل المواعيد</option>
-            <option value="today">اليوم</option>
-            <option value="upcoming">القادمة</option>
-            <option value="overdue">متأخرة</option>
-          </select>
-        </div>
+      {/* Summary */}
+      <div className="px-4 md:px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <SummaryCard label="الكل" value={summary.total} icon={CalendarCheck} color="violet" />
+        <SummaryCard label="نشط" value={summary.active} icon={CalendarCheck} color="blue" />
+        <SummaryCard label="اليوم" value={summary.today} icon={CalendarCheck} color="emerald" />
+        <SummaryCard label="متأخر" value={summary.overdue} icon={AlertTriangle} color="rose" />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        {filteredReservations.map((reservation) => (
-          <div key={reservation.id} className="border-b border-slate-100 p-5 last:border-b-0">
-            <p className="text-sm font-semibold text-slate-400">{reservation.reservationNumber}</p>
-            <h3 className="mt-1 text-lg font-bold text-slate-950">{reservation.customerName}</h3>
-            <p className="mt-1 text-sm text-slate-600">{reservation.dressCode} - {reservation.dressName}</p>
-            <p className="mt-2 text-sm text-slate-500">{reservation.pickupDate} / {reservation.returnDate}</p>
+      {/* Filters */}
+      <div className="px-4 md:px-6 pb-3 flex flex-wrap gap-2">
+        <input
+          type="search"
+          placeholder="بحث بالعميلة أو الفستان..."
+          value={filters.search}
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+          className="flex-1 min-w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        />
+        <select
+          value={filters.status}
+          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value as ReservationFilters['status'] }))}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none"
+        >
+          <option value="all">كل الحالات</option>
+          <option value="pending">معلق</option>
+          <option value="confirmed">مؤكد</option>
+          <option value="delivered">سُلِّم</option>
+          <option value="returned">مُسترجع</option>
+          <option value="overdue">متأخر</option>
+          <option value="cancelled">ملغي</option>
+        </select>
+        <select
+          value={filters.timing}
+          onChange={(e) => setFilters((f) => ({ ...f, timing: e.target.value as ReservationFilters['timing'] }))}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none"
+        >
+          <option value="all">كل الأوقات</option>
+          <option value="today">اليوم</option>
+          <option value="upcoming">قادمة</option>
+          <option value="overdue">متأخرة</option>
+        </select>
+      </div>
+
+      {/* List */}
+      <div className="px-4 md:px-6 pb-8 space-y-3">
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 text-slate-400">
+            <CalendarCheck className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">
+              {reservations.length === 0 ? 'لا توجد حجوزات. ابدأ بإنشاء حجز جديد.' : 'لا توجد نتائج.'}
+            </p>
           </div>
-        ))}
+        ) : (
+          filtered.map((r) => {
+            const { label, color } = reservationStatusBadge(r.status);
+            return (
+              <div key={r.id} className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900">{r.customerName}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{r.reservationNumber} • {r.dressCode} — {r.dressName}</p>
+                  </div>
+                  <StatusBadge label={label} color={color} />
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 pt-3 border-t border-slate-100">
+                  <div>
+                    <p className="text-xs text-slate-400">تاريخ الاستلام</p>
+                    <p className="text-sm font-medium text-slate-700">{formatDateAr(r.pickupDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">تاريخ الإرجاع</p>
+                    <p className="text-sm font-medium text-slate-700">{formatDateAr(r.returnDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">المبلغ الكلي</p>
+                    <p className="text-sm font-bold text-slate-900">{formatMoneyOMR(r.totalAmount)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-400">المتبقي</p>
+                    <p className={`text-sm font-bold ${r.remainingAmount > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      {formatMoneyOMR(r.remainingAmount)}
+                    </p>
+                  </div>
+                </div>
+                {r.status !== 'cancelled' && r.status !== 'returned' && (
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={() => handleCancel(r.id)}
+                      className="text-xs text-slate-400 hover:text-rose-600 transition"
+                    >
+                      إلغاء الحجز
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
-    </section>
+
+      <CreateReservationModal
+        open={showCreate}
+        onClose={() => setShowCreate(false)}
+        onSuccess={(res) => setReservations((prev) => [res, ...prev])}
+      />
+    </div>
   );
 }

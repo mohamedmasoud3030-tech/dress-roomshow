@@ -1,172 +1,125 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { Plus, Receipt } from 'lucide-react';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { SummaryCard } from '../../components/shared/SummaryCard';
 import {
+  getExpenses,
   filterExpenses,
+  summarizeExpenses,
   formatExpenseCategoryLabel,
   formatExpensePaymentMethodLabel,
-  getExpenses,
-  summarizeExpenses,
+  deleteExpense,
 } from './expense.service';
-import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod } from './expense.types';
-
-const categoryOptions: Array<{ value: ExpenseCategory | 'all'; label: string }> = [
-  { value: 'all', label: 'كل الفئات' },
-  { value: 'laundry', label: 'غسيل' },
-  { value: 'tailoring', label: 'تعديل وخياطة' },
-  { value: 'maintenance', label: 'صيانة' },
-  { value: 'purchase', label: 'شراء' },
-  { value: 'rent', label: 'إيجار' },
-  { value: 'salary', label: 'رواتب' },
-  { value: 'other', label: 'أخرى' },
-];
-
-const paymentMethodOptions: Array<{ value: ExpensePaymentMethod | 'all'; label: string }> = [
-  { value: 'all', label: 'كل وسائل الدفع' },
-  { value: 'cash', label: 'نقداً' },
-  { value: 'card', label: 'بطاقة' },
-  { value: 'bank_transfer', label: 'تحويل بنكي' },
-  { value: 'other', label: 'أخرى' },
-];
-
-const categoryBadgeClasses: Record<ExpenseCategory, string> = {
-  laundry: 'bg-sky-100 text-sky-800',
-  tailoring: 'bg-violet-100 text-violet-800',
-  maintenance: 'bg-orange-100 text-orange-800',
-  purchase: 'bg-emerald-100 text-emerald-800',
-  rent: 'bg-slate-200 text-slate-800',
-  salary: 'bg-rose-100 text-rose-800',
-  other: 'bg-stone-100 text-stone-700',
-};
-
-function formatAmount(amount: number): string {
-  return new Intl.NumberFormat('ar-OM', {
-    style: 'currency',
-    currency: 'OMR',
-    minimumFractionDigits: 2,
-  }).format(amount);
-}
-
-function formatDate(date: string): string {
-  return new Date(date).toLocaleDateString('ar-OM', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
-}
+import { AddExpenseModal } from './AddExpenseModal';
+import type { ExpenseFilters, ExpenseRecord } from './expense.types';
+import { formatMoneyOMR } from '../../shared/utils/format';
+import { formatDateAr } from '../../shared/utils/date';
 
 export function ExpensesPage() {
-  const [filters, setFilters] = useState<ExpenseFilters>({
-    search: '',
-    category: 'all',
-    paymentMethod: 'all',
-  });
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => getExpenses());
+  const [filters, setFilters] = useState<ExpenseFilters>({ search: '', category: 'all', paymentMethod: 'all' });
+  const [showAdd, setShowAdd] = useState(false);
 
-  const expenses = useMemo(() => getExpenses(), []);
-  const filteredExpenses = useMemo(() => filterExpenses(expenses, filters), [expenses, filters]);
-  const summary = useMemo(() => summarizeExpenses(filteredExpenses), [filteredExpenses]);
+  const filtered = filterExpenses(expenses, filters);
+  const summary = summarizeExpenses(expenses);
+
+  const handleDelete = (id: string) => {
+    if (!confirm('هل أنت متأكدة من حذف هذا المصروف؟')) return;
+    deleteExpense(id);
+    setExpenses(getExpenses());
+  };
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">إدارة المصروفات</h1>
-          <p className="mt-2 text-slate-600">متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر.</p>
-        </div>
-        <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
-          تسجيل مصروف جديد
-        </button>
+    <div className="min-h-full">
+      <PageHeader
+        title="المصاريف"
+        subtitle={`${expenses.length} سجل`}
+        action={
+          <button
+            onClick={() => setShowAdd(true)}
+            className="flex items-center gap-2 bg-violet-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-violet-800 transition"
+          >
+            <Plus className="w-4 h-4" />
+            إضافة مصروف
+          </button>
+        }
+      />
+
+      {/* Summary */}
+      <div className="px-4 md:px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <SummaryCard label="إجمالي المصاريف" value={formatMoneyOMR(summary.totalExpenses)} icon={Receipt} color="rose" />
+        <SummaryCard label="غسيل" value={formatMoneyOMR(summary.laundryExpenses)} icon={Receipt} color="blue" />
+        <SummaryCard label="خياطة/صيانة" value={formatMoneyOMR(summary.serviceExpenses)} icon={Receipt} color="amber" />
+        <SummaryCard label="شراء" value={formatMoneyOMR(summary.purchaseExpenses)} icon={Receipt} color="violet" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي المصروفات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalExpenses)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">مصروفات الغسيل</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.laundryExpenses)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الخياطة والصيانة</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.serviceExpenses)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">مصروفات الشراء</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.purchaseExpenses)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">مصروفات أخرى</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.otherExpenses)}</p></article>
-      </div>
-
-      <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3">
+      {/* Filters */}
+      <div className="px-4 md:px-6 pb-3 flex flex-wrap gap-2">
         <input
+          type="search"
+          placeholder="بحث..."
           value={filters.search}
-          onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
-          placeholder="بحث برقم المصروف أو العنوان أو الفستان أو الملاحظات"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+          className="flex-1 min-w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
         <select
           value={filters.category}
-          onChange={(event) =>
-            setFilters((prev) => ({ ...prev, category: event.target.value as ExpenseCategory | 'all' }))
-          }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          onChange={(e) => setFilters((f) => ({ ...f, category: e.target.value as ExpenseFilters['category'] }))}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none"
         >
-          {categoryOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filters.paymentMethod}
-          onChange={(event) =>
-            setFilters((prev) => ({
-              ...prev,
-              paymentMethod: event.target.value as ExpensePaymentMethod | 'all',
-            }))
-          }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
-        >
-          {paymentMethodOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
+          <option value="all">كل الفئات</option>
+          {(['laundry', 'tailoring', 'maintenance', 'purchase', 'rent', 'salary', 'other'] as const).map((c) => (
+            <option key={c} value={c}>{formatExpenseCategoryLabel(c)}</option>
           ))}
         </select>
       </div>
 
-      {filteredExpenses.length === 0 ? (
-        <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-slate-500">لا توجد مصروفات مطابقة للفلاتر الحالية.</p>
-        </article>
-      ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
-          {filteredExpenses.map((expense) => (
-            <article key={expense.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-slate-500">رقم المصروف: {expense.expenseNumber}</p>
-                  <h2 className="mt-1 text-lg font-semibold text-slate-950">{expense.title}</h2>
-                  {expense.relatedDressCode ? (
-                    <p className="text-sm text-slate-600">
-                      الفستان: {expense.relatedDressCode}
-                      {expense.relatedDressName ? ` / ${expense.relatedDressName}` : ''}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-slate-600">غير مرتبط بفستان محدد</p>
+      {/* List */}
+      <div className="px-4 md:px-6 pb-8 space-y-3">
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 text-slate-400">
+            <Receipt className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">
+              {expenses.length === 0 ? 'لا توجد مصاريف مسجلة.' : 'لا توجد نتائج.'}
+            </p>
+          </div>
+        ) : (
+          filtered.map((e) => (
+            <div key={e.id} className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between gap-4">
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 truncate">{e.title}</p>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                    {formatExpenseCategoryLabel(e.category)}
+                  </span>
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                    {formatExpensePaymentMethodLabel(e.paymentMethod)}
+                  </span>
+                  <span className="text-xs text-slate-400">{formatDateAr(e.expenseDate)}</span>
+                  {e.relatedDressCode && (
+                    <span className="text-xs text-violet-600">{e.relatedDressCode}</span>
                   )}
                 </div>
-                <p className="text-sm font-bold text-rose-700">- {formatAmount(expense.amount)}</p>
               </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${categoryBadgeClasses[expense.category]}`}>
-                  {formatExpenseCategoryLabel(expense.category)}
-                </span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {formatExpensePaymentMethodLabel(expense.paymentMethod)}
-                </span>
+              <div className="flex items-center gap-4 shrink-0">
+                <p className="text-base font-bold text-rose-600">{formatMoneyOMR(e.amount)}</p>
+                <button
+                  onClick={() => handleDelete(e.id)}
+                  className="text-xs text-slate-400 hover:text-rose-600 transition"
+                >
+                  حذف
+                </button>
               </div>
+            </div>
+          ))
+        )}
+      </div>
 
-              <dl className="mt-4 text-sm text-slate-700">
-                <dt className="text-slate-500">تاريخ المصروف</dt>
-                <dd>{formatDate(expense.expenseDate)}</dd>
-              </dl>
-
-              {expense.notes ? (
-                <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{expense.notes}</p>
-              ) : null}
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
+      <AddExpenseModal
+        open={showAdd}
+        onClose={() => setShowAdd(false)}
+        onSuccess={(expense) => setExpenses((prev) => [expense, ...prev])}
+      />
+    </div>
   );
 }

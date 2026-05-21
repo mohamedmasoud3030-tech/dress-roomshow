@@ -25,7 +25,6 @@ export type Dress = {
   status: DressStatus;
   isForRent: boolean;
   isForSale: boolean;
-  mainImageUrl?: string;
   timesRented: number;
   notes?: string;
 };

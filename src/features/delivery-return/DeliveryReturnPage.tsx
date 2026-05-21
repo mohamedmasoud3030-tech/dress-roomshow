@@ -1,179 +1,139 @@
-import { useMemo, useState } from 'react';
-import {
-  filterDeliveryReturnRecords,
-  getDeliveryReturnRecords,
-  summarizeDeliveryReturnRecords,
-} from './deliveryReturn.service';
-import type { DeliveryReturnFilters, DeliveryReturnStatus } from './deliveryReturn.types';
-
-const statusOptions: Array<{ value: DeliveryReturnStatus | 'all'; label: string }> = [
-  { value: 'all', label: 'كل الحالات' },
-  { value: 'pending_delivery', label: 'بانتظار التسليم' },
-  { value: 'delivered', label: 'تم التسليم' },
-  { value: 'returned', label: 'تم الاسترجاع' },
-  { value: 'late', label: 'متأخر' },
-  { value: 'damaged', label: 'متضرر' },
-];
-
-const statusBadgeClasses: Record<DeliveryReturnStatus, string> = {
-  pending_delivery: 'bg-amber-100 text-amber-800',
-  delivered: 'bg-blue-100 text-blue-800',
-  returned: 'bg-emerald-100 text-emerald-800',
-  late: 'bg-orange-100 text-orange-800',
-  damaged: 'bg-rose-100 text-rose-800',
-};
-
-const statusLabels: Record<DeliveryReturnStatus, string> = {
-  pending_delivery: 'بانتظار التسليم',
-  delivered: 'تم التسليم',
-  returned: 'تم الاسترجاع',
-  late: 'متأخر',
-  damaged: 'متضرر',
-};
-
-function formatDateTime(dateTime?: string): string {
-  if (!dateTime) return '—';
-
-  return new Date(dateTime).toLocaleString('ar-EG', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+import { useState } from 'react';
+import { Truck, Plus } from 'lucide-react';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { SummaryCard } from '../../components/shared/SummaryCard';
+import { StatusBadge, deliveryStatusBadge } from '../../components/shared/StatusBadge';
+import { getDeliveryReturnRecords, filterDeliveryReturnRecords, summarizeDeliveryReturnRecords } from './deliveryReturn.service';
+import { DeliveryModal } from './DeliveryModal';
+import { ReturnModal } from './ReturnModal';
+import type { DeliveryReturnFilters, DeliveryReturnRecord } from './deliveryReturn.types';
+import { formatDateTimeAr } from '../../shared/utils/date';
+import { formatMoneyOMR } from '../../shared/utils/format';
 
 export function DeliveryReturnPage() {
-  const [filters, setFilters] = useState<DeliveryReturnFilters>({
-    search: '',
-    status: 'all',
-  });
+  const [records, setRecords] = useState<DeliveryReturnRecord[]>(() => getDeliveryReturnRecords());
+  const [filters, setFilters] = useState<DeliveryReturnFilters>({ search: '', status: 'all' });
+  const [showDeliver, setShowDeliver] = useState(false);
+  const [showReturn, setShowReturn] = useState(false);
 
-  const records = useMemo(() => getDeliveryReturnRecords(), []);
+  const filtered = filterDeliveryReturnRecords(records, filters);
+  const summary = summarizeDeliveryReturnRecords(records);
 
-  const filteredRecords = useMemo(
-    () => filterDeliveryReturnRecords(records, filters),
-    [records, filters],
-  );
-
-  const summary = useMemo(
-    () => summarizeDeliveryReturnRecords(filteredRecords),
-    [filteredRecords],
-  );
+  const refresh = () => setRecords(getDeliveryReturnRecords());
 
   return (
-    <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">إدارة التسليم والاسترجاع</h1>
-          <p className="mt-2 text-slate-600">متابعة تسليم الفساتين واسترجاعها مع الرسوم والملاحظات التشغيلية.</p>
-        </div>
-        <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
-          عملية تسليم / استرجاع جديدة
-        </button>
+    <div className="min-h-full">
+      <PageHeader
+        title="التسليم والاستلام"
+        subtitle={`${records.length} سجل`}
+        action={
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowDeliver(true)}
+              className="flex items-center gap-1.5 bg-violet-700 text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-violet-800 transition"
+            >
+              <Plus className="w-4 h-4" />
+              تسليم
+            </button>
+            <button
+              onClick={() => setShowReturn(true)}
+              className="flex items-center gap-1.5 bg-emerald-700 text-white text-sm font-medium px-3 py-2 rounded-lg hover:bg-emerald-800 transition"
+            >
+              <Plus className="w-4 h-4" />
+              استلام
+            </button>
+          </div>
+        }
+      />
+
+      {/* Summary */}
+      <div className="px-4 md:px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <SummaryCard label="بانتظار التسليم" value={summary.pendingDelivery} icon={Truck} color="amber" />
+        <SummaryCard label="خارج المحل" value={summary.deliveredOut} icon={Truck} color="violet" />
+        <SummaryCard label="تم الاستلام" value={summary.returned} icon={Truck} color="emerald" />
+        <SummaryCard label="متأخر/تالف" value={summary.lateOrDamaged} icon={Truck} color="rose" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">بانتظار التسليم</p>
-          <p className="mt-2 text-3xl font-bold text-slate-950">{summary.pendingDelivery}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">تم التسليم / خارج المحل</p>
-          <p className="mt-2 text-3xl font-bold text-slate-950">{summary.deliveredOut}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">تم الاسترجاع</p>
-          <p className="mt-2 text-3xl font-bold text-slate-950">{summary.returned}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">متأخر أو متضرر</p>
-          <p className="mt-2 text-3xl font-bold text-slate-950">{summary.lateOrDamaged}</p>
-        </article>
-      </div>
-
-      <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3">
+      {/* Filters */}
+      <div className="px-4 md:px-6 pb-3 flex flex-wrap gap-2">
         <input
+          type="search"
+          placeholder="بحث..."
           value={filters.search}
-          onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
-          placeholder="بحث برقم الحجز أو اسم العميل أو كود الفستان"
-          className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+          className="flex-1 min-w-48 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
         />
         <select
           value={filters.status}
-          onChange={(event) =>
-            setFilters((prev) => ({
-              ...prev,
-              status: event.target.value as DeliveryReturnStatus | 'all',
-            }))
-          }
-          className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value as DeliveryReturnFilters['status'] }))}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white focus:outline-none"
         >
-          {statusOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          <option value="all">كل الحالات</option>
+          <option value="pending_delivery">بانتظار التسليم</option>
+          <option value="delivered">مُسلَّم</option>
+          <option value="returned">مُسترجع</option>
+          <option value="late">متأخر</option>
+          <option value="damaged">تالف</option>
         </select>
       </div>
 
-      {filteredRecords.length === 0 ? (
-        <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm">
-          <p className="text-sm text-slate-500">لا توجد نتائج مطابقة للفلتر الحالي.</p>
-        </article>
-      ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
-          {filteredRecords.map((record) => (
-            <article key={record.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-slate-500">رقم الحجز: {record.reservationNumber}</p>
-                  <h2 className="mt-1 text-lg font-semibold text-slate-950">{record.customerName}</h2>
-                  <p className="text-sm text-slate-600">
-                    {record.dressCode} — {record.dressName}
-                  </p>
+      {/* List */}
+      <div className="px-4 md:px-6 pb-8 space-y-3">
+        {filtered.length === 0 ? (
+          <div className="text-center py-16 text-slate-400">
+            <Truck className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">
+              {records.length === 0 ? 'لا توجد سجلات تسليم. سجّلي عملية تسليم أو استلام.' : 'لا توجد نتائج.'}
+            </p>
+          </div>
+        ) : (
+          filtered.map((r) => {
+            const { label, color } = deliveryStatusBadge(r.status);
+            return (
+              <div key={r.id} className="bg-white rounded-xl border border-slate-200 p-4">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-900">{r.customerName}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{r.reservationNumber} • {r.dressCode} — {r.dressName}</p>
+                  </div>
+                  <StatusBadge label={label} color={color} />
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses[record.status]}`}>
-                  {statusLabels[record.status]}
-                </span>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3 pt-3 border-t border-slate-100 text-sm">
+                  {r.deliveryDateTime && (
+                    <div>
+                      <p className="text-xs text-slate-400">تاريخ التسليم</p>
+                      <p className="text-slate-700">{formatDateTimeAr(r.deliveryDateTime)}</p>
+                    </div>
+                  )}
+                  {r.returnDateTime && (
+                    <div>
+                      <p className="text-xs text-slate-400">تاريخ الاستلام</p>
+                      <p className="text-slate-700">{formatDateTimeAr(r.returnDateTime)}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-slate-400">العربون</p>
+                    <p className="text-slate-700">{formatMoneyOMR(r.depositAmount)}</p>
+                  </div>
+                  {(r.lateFee > 0 || r.damageFee > 0) && (
+                    <div>
+                      <p className="text-xs text-slate-400">الغرامات</p>
+                      <p className="text-rose-600 font-medium">{formatMoneyOMR(r.lateFee + r.damageFee)}</p>
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-xs text-slate-400">استرجاع العربون</p>
+                    <p className="text-emerald-600 font-medium">{formatMoneyOMR(r.depositRefundAmount)}</p>
+                  </div>
+                </div>
               </div>
+            );
+          })
+        )}
+      </div>
 
-              <dl className="mt-4 grid gap-2 text-sm text-slate-700 md:grid-cols-2">
-                <div>
-                  <dt className="text-slate-500">تاريخ/وقت التسليم</dt>
-                  <dd>{formatDateTime(record.deliveryDateTime)}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">تاريخ/وقت الاسترجاع</dt>
-                  <dd>{formatDateTime(record.returnDateTime)}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">حالة التسليم</dt>
-                  <dd>{record.deliveryCondition ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">حالة الاسترجاع</dt>
-                  <dd>{record.returnCondition ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">رسوم التأخير</dt>
-                  <dd>{record.lateFee} ر.ع</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">رسوم الضرر</dt>
-                  <dd>{record.damageFee} ر.ع</dd>
-                </div>
-                <div>
-                  <dt className="text-slate-500">استرجاع العربون</dt>
-                  <dd>{record.depositRefundAmount} ر.ع</dd>
-                </div>
-              </dl>
-
-              {record.notes ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{record.notes}</p> : null}
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
+      <DeliveryModal open={showDeliver} onClose={() => setShowDeliver(false)} onSuccess={() => refresh()} />
+      <ReturnModal open={showReturn} onClose={() => setShowReturn(false)} onSuccess={() => refresh()} />
+    </div>
   );
 }

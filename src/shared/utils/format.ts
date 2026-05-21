@@ -1,7 +1,7 @@
-export function formatMoneyOMR(value: number, minimumFractionDigits = 3): string {
+export function formatMoneyOMR(value: number): string {
   return new Intl.NumberFormat('ar-OM', {
     style: 'currency',
     currency: 'OMR',
-    minimumFractionDigits,
+    minimumFractionDigits: 3,
   }).format(value);
 }

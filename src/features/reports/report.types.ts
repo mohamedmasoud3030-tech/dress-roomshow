@@ -20,7 +20,7 @@ export type DressPerformanceRow = {
   code: string;
   name: string;
   timesRented: number;
-  status: 'available' | 'reserved' | 'maintenance';
+  status: string;
 };
 
 export type CustomerBalanceRow = {
