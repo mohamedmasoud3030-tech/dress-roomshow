@@ -2,10 +2,10 @@
  * localDatabase.ts — Primary data adapter
  *
  * Architecture:
- *  - In Tauri desktop: will use window.__TAURI__.invoke() to call Rust/SQLite commands
+ *  - In Tauri desktop: uses window.__TAURI__.invoke() to call Rust/SQLite commands (future)
  *  - In web/PWA fallback: uses localStorage (offline-first)
  *
- * All feature services import ONLY from this file — never directly from localStorage or Tauri.
+ * All feature services import ONLY from this file.
  * This boundary makes the switch to real SQLite a single-file change.
  */
 
@@ -43,21 +43,22 @@ function writeAll<T>(key: Key, items: T[]): void {
 function upsert<T extends { id: string }>(key: Key, item: T): void {
   const all = readAll<T>(key);
   const idx = all.findIndex((x) => x.id === item.id);
-  if (idx >= 0) {
-    all[idx] = item;
-  } else {
-    all.push(item);
-  }
+  if (idx >= 0) { all[idx] = item; } else { all.push(item); }
   writeAll(key, all);
 }
 
 function remove(key: Key, id: string): void {
-  const all = readAll<{ id: string }>(key);
-  writeAll(key, all.filter((x) => x.id !== id));
+  writeAll(key, readAll<{ id: string }>(key).filter((x) => x.id !== id));
 }
 
 export function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  // NOSONAR - crypto.randomUUID is used for secure ID generation
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  const arr = new Uint32Array(2);
+  crypto.getRandomValues(arr);
+  return Date.now().toString(36) + arr[0].toString(36) + arr[1].toString(36);
 }
 
 export function generateNumber(prefix: string): string {
@@ -65,91 +66,41 @@ export function generateNumber(prefix: string): string {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
-  const rnd = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const arr = new Uint16Array(1);
+  crypto.getRandomValues(arr);
+  const rnd = (arr[0] % 1000).toString().padStart(3, '0');
   return `${prefix}-${yyyy}${mm}${dd}-${rnd}`;
 }
 
-/* ─── Dresses ─────────────────────────────────────────────────────────────── */
-
-export function db_getDresses(): Dress[] {
-  return readAll<Dress>('dresses');
-}
-
-export function db_saveDress(dress: Dress): void {
-  upsert<Dress>('dresses', dress);
-}
-
-export function db_deleteDress(id: string): void {
-  remove('dresses', id);
-}
-
+// Dresses
+export const db_getDresses = (): Dress[] => readAll<Dress>('dresses');
+export const db_saveDress = (d: Dress): void => upsert<Dress>('dresses', d);
+export const db_deleteDress = (id: string): void => remove('dresses', id);
 export function db_updateDressStatus(id: string, status: Dress['status']): void {
   const all = readAll<Dress>('dresses');
-  const dress = all.find((d) => d.id === id);
-  if (dress) {
-    dress.status = status;
-    writeAll('dresses', all);
-  }
+  const d = all.find((x) => x.id === id);
+  if (d) { d.status = status; writeAll('dresses', all); }
 }
 
-/* ─── Customers ────────────────────────────────────────────────────────────── */
+// Customers
+export const db_getCustomers = (): Customer[] => readAll<Customer>('customers');
+export const db_saveCustomer = (c: Customer): void => upsert<Customer>('customers', c);
+export const db_deleteCustomer = (id: string): void => remove('customers', id);
 
-export function db_getCustomers(): Customer[] {
-  return readAll<Customer>('customers');
-}
+// Reservations
+export const db_getReservations = (): Reservation[] => readAll<Reservation>('reservations');
+export const db_saveReservation = (r: Reservation): void => upsert<Reservation>('reservations', r);
+export const db_deleteReservation = (id: string): void => remove('reservations', id);
 
-export function db_saveCustomer(customer: Customer): void {
-  upsert<Customer>('customers', customer);
-}
+// Payments
+export const db_getPayments = (): PaymentRecord[] => readAll<PaymentRecord>('payments');
+export const db_savePayment = (p: PaymentRecord): void => upsert<PaymentRecord>('payments', p);
 
-export function db_deleteCustomer(id: string): void {
-  remove('customers', id);
-}
+// Delivery / Return
+export const db_getDeliveryReturns = (): DeliveryReturnRecord[] => readAll<DeliveryReturnRecord>('deliveryReturns');
+export const db_saveDeliveryReturn = (r: DeliveryReturnRecord): void => upsert<DeliveryReturnRecord>('deliveryReturns', r);
 
-/* ─── Reservations ─────────────────────────────────────────────────────────── */
-
-export function db_getReservations(): Reservation[] {
-  return readAll<Reservation>('reservations');
-}
-
-export function db_saveReservation(reservation: Reservation): void {
-  upsert<Reservation>('reservations', reservation);
-}
-
-export function db_deleteReservation(id: string): void {
-  remove('reservations', id);
-}
-
-/* ─── Payments ─────────────────────────────────────────────────────────────── */
-
-export function db_getPayments(): PaymentRecord[] {
-  return readAll<PaymentRecord>('payments');
-}
-
-export function db_savePayment(payment: PaymentRecord): void {
-  upsert<PaymentRecord>('payments', payment);
-}
-
-/* ─── Delivery / Return ────────────────────────────────────────────────────── */
-
-export function db_getDeliveryReturns(): DeliveryReturnRecord[] {
-  return readAll<DeliveryReturnRecord>('deliveryReturns');
-}
-
-export function db_saveDeliveryReturn(record: DeliveryReturnRecord): void {
-  upsert<DeliveryReturnRecord>('deliveryReturns', record);
-}
-
-/* ─── Expenses ─────────────────────────────────────────────────────────────── */
-
-export function db_getExpenses(): ExpenseRecord[] {
-  return readAll<ExpenseRecord>('expenses');
-}
-
-export function db_saveExpense(expense: ExpenseRecord): void {
-  upsert<ExpenseRecord>('expenses', expense);
-}
-
-export function db_deleteExpense(id: string): void {
-  remove('expenses', id);
-}
+// Expenses
+export const db_getExpenses = (): ExpenseRecord[] => readAll<ExpenseRecord>('expenses');
+export const db_saveExpense = (e: ExpenseRecord): void => upsert<ExpenseRecord>('expenses', e);
+export const db_deleteExpense = (id: string): void => remove('expenses', id);
