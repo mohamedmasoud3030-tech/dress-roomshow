@@ -25,11 +25,15 @@ type Key = keyof typeof KEYS;
 let fallbackCounter = 0;
 
 function getStorage(): Storage | null {
-  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+  if (typeof window === 'undefined') {
     return null;
   }
 
-  return window.localStorage;
+  try {
+    return window.localStorage ?? null;
+  } catch {
+    return null;
+  }
 }
 
 function getRuntimeCrypto(): Crypto | null {
@@ -47,6 +51,50 @@ function nextFallbackSegment(): string {
   return `${timestamp}${counter}`;
 }
 
+function getCryptoIdSegment(): string | null {
+  const runtimeCrypto = getRuntimeCrypto();
+
+  if (!runtimeCrypto) {
+    return null;
+  }
+
+  if (typeof runtimeCrypto.randomUUID === 'function') {
+    try {
+      return runtimeCrypto.randomUUID();
+    } catch {
+      return null;
+    }
+  }
+
+  if (typeof runtimeCrypto.getRandomValues !== 'function') {
+    return null;
+  }
+
+  try {
+    const values = new Uint32Array(2);
+    runtimeCrypto.getRandomValues(values);
+    return `${Date.now().toString(36)}${values[0].toString(36)}${values[1].toString(36)}`;
+  } catch {
+    return null;
+  }
+}
+
+function getCryptoSequence(): number | null {
+  const runtimeCrypto = getRuntimeCrypto();
+
+  if (!runtimeCrypto || typeof runtimeCrypto.getRandomValues !== 'function') {
+    return null;
+  }
+
+  try {
+    const values = new Uint16Array(1);
+    runtimeCrypto.getRandomValues(values);
+    return values[0] % 1000;
+  } catch {
+    return null;
+  }
+}
+
 function readAll<T>(key: Key): T[] {
   const storage = getStorage();
   if (!storage) {
@@ -60,7 +108,11 @@ function readAll<T>(key: Key): T[] {
 
   try {
     const parsed: unknown = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as T[]) : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed as T[];
   } catch {
     return [];
   }
@@ -72,7 +124,11 @@ function writeAll<T>(key: Key, items: T[]): void {
     return;
   }
 
-  storage.setItem(KEYS[key], JSON.stringify(items));
+  try {
+    storage.setItem(KEYS[key], JSON.stringify(items));
+  } catch {
+    // Local persistence should not crash the UI if the browser blocks or limits storage.
+  }
 }
 
 function upsert<T extends { id: string }>(key: Key, item: T): void {
@@ -91,19 +147,7 @@ function remove(key: Key, id: string): void {
 }
 
 export function generateId(): string {
-  const runtimeCrypto = getRuntimeCrypto();
-
-  if (runtimeCrypto && typeof runtimeCrypto.randomUUID === 'function') {
-    return runtimeCrypto.randomUUID();
-  }
-
-  if (runtimeCrypto && typeof runtimeCrypto.getRandomValues === 'function') {
-    const arr = new Uint32Array(2);
-    runtimeCrypto.getRandomValues(arr);
-    return `${Date.now().toString(36)}${arr[0].toString(36)}${arr[1].toString(36)}`;
-  }
-
-  return `local-${nextFallbackSegment()}`;
+  return getCryptoIdSegment() ?? `local-${nextFallbackSegment()}`;
 }
 
 export function generateNumber(prefix: string): string {
@@ -111,18 +155,13 @@ export function generateNumber(prefix: string): string {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
-  const runtimeCrypto = getRuntimeCrypto();
-  let sequence: number;
+  const cryptoSequence = getCryptoSequence();
 
-  if (runtimeCrypto && typeof runtimeCrypto.getRandomValues === 'function') {
-    const arr = new Uint16Array(1);
-    runtimeCrypto.getRandomValues(arr);
-    sequence = arr[0] % 1000;
-  } else {
+  if (cryptoSequence === null) {
     fallbackCounter = (fallbackCounter + 1) % 1000;
-    sequence = fallbackCounter;
   }
 
+  const sequence = cryptoSequence ?? fallbackCounter;
   const ref = sequence.toString().padStart(3, '0');
   return `${prefix}-${yyyy}${mm}${dd}-${ref}`;
 }
