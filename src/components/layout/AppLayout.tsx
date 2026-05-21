@@ -1,57 +1,101 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Shirt,
+  Users,
+  CalendarCheck,
+  Truck,
+  CreditCard,
+  Receipt,
+  BarChart3,
+} from 'lucide-react';
+import { cn } from '../../lib/utils';
 
-const navigation = [
-  { to: '/', label: 'لوحة التحكم' },
-  { to: '/dresses', label: 'الفساتين' },
-  { to: '/customers', label: 'العملاء' },
-  { to: '/reservations', label: 'الحجوزات' },
-  { to: '/delivery-return', label: 'التسليم والاسترجاع' },
-  { to: '/payments', label: 'المدفوعات' },
-  { to: '/expenses', label: 'المصروفات' },
-  { to: '/reports', label: 'التقارير البسيطة' },
+const navItems = [
+  { to: '/', label: 'الرئيسية', icon: LayoutDashboard, end: true },
+  { to: '/dresses', label: 'الفساتين', icon: Shirt },
+  { to: '/customers', label: 'العميلات', icon: Users },
+  { to: '/reservations', label: 'الحجوزات', icon: CalendarCheck },
+  { to: '/delivery-return', label: 'التسليم والاستلام', icon: Truck },
+  { to: '/payments', label: 'المدفوعات', icon: CreditCard },
+  { to: '/expenses', label: 'المصاريف', icon: Receipt },
+  { to: '/reports', label: 'التقارير', icon: BarChart3 },
 ];
 
 export function AppLayout() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950" dir="rtl">
-      <aside className="fixed inset-y-0 right-0 hidden w-72 border-l border-slate-200 bg-white p-5 shadow-sm lg:block">
-        <div className="mb-8">
-          <p className="text-sm text-slate-500">Dress roomshow</p>
-          <h1 className="text-2xl font-bold">إدارة محل الفساتين</h1>
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-60 bg-violet-900 text-white shrink-0">
+        <div className="px-4 py-5 border-b border-violet-800">
+          <h1 className="text-lg font-bold leading-tight">Dress Roomshow</h1>
+          <p className="text-violet-300 text-xs mt-0.5">نظام إدارة المحل</p>
         </div>
-        <nav className="space-y-2">
-          {navigation.map((item) => (
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+          {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.end}
               className={({ isActive }) =>
-                `block rounded-xl px-4 py-3 text-sm font-medium transition ${
-                  isActive ? 'bg-violet-100 text-violet-800' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-                }`
+                cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
+                  isActive
+                    ? 'bg-violet-700 text-white font-semibold'
+                    : 'text-violet-200 hover:bg-violet-800 hover:text-white',
+                )
               }
             >
-              {item.label}
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
+        <div className="px-4 py-3 border-t border-violet-800 text-xs text-violet-400">
+          v0.1 — وضع عدم الاتصال
+        </div>
       </aside>
 
-      <main className="min-h-screen lg:pr-72">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 px-6 py-4 backdrop-blur">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm text-slate-500">خطة البداية</p>
-              <h2 className="text-xl font-semibold">تشغيل يومي سريع ومنظم</h2>
-            </div>
-            <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
-              حجز جديد
-            </button>
-          </div>
-        </header>
-        <div className="p-6">
+      {/* Main content */}
+      <main className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <Outlet />
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50">
+        <div className="flex justify-around items-center h-16">
+          {navItems.slice(0, 5).map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) =>
+                cn(
+                  'flex flex-col items-center gap-0.5 px-2 py-1 min-w-0',
+                  isActive ? 'text-violet-700' : 'text-slate-500',
+                )
+              }
+            >
+              <item.icon className="w-5 h-5 shrink-0" />
+              <span className="text-[10px] leading-tight truncate">{item.label}</span>
+            </NavLink>
+          ))}
+          <NavLink
+            to="/reports"
+            className={({ isActive }) =>
+              cn(
+                'flex flex-col items-center gap-0.5 px-2 py-1 min-w-0',
+                isActive ? 'text-violet-700' : 'text-slate-500',
+              )
+            }
+          >
+            <BarChart3 className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-tight truncate">المزيد</span>
+          </NavLink>
+        </div>
+      </nav>
     </div>
   );
 }

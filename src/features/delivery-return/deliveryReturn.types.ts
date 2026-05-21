@@ -7,9 +7,11 @@ export type DeliveryReturnStatus =
 
 export type DeliveryReturnRecord = {
   id: string;
+  reservationId: string;
   reservationNumber: string;
   customerName: string;
   customerPhone?: string;
+  dressId: string;
   dressCode: string;
   dressName: string;
   deliveryDateTime?: string;

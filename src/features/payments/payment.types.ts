@@ -7,6 +7,7 @@ export type PaymentDirection = 'income' | 'refund';
 export type PaymentRecord = {
   id: string;
   paymentNumber: string;
+  reservationId: string;
   reservationNumber: string;
   customerName: string;
   dressCode: string;
