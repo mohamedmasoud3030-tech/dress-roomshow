@@ -22,32 +22,88 @@ const KEYS = {
 
 type Key = keyof typeof KEYS;
 
+let fallbackCounter = 0;
+
+function getStorage(): Storage | null {
+  if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage;
+}
+
+function getRuntimeCrypto(): Crypto | null {
+  if (typeof globalThis.crypto === 'undefined') {
+    return null;
+  }
+
+  return globalThis.crypto;
+}
+
+function nextFallbackSegment(): string {
+  fallbackCounter = (fallbackCounter + 1) % Number.MAX_SAFE_INTEGER;
+  const timestamp = Date.now().toString(36);
+  const counter = fallbackCounter.toString(36).padStart(4, '0');
+  return `${timestamp}${counter}`;
+}
+
 function readAll<T>(key: Key): T[] {
+  const storage = getStorage();
+  if (!storage) {
+    return [];
+  }
+
+  const raw = storage.getItem(KEYS[key]);
+  if (!raw) {
+    return [];
+  }
+
   try {
-    const raw = localStorage.getItem(KEYS[key]);
-    return raw ? (JSON.parse(raw) as T[]) : [];
-  } catch { return []; }
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as T[]) : [];
+  } catch {
+    return [];
+  }
 }
+
 function writeAll<T>(key: Key, items: T[]): void {
-  localStorage.setItem(KEYS[key], JSON.stringify(items));
+  const storage = getStorage();
+  if (!storage) {
+    return;
+  }
+
+  storage.setItem(KEYS[key], JSON.stringify(items));
 }
+
 function upsert<T extends { id: string }>(key: Key, item: T): void {
   const all = readAll<T>(key);
   const idx = all.findIndex((x) => x.id === item.id);
-  if (idx >= 0) { all[idx] = item; } else { all.push(item); }
+  if (idx >= 0) {
+    all[idx] = item;
+  } else {
+    all.push(item);
+  }
   writeAll(key, all);
 }
+
 function remove(key: Key, id: string): void {
   writeAll(key, readAll<{ id: string }>(key).filter((x) => x.id !== id));
 }
 
 export function generateId(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+  const runtimeCrypto = getRuntimeCrypto();
+
+  if (runtimeCrypto && typeof runtimeCrypto.randomUUID === 'function') {
+    return runtimeCrypto.randomUUID();
   }
-  const arr = new Uint32Array(2);
-  crypto.getRandomValues(arr);
-  return Date.now().toString(36) + arr[0].toString(36) + arr[1].toString(36);
+
+  if (runtimeCrypto && typeof runtimeCrypto.getRandomValues === 'function') {
+    const arr = new Uint32Array(2);
+    runtimeCrypto.getRandomValues(arr);
+    return `${Date.now().toString(36)}${arr[0].toString(36)}${arr[1].toString(36)}`;
+  }
+
+  return `local-${nextFallbackSegment()}`;
 }
 
 export function generateNumber(prefix: string): string {
@@ -55,10 +111,20 @@ export function generateNumber(prefix: string): string {
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
-  const arr = new Uint16Array(1);
-  crypto.getRandomValues(arr);
-  const rnd = (arr[0] % 1000).toString().padStart(3, '0');
-  return `${prefix}-${yyyy}${mm}${dd}-${rnd}`;
+  const runtimeCrypto = getRuntimeCrypto();
+  let sequence: number;
+
+  if (runtimeCrypto && typeof runtimeCrypto.getRandomValues === 'function') {
+    const arr = new Uint16Array(1);
+    runtimeCrypto.getRandomValues(arr);
+    sequence = arr[0] % 1000;
+  } else {
+    fallbackCounter = (fallbackCounter + 1) % 1000;
+    sequence = fallbackCounter;
+  }
+
+  const ref = sequence.toString().padStart(3, '0');
+  return `${prefix}-${yyyy}${mm}${dd}-${ref}`;
 }
 
 // Dresses
@@ -68,7 +134,10 @@ export const db_deleteDress = (id: string): void => remove('dresses', id);
 export function db_updateDressStatus(id: string, status: Dress['status']): void {
   const all = readAll<Dress>('dresses');
   const d = all.find((x) => x.id === id);
-  if (d) { d.status = status; writeAll('dresses', all); }
+  if (d) {
+    d.status = status;
+    writeAll('dresses', all);
+  }
 }
 // Customers
 export const db_getCustomers = (): Customer[] => readAll<Customer>('customers');
