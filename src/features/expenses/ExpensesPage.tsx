@@ -6,6 +6,7 @@ import {
   getExpenses,
   getExpensesFromLocalDb,
   summarizeExpenses,
+  addExpenseToLocalDb,
 } from './expense.service';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
@@ -94,7 +95,7 @@ export function ExpensesPage() {
     resetCreateState();
   };
 
-  const submitCreateExpense = () => {
+  const submitCreateExpense = async () => {
     const trimmed = {
       title: draftExpense.title.trim(),
       relatedDressCode: draftExpense.relatedDressCode.trim(),
@@ -117,21 +118,21 @@ export function ExpensesPage() {
       return;
     }
 
-    setExpenses((prev) => [
-      {
-        id: `local-expense-${crypto.randomUUID()}`,
-        expenseNumber: `EXP-LOCAL-${String(prev.length + 1).padStart(3, '0')}`,
-        expenseDate: draftExpense.expenseDate,
-        title: trimmed.title,
-        category: draftExpense.category,
-        amount: amountNumber,
-        paymentMethod: draftExpense.paymentMethod,
-        relatedDressCode: trimmed.relatedDressCode || undefined,
-        relatedDressName: trimmed.relatedDressName || undefined,
-        notes: trimmed.notes || undefined,
-      },
-      ...prev,
-    ]);
+    const nextExpense = {
+      id: `local-expense-${crypto.randomUUID()}`,
+      expenseNumber: `EXP-LOCAL-${String(expenses.length + 1).padStart(3, '0')}`,
+      expenseDate: draftExpense.expenseDate,
+      title: trimmed.title,
+      category: draftExpense.category,
+      amount: amountNumber,
+      paymentMethod: draftExpense.paymentMethod,
+      relatedDressCode: trimmed.relatedDressCode || undefined,
+      relatedDressName: trimmed.relatedDressName || undefined,
+      notes: trimmed.notes || undefined,
+    };
+
+    await addExpenseToLocalDb(nextExpense);
+    setExpenses((prev) => [nextExpense, ...prev]);
 
     closeCreateModal();
   };
