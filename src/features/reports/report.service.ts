@@ -1,3 +1,5 @@
+import { getTodayISO } from '../../shared/utils/date';
+import { formatMoneyOMR } from '../../shared/utils/format';
 import { getExpenses } from '../expenses/expense.service';
 import { getPayments } from '../payments/payment.service';
 import { reportMockCustomers, reportMockDresses, reportMockReservations } from './report.mock';
@@ -9,15 +11,10 @@ import type {
   TodayReport,
 } from './report.types';
 
-const TODAY_DATE = '2026-05-19';
 const activeReservationStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
 
 export function formatReportMoney(amount: number): string {
-  return new Intl.NumberFormat('ar-OM', {
-    style: 'currency',
-    currency: 'OMR',
-    minimumFractionDigits: 2,
-  }).format(amount);
+  return formatMoneyOMR(amount, 2);
 }
 
 export function getFinancialSummary(): FinancialSummary {
@@ -47,21 +44,22 @@ export function getDressPerformance(): DressPerformanceRow[] {
 }
 
 export function getTodayReport(): TodayReport {
+  const todayDate = getTodayISO();
   const payments = getPayments();
   const expenses = getExpenses();
 
-  const pickupsToday = reportMockReservations.filter((reservation) => reservation.pickupDate === TODAY_DATE).length;
-  const returnsToday = reportMockReservations.filter((reservation) => reservation.returnDate === TODAY_DATE).length;
+  const pickupsToday = reportMockReservations.filter((reservation) => reservation.pickupDate === todayDate).length;
+  const returnsToday = reportMockReservations.filter((reservation) => reservation.returnDate === todayDate).length;
 
   const paymentsToday = payments
-    .filter((payment) => payment.paymentDate === TODAY_DATE)
+    .filter((payment) => payment.paymentDate === todayDate)
     .reduce((sum, payment) => sum + payment.amount, 0);
 
   const expensesToday = expenses
-    .filter((expense) => expense.expenseDate === TODAY_DATE)
+    .filter((expense) => expense.expenseDate === todayDate)
     .reduce((sum, expense) => sum + expense.amount, 0);
 
-  return { date: TODAY_DATE, pickupsToday, returnsToday, paymentsToday, expensesToday };
+  return { date: todayDate, pickupsToday, returnsToday, paymentsToday, expensesToday };
 }
 
 export function getReportSummary(): ReportSummary {
