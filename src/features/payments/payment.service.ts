@@ -100,7 +100,7 @@ export function addPayment(input: AddPaymentInput): PaymentRecord {
   if (input.paymentDate > getTodayISO()) throw new Error('تاريخ الدفع لا يمكن أن يكون في المستقبل.');
   if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة الدفعة يجب أن تكون أكبر من صفر.');
 
-  recordReservationPayment({
+  const updatedReservation = recordReservationPayment({
     reservationNumber: reservation.reservationNumber,
     type: input.type,
     direction,
@@ -119,7 +119,7 @@ export function addPayment(input: AddPaymentInput): PaymentRecord {
     method: input.method,
     direction,
     amount: input.amount,
-    reservationTotal: reservation.totalAmount,
+    reservationTotal: updatedReservation.totalAmount,
     notes: input.notes?.trim() || undefined,
   };
 
