@@ -1,8 +1,23 @@
+import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
 import { mockDresses } from './dress.mock';
 import type { Dress, DressFilters, DressSummary } from './dress.types';
 
+const COLLECTION = 'dresses';
+
+type AddDressInput = Omit<Dress, 'id' | 'code' | 'timesRented'>;
+
+function getNextDressCode(dresses: Dress[]): string {
+  const highestCode = dresses.reduce((highest, dress) => {
+    const match = /^DR-(\d+)$/.exec(dress.code.trim().toUpperCase());
+    if (!match) return highest;
+    return Math.max(highest, Number(match[1]));
+  }, 0);
+
+  return `DR-${String(highestCode + 1).padStart(3, '0')}`;
+}
+
 export function getDresses(): Dress[] {
-  return mockDresses;
+  return readCollection(COLLECTION, mockDresses);
 }
 
 export function filterDresses(dresses: Dress[], filters: DressFilters): Dress[] {
@@ -34,4 +49,36 @@ export function summarizeDresses(dresses: Dress[]): DressSummary {
     rented: dresses.filter((dress) => dress.status === 'rented').length,
     inService: dresses.filter((dress) => dress.status === 'laundry' || dress.status === 'maintenance').length,
   };
+}
+
+export function addDress(input: AddDressInput): Dress {
+  const dresses = getDresses();
+  const name = input.name.trim();
+  const color = input.color.trim();
+  const size = input.size.trim();
+
+  if (!name) throw new Error('اسم الفستان مطلوب.');
+  if (!color) throw new Error('لون الفستان مطلوب.');
+  if (!size) throw new Error('مقاس الفستان مطلوب.');
+  if (!input.isForRent && !input.isForSale) throw new Error('حددي أن الفستان للبيع أو للإيجار على الأقل.');
+
+  const amounts = [input.purchasePrice, input.rentalPrice, input.salePrice, input.depositAmount];
+  if (amounts.some((amount) => !Number.isFinite(amount) || amount < 0)) throw new Error('توجد قيمة مالية غير صالحة.');
+  if (input.isForRent && input.rentalPrice <= 0) throw new Error('سعر الإيجار مطلوب للفساتين المتاحة للإيجار.');
+  if (input.isForSale && input.salePrice <= 0) throw new Error('سعر البيع مطلوب للفساتين المتاحة للبيع.');
+
+  const dress: Dress = {
+    ...input,
+    id: generateId(),
+    code: getNextDressCode(dresses),
+    name,
+    color,
+    size,
+    description: input.description.trim(),
+    notes: input.notes?.trim() || undefined,
+    timesRented: 0,
+  };
+
+  writeCollection(COLLECTION, [dress, ...dresses]);
+  return dress;
 }
