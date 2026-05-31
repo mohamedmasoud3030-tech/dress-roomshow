@@ -33,19 +33,18 @@ export function getFinancialSummary(range?: DateRangeFilter): FinancialSummary {
   const sales = getSales().filter((sale) => isWithinRange(sale.saleDate, range));
   const expenses = getExpenses().filter((expense) => isWithinRange(expense.expenseDate, range));
 
-  const totalCollected = payments
+  const rentalCollected = payments
     .filter((payment) => payment.direction === 'income')
-    .reduce((sum, payment) => sum + payment.amount, 0)
-    + sales.reduce((sum, sale) => sum + sale.amount, 0);
-
+    .reduce((sum, payment) => sum + payment.amount, 0);
+  const salesCollected = sales.reduce((sum, sale) => sum + sale.amount, 0);
+  const totalCollected = rentalCollected + salesCollected;
   const totalRefunded = payments
     .filter((payment) => payment.direction === 'refund')
     .reduce((sum, payment) => sum + payment.amount, 0);
-
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const netAmount = totalCollected - totalRefunded - totalExpenses;
 
-  return { totalCollected, totalRefunded, totalExpenses, netAmount };
+  return { rentalCollected, salesCollected, totalCollected, totalRefunded, totalExpenses, netAmount };
 }
 
 export function getCustomerBalances(): CustomerBalanceRow[] {
@@ -69,14 +68,12 @@ export function getTodayReport(): TodayReport {
 
   const pickupsToday = reservations.filter((reservation) => reservation.pickupDate === todayDate).length;
   const returnsToday = reservations.filter((reservation) => reservation.returnDate === todayDate).length;
-
   const paymentsToday = payments
     .filter((payment) => payment.paymentDate === todayDate)
     .reduce((sum, payment) => sum + (payment.direction === 'income' ? payment.amount : -payment.amount), 0)
     + sales
       .filter((sale) => sale.saleDate === todayDate)
       .reduce((sum, sale) => sum + sale.amount, 0);
-
   const expensesToday = expenses
     .filter((expense) => expense.expenseDate === todayDate)
     .reduce((sum, expense) => sum + expense.amount, 0);
