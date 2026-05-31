@@ -1,3 +1,6 @@
+import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
+import { getTodayISO } from '../../shared/utils/date';
+import { getReservations, recordReservationPayment } from '../reservations/reservation.service';
 import { paymentMockRecords } from './payment.mock';
 import type {
   PaymentDirection,
@@ -8,8 +11,19 @@ import type {
   PaymentType,
 } from './payment.types';
 
+const COLLECTION = 'payments';
+
+type AddPaymentInput = {
+  reservationNumber: string;
+  paymentDate: string;
+  type: PaymentType;
+  method: PaymentMethod;
+  amount: number;
+  notes?: string;
+};
+
 export function getPayments(): PaymentRecord[] {
-  return paymentMockRecords;
+  return readCollection(COLLECTION, paymentMockRecords);
 }
 
 export function filterPayments(
@@ -40,21 +54,8 @@ export function filterPayments(
 }
 
 export function summarizePayments(payments: PaymentRecord[]): PaymentSummary {
-  const reservationTotals = new Map<string, number>();
-  const netByReservation = new Map<string, number>();
-
   const summary = payments.reduce<PaymentSummary>(
     (acc, payment) => {
-      if (!reservationTotals.has(payment.reservationNumber)) {
-        reservationTotals.set(payment.reservationNumber, payment.reservationTotal);
-      }
-
-      const signedAmount = payment.direction === 'income' ? payment.amount : -payment.amount;
-      netByReservation.set(
-        payment.reservationNumber,
-        (netByReservation.get(payment.reservationNumber) ?? 0) + signedAmount,
-      );
-
       if (payment.direction === 'income') {
         acc.totalCollected += payment.amount;
       }
@@ -82,15 +83,48 @@ export function summarizePayments(payments: PaymentRecord[]): PaymentSummary {
     },
   );
 
-  summary.remainingBalance = Array.from(reservationTotals.entries()).reduce(
-    (total, [reservationNumber, reservationTotal]) => {
-      const paidNet = netByReservation.get(reservationNumber) ?? 0;
-      return total + Math.max(reservationTotal - paidNet, 0);
-    },
+  summary.remainingBalance = getReservations().reduce(
+    (total, reservation) => total + reservation.remainingAmount,
     0,
   );
 
   return summary;
+}
+
+export function addPayment(input: AddPaymentInput): PaymentRecord {
+  const reservation = getReservations().find((item) => item.reservationNumber === input.reservationNumber);
+  const direction: PaymentDirection = input.type === 'refund' ? 'refund' : 'income';
+
+  if (!reservation) throw new Error('الحجز المحدد غير موجود.');
+  if (!input.paymentDate) throw new Error('تاريخ الدفع مطلوب.');
+  if (input.paymentDate > getTodayISO()) throw new Error('تاريخ الدفع لا يمكن أن يكون في المستقبل.');
+  if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة الدفعة يجب أن تكون أكبر من صفر.');
+
+  recordReservationPayment({
+    reservationNumber: reservation.reservationNumber,
+    type: input.type,
+    direction,
+    amount: input.amount,
+  });
+
+  const payment: PaymentRecord = {
+    id: generateId(),
+    paymentNumber: generateNumber('PAY'),
+    reservationNumber: reservation.reservationNumber,
+    customerName: reservation.customerName,
+    dressCode: reservation.dressCode,
+    dressName: reservation.dressName,
+    paymentDate: input.paymentDate,
+    type: input.type,
+    method: input.method,
+    direction,
+    amount: input.amount,
+    reservationTotal: reservation.totalAmount,
+    notes: input.notes?.trim() || undefined,
+  };
+
+  writeCollection(COLLECTION, [payment, ...getPayments()]);
+  return payment;
 }
 
 export function formatPaymentTypeLabel(type: PaymentType): string {
