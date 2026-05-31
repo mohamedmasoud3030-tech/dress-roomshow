@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -6,7 +6,9 @@ import { Modal } from '../../components/shared/Modal';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getCustomers } from '../customers/customer.service';
+import type { Customer } from '../customers/customer.types';
 import { getDresses } from '../dresses/dress.service';
+import type { Dress } from '../dresses/dress.types';
 import { createReservation } from './reservation.service';
 import type { Reservation } from './reservation.types';
 
@@ -45,6 +47,10 @@ function getDefaultValues(): ReservationFormValues {
   };
 }
 
+function getReservableDresses(): Dress[] {
+  return getDresses().filter((dress) => dress.isForRent && ['available', 'reserved', 'rented'].includes(dress.status));
+}
+
 const fieldClassName =
   'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30';
 const labelClassName = 'mb-1.5 block text-sm font-bold text-slate-700';
@@ -53,11 +59,8 @@ const errorClassName = 'mt-1 text-xs font-medium text-rose-700';
 export function CreateReservationModal({ open, onClose, onCreated }: CreateReservationModalProps) {
   const fieldId = useId();
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const customers = useMemo(() => getCustomers(), []);
-  const dresses = useMemo(
-    () => getDresses().filter((dress) => dress.isForRent && ['available', 'reserved', 'rented'].includes(dress.status)),
-    [],
-  );
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [dresses, setDresses] = useState<Dress[]>([]);
 
   const {
     register,
@@ -77,6 +80,8 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
 
   useEffect(() => {
     if (!open) return;
+    setCustomers(getCustomers());
+    setDresses(getReservableDresses());
     reset(getDefaultValues());
     setSubmitError(null);
   }, [open, reset]);
