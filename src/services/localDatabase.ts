@@ -34,10 +34,10 @@ export function readCollection<T>(collection: string, fallback: T[] = []): T[] {
     return cloneItems(initial);
   }
 
-  const raw = storage.getItem(key);
-  if (!raw) return cloneItems(fallback);
-
   try {
+    const raw = storage.getItem(key);
+    if (!raw) return cloneItems(fallback);
+
     const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as T[]) : cloneItems(fallback);
   } catch {
