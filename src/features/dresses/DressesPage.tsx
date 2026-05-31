@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Search, Shirt, Sparkles, Wrench } from 'lucide-react';
+import { Plus, Search, Shirt } from 'lucide-react';
+import { PageHeader } from '../../components/shared/PageHeader';
+import { SummaryCard } from '../../components/shared/SummaryCard';
+import { formatMoneyOMR } from '../../shared/utils/format';
+import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
-import { formatMoneyOMR } from '../../shared/utils/format';
 
 const statusLabels: Record<DressStatus, string> = {
   available: 'متاح',
@@ -21,7 +24,7 @@ const statusStyles: Record<DressStatus, string> = {
   rented: 'bg-violet-50 text-violet-700 ring-violet-200',
   laundry: 'bg-sky-50 text-sky-700 ring-sky-200',
   maintenance: 'bg-orange-50 text-orange-700 ring-orange-200',
-  damaged: 'bg-red-50 text-red-700 ring-red-200',
+  damaged: 'bg-rose-50 text-rose-700 ring-rose-200',
   sold: 'bg-slate-100 text-slate-700 ring-slate-200',
   inactive: 'bg-slate-100 text-slate-500 ring-slate-200',
 };
@@ -31,48 +34,58 @@ const statuses: Array<'all' | DressStatus> = ['all', 'available', 'reserved', 'r
 
 function DressCard({ dress }: { dress: Dress }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex h-48 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
         <div className="rounded-full bg-white/80 p-6 shadow-sm ring-1 ring-slate-200">
-          <Shirt className="h-12 w-12 text-violet-700" />
+          <Shirt aria-hidden="true" className="h-12 w-12 text-violet-700" />
         </div>
       </div>
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold text-slate-400">{dress.code}</p>
-            <h3 className="mt-1 text-lg font-bold text-slate-950">{dress.name}</h3>
-            <p className="mt-1 text-sm text-slate-500">{dress.description}</p>
+            <p className="text-xs font-semibold text-slate-400" dir="ltr">{dress.code}</p>
+            <h2 className="mt-1 text-lg font-bold text-slate-950">{dress.name}</h2>
+            {dress.description && <p className="mt-1 text-sm leading-6 text-slate-500">{dress.description}</p>}
           </div>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusStyles[dress.status]}`}>
+          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ring-1 ${statusStyles[dress.status]}`}>
             {statusLabels[dress.status]}
           </span>
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-sm">
-          <div className="rounded-xl bg-slate-50 p-3">
+          <div className="rounded-xl bg-stone-50 p-3">
             <p className="text-slate-400">اللون</p>
             <p className="font-semibold text-slate-900">{dress.color}</p>
           </div>
-          <div className="rounded-xl bg-slate-50 p-3">
+          <div className="rounded-xl bg-stone-50 p-3">
             <p className="text-slate-400">المقاس</p>
-            <p className="font-semibold text-slate-900">{dress.size}</p>
+            <p className="font-semibold text-slate-900" dir="ltr">{dress.size}</p>
           </div>
-          <div className="rounded-xl bg-slate-50 p-3">
+          <div className="rounded-xl bg-stone-50 p-3">
             <p className="text-slate-400">الفئة</p>
             <p className="font-semibold text-slate-900">{dress.category}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 border-t border-slate-100 pt-4 text-sm">
-          <div>
-            <p className="text-slate-400">سعر الإيجار</p>
-            <p className="font-bold text-slate-950">{formatMoneyOMR(dress.rentalPrice)}</p>
-          </div>
-          <div>
-            <p className="text-slate-400">التأمين</p>
-            <p className="font-bold text-slate-950">{formatMoneyOMR(dress.depositAmount)}</p>
-          </div>
+        <div className="grid gap-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-2">
+          {dress.isForRent && (
+            <>
+              <div>
+                <p className="text-slate-400">سعر الإيجار</p>
+                <p className="font-bold text-slate-950">{formatMoneyOMR(dress.rentalPrice)}</p>
+              </div>
+              <div>
+                <p className="text-slate-400">التأمين</p>
+                <p className="font-bold text-slate-950">{formatMoneyOMR(dress.depositAmount)}</p>
+              </div>
+            </>
+          )}
+          {dress.isForSale && (
+            <div>
+              <p className="text-slate-400">سعر البيع</p>
+              <p className="font-bold text-slate-950">{formatMoneyOMR(dress.salePrice)}</p>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -86,91 +99,109 @@ function DressCard({ dress }: { dress: Dress }) {
 }
 
 export function DressesPage() {
+  const [dresses, setDresses] = useState<Dress[]>(() => getDresses());
   const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
-  const dresses = getDresses();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
   const summary = useMemo(() => summarizeDresses(dresses), [dresses]);
 
+  const handleCreated = (dress: Dress) => {
+    setDresses((current) => [dress, ...current]);
+    setFeedback(`تمت إضافة الفستان ${dress.code} بنجاح.`);
+  };
+
   return (
     <section className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-violet-700">المخزون</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">الفساتين</h1>
-          <p className="mt-2 text-slate-600">إدارة فساتين المحل وحالاتها وأسعار الإيجار والتأمين.</p>
-        </div>
-        <button className="rounded-xl bg-violet-700 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
+        <PageHeader
+          eyebrow="المخزون"
+          title="الفساتين"
+          description="إدارة فساتين المحل وحالاتها وأسعار البيع والإيجار والتأمين من سجل واحد واضح."
+        />
+        <button
+          type="button"
+          onClick={() => {
+            setFeedback(null);
+            setShowCreateModal(true);
+          }}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+        >
+          <Plus aria-hidden="true" className="h-5 w-5" />
           إضافة فستان
         </button>
       </div>
 
+      {feedback && (
+        <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+          {feedback}
+        </div>
+      )}
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <Sparkles className="mb-4 h-6 w-6 text-violet-700" />
-          <p className="text-sm text-slate-500">إجمالي الفساتين</p>
-          <p className="mt-2 text-3xl font-bold">{summary.total}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">متاحة الآن</p>
-          <p className="mt-2 text-3xl font-bold text-emerald-700">{summary.available}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">مؤجرة حاليًا</p>
-          <p className="mt-2 text-3xl font-bold text-violet-700">{summary.rented}</p>
-        </article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <Wrench className="mb-4 h-6 w-6 text-orange-600" />
-          <p className="text-sm text-slate-500">مغسلة / تعديل</p>
-          <p className="mt-2 text-3xl font-bold text-orange-600">{summary.inService}</p>
-        </article>
+        <SummaryCard label="إجمالي الفساتين" value={summary.total} />
+        <SummaryCard label="متاحة الآن" value={summary.available} tone="positive" />
+        <SummaryCard label="مؤجرة حالياً" value={summary.rented} />
+        <SummaryCard label="مغسلة أو تعديل" value={summary.inService} tone={summary.inService > 0 ? 'warning' : 'default'} />
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px]">
           <label className="relative block">
-            <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <span className="sr-only">البحث في الفساتين</span>
+            <Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
+              type="search"
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-              placeholder="ابحث بالكود، الاسم، اللون أو المقاس"
-              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-11 text-sm outline-none ring-violet-200 transition focus:border-violet-300 focus:ring-4"
+              placeholder="ابحثي بالكود أو الاسم أو اللون أو المقاس"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
             />
           </label>
 
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as DressFilters['status'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
-          >
-            {statuses.map((status) => (
-              <option key={status} value={status}>
-                {status === 'all' ? 'كل الحالات' : statusLabels[status]}
-              </option>
-            ))}
-          </select>
+          <label>
+            <span className="sr-only">حالة الفستان</span>
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as DressFilters['status'] }))}
+              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+            >
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status === 'all' ? 'كل الحالات' : statusLabels[status]}
+                </option>
+              ))}
+            </select>
+          </label>
 
-          <select
-            value={filters.category}
-            onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value as DressFilters['category'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category === 'all' ? 'كل الفئات' : category}
-              </option>
-            ))}
-          </select>
+          <label>
+            <span className="sr-only">فئة الفستان</span>
+            <select
+              value={filters.category}
+              onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value as DressFilters['category'] }))}
+              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+            >
+              {categories.map((category) => (
+                <option key={category} value={category}>
+                  {category === 'all' ? 'كل الفئات' : category}
+                </option>
+              ))}
+            </select>
+          </label>
 
-          <select
-            value={filters.usage}
-            onChange={(event) => setFilters((current) => ({ ...current, usage: event.target.value as DressFilters['usage'] }))}
-            className="h-12 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none focus:border-violet-300"
-          >
-            <option value="all">كل الاستخدامات</option>
-            <option value="rent">للإيجار</option>
-            <option value="sale">للبيع</option>
-          </select>
+          <label>
+            <span className="sr-only">نوع استخدام الفستان</span>
+            <select
+              value={filters.usage}
+              onChange={(event) => setFilters((current) => ({ ...current, usage: event.target.value as DressFilters['usage'] }))}
+              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+            >
+              <option value="all">كل الاستخدامات</option>
+              <option value="rent">للإيجار</option>
+              <option value="sale">للبيع</option>
+            </select>
+          </label>
         </div>
       </div>
 
@@ -183,9 +214,11 @@ export function DressesPage() {
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
           <p className="text-lg font-semibold text-slate-900">لا توجد فساتين مطابقة</p>
-          <p className="mt-2 text-sm text-slate-500">غيّر البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
+          <p className="mt-2 text-sm text-slate-500">غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
         </div>
       )}
+
+      <AddDressModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
     </section>
   );
 }
