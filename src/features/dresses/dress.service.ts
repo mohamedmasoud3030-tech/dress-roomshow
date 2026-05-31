@@ -1,6 +1,6 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
 import { mockDresses } from './dress.mock';
-import type { Dress, DressFilters, DressSummary } from './dress.types';
+import type { Dress, DressFilters, DressStatus, DressSummary } from './dress.types';
 
 const COLLECTION = 'dresses';
 
@@ -18,6 +18,24 @@ function getNextDressCode(dresses: Dress[]): string {
 
 export function getDresses(): Dress[] {
   return readCollection(COLLECTION, mockDresses);
+}
+
+export function updateDressStatus(code: string, status: DressStatus): Dress {
+  const dresses = getDresses();
+  const dress = dresses.find((item) => item.code === code);
+  if (!dress) throw new Error('الفستان المحدد غير موجود.');
+
+  const updatedDress: Dress = {
+    ...dress,
+    status,
+    timesRented: status === 'rented' && dress.status !== 'rented' ? dress.timesRented + 1 : dress.timesRented,
+  };
+
+  writeCollection(
+    COLLECTION,
+    dresses.map((item) => (item.id === dress.id ? updatedDress : item)),
+  );
+  return updatedDress;
 }
 
 export function filterDresses(dresses: Dress[], filters: DressFilters): Dress[] {
