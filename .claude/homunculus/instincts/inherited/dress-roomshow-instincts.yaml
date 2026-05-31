@@ -1,0 +1,413 @@
+# Instincts generated from https://github.com/mohamedmasoud3030-tech/dress-roomshow
+# Generated: 2026-05-31T12:43:56.597Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: dress-roomshow-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: feat, fix
+
+## Evidence
+
+- 7 commits analyzed
+- Detected conventional commit pattern
+- Examples: feat(ui): add responsive accessible app shell navigation, fix(reports): use local current date and shared currency formatter
+
+---
+id: dress-roomshow-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Commit Length
+
+## Action
+
+Write moderate-length commit messages (~55 characters)
+
+## Evidence
+
+- Average commit message length: 55 chars
+- Based on 7 commits
+
+---
+id: dress-roomshow-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: dress-roomshow-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: dress-roomshow-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: dress-roomshow-arch-feature-based
+trigger: "when adding a new feature"
+confidence: 0.85
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Arch Feature Based
+
+## Action
+
+Create a new folder in src/features/ with all related code colocated
+
+## Evidence
+
+- Feature-based module organization detected
+- Structure: src/features/[feature-name]/
+
+---
+id: dress-roomshow-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: dress-roomshow-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~26x per month
+- Files: src/components/layout/*, src/components/shared/*, src/features/dashboard/*
+
+---
+id: dress-roomshow-workflow-ui-component-enhancement
+trigger: "when doing ui component enhancement"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Workflow Ui Component Enhancement
+
+## Action
+
+Follow the ui-component-enhancement workflow:
+1. Identify the target UI component file (e.g., layout or shared component).
+2. Modify the component to add or refine features (e.g., navigation, accessibility, summary cards).
+3. Commit changes with a descriptive message.
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: src/components/layout/AppLayout.tsx, src/components/shared/SummaryCard.tsx
+
+---
+id: dress-roomshow-instinct-file-naming
+trigger: "When creating a new file in src/"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct File Naming
+
+## Action
+
+Name the file using PascalCase (e.g., AppLayout.tsx).
+
+## Evidence
+
+- Pattern in src/components/layout/AppLayout.tsx
+- Pattern in src/components/shared/SummaryCard.tsx
+
+---
+id: dress-roomshow-instinct-function-naming
+trigger: "When defining a new function."
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Function Naming
+
+## Action
+
+Name the function using camelCase.
+
+## Evidence
+
+- Pattern in TypeScript codebase
+- Consistent with modern TypeScript/React conventions
+
+---
+id: dress-roomshow-instinct-class-naming
+trigger: "When defining a new class."
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Class Naming
+
+## Action
+
+Name the class using PascalCase.
+
+## Evidence
+
+- Pattern in src/components/layout/AppLayout.tsx
+
+---
+id: dress-roomshow-instinct-constant-naming
+trigger: "When defining a constant."
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Constant Naming
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE.
+
+## Evidence
+
+- Pattern in TypeScript codebase
+- Common convention in TypeScript
+
+---
+id: dress-roomshow-instinct-import-style
+trigger: "When importing modules."
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Import Style
+
+## Action
+
+Use relative import paths.
+
+## Evidence
+
+- Pattern in src/components/layout/AppLayout.tsx
+- Pattern in src/features/dashboard/*
+
+---
+id: dress-roomshow-instinct-export-style
+trigger: "When exporting modules or components."
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Export Style
+
+## Action
+
+Use named exports.
+
+## Evidence
+
+- Pattern in src/components/layout/AppLayout.tsx
+- Pattern in src/components/shared/SummaryCard.tsx
+
+---
+id: dress-roomshow-instinct-test-location
+trigger: "When adding tests for a feature or component."
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Test Location
+
+## Action
+
+Place test files in a separate test directory, not alongside source files.
+
+## Evidence
+
+- Architecture pattern: testLocation is 'separate'
+
+---
+id: dress-roomshow-instinct-test-after-feature
+trigger: "After implementing a new feature."
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Test After Feature
+
+## Action
+
+Add tests for the new feature before updating documentation.
+
+## Evidence
+
+- Workflow: feature-development commit sequence
+- Pattern: Add feature implementation → Add tests for feature → Update documentation
+
+---
+id: dress-roomshow-instinct-git-commit-format
+trigger: "When committing code changes."
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Git Commit Format
+
+## Action
+
+Use Conventional Commits format with 'feat' or 'fix' prefixes, optional scope, and a concise description (average 55 characters).
+
+## Evidence
+
+- Commits: 'feat(ui): add responsive accessible app shell navigation'
+- Commits: 'fix(reports): use local current date and shared currency formatter'
+
+---
+id: dress-roomshow-instinct-feature-development-workflow
+trigger: "When starting work on a new feature."
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Feature Development Workflow
+
+## Action
+
+Follow the sequence: implement the feature in src/features or src/components, add tests in the separate test directory, then update documentation.
+
+## Evidence
+
+- Workflow: feature-development
+- Commit sequence: Add feature implementation → Add tests for feature → Update documentation
+
+---
+id: dress-roomshow-instinct-ui-component-enhancement-workflow
+trigger: "When enhancing or extending a shared or layout UI component."
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: mohamedmasoud3030-tech/dress-roomshow
+---
+
+# Dress Roomshow Instinct Ui Component Enhancement Workflow
+
+## Action
+
+Identify the target component file (e.g., AppLayout.tsx or SummaryCard.tsx), modify it for the enhancement, and commit with a descriptive message.
+
+## Evidence
+
+- Workflow: ui-component-enhancement
+- Files: src/components/layout/AppLayout.tsx, src/components/shared/SummaryCard.tsx
+
