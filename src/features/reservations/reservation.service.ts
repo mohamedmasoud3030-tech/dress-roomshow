@@ -18,6 +18,16 @@ type CreateReservationInput = {
   notes?: string;
 };
 
+type ReservationPaymentType = 'rental' | 'deposit' | 'penalty' | 'refund' | 'adjustment';
+type ReservationPaymentDirection = 'income' | 'refund';
+
+type RecordReservationPaymentInput = {
+  reservationNumber: string;
+  type: ReservationPaymentType;
+  direction: ReservationPaymentDirection;
+  amount: number;
+};
+
 export function getReservations(): Reservation[] {
   return readCollection(COLLECTION, mockReservations);
 }
@@ -113,6 +123,46 @@ export function createReservation(input: CreateReservationInput): Reservation {
 
   writeCollection(COLLECTION, [reservation, ...reservations]);
   return reservation;
+}
+
+export function recordReservationPayment(input: RecordReservationPaymentInput): Reservation {
+  const reservations = getReservations();
+  const reservation = reservations.find((item) => item.reservationNumber === input.reservationNumber);
+
+  if (!reservation) throw new Error('الحجز المحدد غير موجود.');
+  if (reservation.status === 'cancelled') throw new Error('لا يمكن تسجيل حركة مالية على حجز ملغي.');
+  if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة الدفعة يجب أن تكون أكبر من صفر.');
+  if (input.type === 'refund' && input.direction !== 'refund') throw new Error('حركة الاسترجاع غير صالحة.');
+  if (input.type !== 'refund' && input.direction === 'refund') throw new Error('اختاري نوع حركة مالية مناسب للاسترجاع.');
+
+  let totalAmount = reservation.totalAmount;
+  let paidAmount = reservation.paidAmount;
+
+  if (input.direction === 'refund') {
+    if (input.amount > paidAmount) throw new Error('قيمة الاسترجاع تتجاوز المبلغ المحصل على الحجز.');
+    totalAmount = Math.max(totalAmount - input.amount, 0);
+    paidAmount = Math.max(paidAmount - input.amount, 0);
+  } else {
+    const isAdditionalCharge = input.type === 'penalty' || input.type === 'adjustment';
+    if (!isAdditionalCharge && input.amount > reservation.remainingAmount) {
+      throw new Error('قيمة الدفعة تتجاوز الرصيد المتبقي على الحجز.');
+    }
+    if (isAdditionalCharge) totalAmount += input.amount;
+    paidAmount += input.amount;
+  }
+
+  const updatedReservation: Reservation = {
+    ...reservation,
+    totalAmount,
+    paidAmount,
+    remainingAmount: Math.max(totalAmount - paidAmount, 0),
+  };
+
+  writeCollection(
+    COLLECTION,
+    reservations.map((item) => (item.id === reservation.id ? updatedReservation : item)),
+  );
+  return updatedReservation;
 }
 
 export function cancelReservation(id: string): void {
