@@ -28,6 +28,13 @@ const focusRing =
 export function AppLayout() {
   return (
     <div className="min-h-screen bg-stone-50 text-slate-950" dir="rtl">
+      <a
+        href="#main-content"
+        className={`fixed right-4 top-4 z-50 -translate-y-24 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-lg transition focus:translate-y-0 ${focusRing}`}
+      >
+        الانتقال إلى المحتوى الرئيسي
+      </a>
+
       <aside className="fixed inset-y-0 right-0 hidden w-72 border-l border-slate-800 bg-slate-950 px-5 py-6 text-stone-100 shadow-xl lg:block">
         <div className="mb-8 border-b border-slate-800 pb-6">
           <p className="text-sm font-medium tracking-wide text-amber-300">Dress roomshow</p>
@@ -56,7 +63,7 @@ export function AppLayout() {
         </nav>
       </aside>
 
-      <main className="min-h-screen pb-24 lg:pr-72 lg:pb-0">
+      <main id="main-content" className="min-h-screen pb-24 lg:pr-72 lg:pb-0">
         <header className="sticky top-0 z-20 border-b border-stone-200 bg-stone-50/95 px-4 py-4 shadow-sm backdrop-blur sm:px-6">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
             <div>
