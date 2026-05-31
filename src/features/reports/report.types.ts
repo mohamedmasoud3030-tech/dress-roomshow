@@ -33,6 +33,8 @@ export type CustomerBalanceRow = {
 };
 
 export type FinancialSummary = {
+  rentalCollected: number;
+  salesCollected: number;
   totalCollected: number;
   totalRefunded: number;
   totalExpenses: number;
