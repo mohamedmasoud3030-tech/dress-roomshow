@@ -1,8 +1,11 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import type { Reservation } from '../reservations/reservation.types';
 import { mockCustomers } from './customer.mock';
 import type { Customer, CustomerFilters, CustomerSummary } from './customer.types';
 
 const COLLECTION = 'customers';
+const RESERVATION_COLLECTION = 'reservations';
+const activeReservationStatuses = new Set<Reservation['status']>(['pending', 'confirmed', 'delivered', 'overdue']);
 
 type AddCustomerInput = {
   name: string;
@@ -17,8 +20,28 @@ function normalizePhone(value: string): string {
   return value.replace(/\D/g, '');
 }
 
+function hydrateCustomer(customer: Customer, reservations: Reservation[]): Customer {
+  const customerPhone = normalizePhone(customer.phone);
+  const relatedReservations = reservations.filter((reservation) => normalizePhone(reservation.customerPhone) === customerPhone);
+
+  return {
+    ...customer,
+    totalReservations: relatedReservations.length,
+    activeReservations: relatedReservations.filter((reservation) => activeReservationStatuses.has(reservation.status)).length,
+    totalPaid: relatedReservations.reduce((total, reservation) => total + reservation.paidAmount, 0),
+    remainingBalance: relatedReservations
+      .filter((reservation) => reservation.status !== 'cancelled')
+      .reduce((total, reservation) => total + reservation.remainingAmount, 0),
+    lastReservationDate: relatedReservations
+      .map((reservation) => reservation.pickupDate)
+      .sort((a, b) => b.localeCompare(a))[0],
+  };
+}
+
 export function getCustomers(): Customer[] {
-  return readCollection(COLLECTION, mockCustomers);
+  const customers = readCollection(COLLECTION, mockCustomers);
+  const reservations = readCollection<Reservation>(RESERVATION_COLLECTION, []);
+  return customers.map((customer) => hydrateCustomer(customer, reservations));
 }
 
 export function filterCustomers(customers: Customer[], filters: CustomerFilters): Customer[] {
