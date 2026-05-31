@@ -71,7 +71,7 @@ export function AppLayout() {
               <h2 className="mt-1 text-lg font-bold text-slate-950 sm:text-xl">تشغيل يومي سريع ومنظم</h2>
             </div>
             <Link
-              to="/reservations"
+              to="/reservations?new=1"
               className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition duration-200 hover:bg-slate-800 ${focusRing}`}
             >
               <Plus aria-hidden="true" className="h-4 w-4" />
