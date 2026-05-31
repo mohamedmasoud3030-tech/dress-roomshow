@@ -2,6 +2,7 @@ import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getCustomers } from '../customers/customer.service';
 import { getDresses } from '../dresses/dress.service';
+import { getSales } from '../dresses/sale.service';
 import { getExpenses } from '../expenses/expense.service';
 import { getPayments } from '../payments/payment.service';
 import { getReservations } from '../reservations/reservation.service';
@@ -29,11 +30,13 @@ export function formatReportMoney(amount: number): string {
 
 export function getFinancialSummary(range?: DateRangeFilter): FinancialSummary {
   const payments = getPayments().filter((payment) => isWithinRange(payment.paymentDate, range));
+  const sales = getSales().filter((sale) => isWithinRange(sale.saleDate, range));
   const expenses = getExpenses().filter((expense) => isWithinRange(expense.expenseDate, range));
 
   const totalCollected = payments
     .filter((payment) => payment.direction === 'income')
-    .reduce((sum, payment) => sum + payment.amount, 0);
+    .reduce((sum, payment) => sum + payment.amount, 0)
+    + sales.reduce((sum, sale) => sum + sale.amount, 0);
 
   const totalRefunded = payments
     .filter((payment) => payment.direction === 'refund')
@@ -61,6 +64,7 @@ export function getTodayReport(): TodayReport {
   const todayDate = getTodayISO();
   const reservations = getReservations();
   const payments = getPayments();
+  const sales = getSales();
   const expenses = getExpenses();
 
   const pickupsToday = reservations.filter((reservation) => reservation.pickupDate === todayDate).length;
@@ -68,7 +72,10 @@ export function getTodayReport(): TodayReport {
 
   const paymentsToday = payments
     .filter((payment) => payment.paymentDate === todayDate)
-    .reduce((sum, payment) => sum + (payment.direction === 'income' ? payment.amount : -payment.amount), 0);
+    .reduce((sum, payment) => sum + (payment.direction === 'income' ? payment.amount : -payment.amount), 0)
+    + sales
+      .filter((sale) => sale.saleDate === todayDate)
+      .reduce((sum, sale) => sum + sale.amount, 0);
 
   const expensesToday = expenses
     .filter((expense) => expense.expenseDate === todayDate)
