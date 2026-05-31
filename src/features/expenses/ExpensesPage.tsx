@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AddExpenseModal } from './AddExpenseModal';
 import {
   filterExpenses,
   formatExpenseCategoryLabel,
@@ -6,7 +7,7 @@ import {
   getExpenses,
   summarizeExpenses,
 } from './expense.service';
-import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod } from './expense.types';
+import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod, ExpenseRecord } from './expense.types';
 
 const categoryOptions: Array<{ value: ExpenseCategory | 'all'; label: string }> = [
   { value: 'all', label: 'كل الفئات' },
@@ -54,15 +55,22 @@ function formatDate(date: string): string {
 }
 
 export function ExpensesPage() {
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => getExpenses());
   const [filters, setFilters] = useState<ExpenseFilters>({
     search: '',
     category: 'all',
     paymentMethod: 'all',
   });
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const expenses = useMemo(() => getExpenses(), []);
   const filteredExpenses = useMemo(() => filterExpenses(expenses, filters), [expenses, filters]);
-  const summary = useMemo(() => summarizeExpenses(filteredExpenses), [filteredExpenses]);
+  const summary = useMemo(() => summarizeExpenses(expenses), [expenses]);
+
+  const handleCreated = (expense: ExpenseRecord) => {
+    setExpenses((current) => [expense, ...current]);
+    setFeedback(`تم تسجيل المصروف ${expense.expenseNumber} بنجاح.`);
+  };
 
   return (
     <section className="space-y-6">
@@ -71,10 +79,12 @@ export function ExpensesPage() {
           <h1 className="text-3xl font-bold tracking-tight">إدارة المصروفات</h1>
           <p className="mt-2 text-slate-600">متابعة مصروفات التشغيل والعناية بالفساتين داخل المتجر.</p>
         </div>
-        <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
+        <button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
           تسجيل مصروف جديد
         </button>
       </div>
+
+      {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي المصروفات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalExpenses)}</p></article>
@@ -167,6 +177,8 @@ export function ExpensesPage() {
           ))}
         </div>
       )}
+
+      <AddExpenseModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
     </section>
   );
 }
