@@ -1,4 +1,6 @@
-import { readCollection, writeCollection } from '../../services/localDatabase';
+import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { getReservations } from '../reservations/reservation.service';
+import type { Reservation } from '../reservations/reservation.types';
 import { deliveryReturnMockRecords } from './deliveryReturn.mock';
 import type {
   DeliveryReturnFilters,
@@ -7,6 +9,7 @@ import type {
 } from './deliveryReturn.types';
 
 const COLLECTION = 'delivery-return';
+const trackedReservationStatuses = new Set<Reservation['status']>(['pending', 'confirmed', 'delivered', 'overdue']);
 
 export function calculateDepositRefund(
   depositAmount: number,
@@ -16,8 +19,30 @@ export function calculateDepositRefund(
   return Math.max(depositAmount - lateFee - damageFee, 0);
 }
 
+function createProjectedRecord(reservation: Reservation): DeliveryReturnRecord {
+  return {
+    id: generateId(),
+    reservationNumber: reservation.reservationNumber,
+    customerName: reservation.customerName,
+    customerPhone: reservation.customerPhone,
+    dressCode: reservation.dressCode,
+    dressName: reservation.dressName,
+    status: reservation.status === 'delivered' ? 'delivered' : reservation.status === 'overdue' ? 'late' : 'pending_delivery',
+    depositAmount: reservation.depositAmount,
+    lateFee: 0,
+    damageFee: 0,
+    depositRefundAmount: reservation.depositAmount,
+  };
+}
+
 export function getDeliveryReturnRecords(): DeliveryReturnRecord[] {
-  return readCollection(COLLECTION, deliveryReturnMockRecords);
+  const records = readCollection(COLLECTION, deliveryReturnMockRecords);
+  const projectedRecords = getReservations()
+    .filter((reservation) => trackedReservationStatuses.has(reservation.status))
+    .filter((reservation) => !records.some((record) => record.reservationNumber === reservation.reservationNumber))
+    .map(createProjectedRecord);
+
+  return [...projectedRecords, ...records];
 }
 
 export function saveDeliveryReturnRecord(record: DeliveryReturnRecord): DeliveryReturnRecord {
