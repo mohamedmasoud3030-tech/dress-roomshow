@@ -67,7 +67,7 @@ const statusLabels: Record<(typeof initialStatuses)[number], string> = {
 };
 
 const fieldClassName =
-  'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30 disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-slate-400';
+  'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30 read-only:cursor-not-allowed read-only:bg-stone-100 read-only:text-slate-400';
 const labelClassName = 'mb-1.5 block text-sm font-bold text-slate-700';
 const errorClassName = 'mt-1 text-xs font-medium text-rose-700';
 
@@ -186,12 +186,12 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
         <fieldset className="rounded-xl border border-slate-200 bg-stone-50 p-4">
           <legend className="px-1 text-sm font-bold text-slate-700">نوع الاستخدام</legend>
           <div className="mt-2 flex flex-wrap gap-5">
-            <label className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-slate-800">
-              <input type="checkbox" {...register('isForRent')} className="h-4 w-4 rounded border-slate-300 text-slate-950 focus:ring-amber-500" />
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm font-bold text-slate-800">
+              <input type="checkbox" {...register('isForRent')} className="h-4 w-4 cursor-pointer rounded border-slate-300 text-slate-950 focus:ring-amber-500" />
               متاح للإيجار
             </label>
-            <label className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-slate-800">
-              <input type="checkbox" {...register('isForSale')} className="h-4 w-4 rounded border-slate-300 text-slate-950 focus:ring-amber-500" />
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm font-bold text-slate-800">
+              <input type="checkbox" {...register('isForSale')} className="h-4 w-4 cursor-pointer rounded border-slate-300 text-slate-950 focus:ring-amber-500" />
               متاح للبيع
             </label>
           </div>
@@ -206,17 +206,17 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
           </div>
           <div>
             <label htmlFor={`${fieldId}-rental-price`} className={labelClassName}>سعر الإيجار (ر.ع)</label>
-            <input id={`${fieldId}-rental-price`} type="number" min="0" step="0.001" inputMode="decimal" disabled={!isForRent} {...register('rentalPrice')} className={fieldClassName} />
+            <input id={`${fieldId}-rental-price`} type="number" min="0" step="0.001" inputMode="decimal" readOnly={!isForRent} {...register('rentalPrice')} className={fieldClassName} />
             {errors.rentalPrice && <p className={errorClassName}>{errors.rentalPrice.message}</p>}
           </div>
           <div>
             <label htmlFor={`${fieldId}-deposit`} className={labelClassName}>التأمين (ر.ع)</label>
-            <input id={`${fieldId}-deposit`} type="number" min="0" step="0.001" inputMode="decimal" disabled={!isForRent} {...register('depositAmount')} className={fieldClassName} />
+            <input id={`${fieldId}-deposit`} type="number" min="0" step="0.001" inputMode="decimal" readOnly={!isForRent} {...register('depositAmount')} className={fieldClassName} />
             {errors.depositAmount && <p className={errorClassName}>{errors.depositAmount.message}</p>}
           </div>
           <div>
             <label htmlFor={`${fieldId}-sale-price`} className={labelClassName}>سعر البيع (ر.ع)</label>
-            <input id={`${fieldId}-sale-price`} type="number" min="0" step="0.001" inputMode="decimal" disabled={!isForSale} {...register('salePrice')} className={fieldClassName} />
+            <input id={`${fieldId}-sale-price`} type="number" min="0" step="0.001" inputMode="decimal" readOnly={!isForSale} {...register('salePrice')} className={fieldClassName} />
             {errors.salePrice && <p className={errorClassName}>{errors.salePrice.message}</p>}
           </div>
         </div>
@@ -241,14 +241,14 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
           <button
             type="button"
             onClick={closeModal}
-            className="min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            className="min-h-11 cursor-pointer rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition duration-200 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 active:scale-95"
           >
             إلغاء
           </button>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            className="min-h-11 cursor-pointer rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition duration-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 active:scale-95"
           >
             {isSubmitting ? 'جارٍ الحفظ...' : 'إضافة الفستان'}
           </button>
