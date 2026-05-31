@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Plus, Search, Shirt } from 'lucide-react';
+import { Banknote, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
+import { SellDressModal } from './SellDressModal';
+import type { SaleRecord } from './sale.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
 
 const statusLabels: Record<DressStatus, string> = {
@@ -102,6 +104,7 @@ export function DressesPage() {
   const [dresses, setDresses] = useState<Dress[]>(() => getDresses());
   const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSaleModal, setShowSaleModal] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
@@ -112,6 +115,11 @@ export function DressesPage() {
     setFeedback(`تمت إضافة الفستان ${dress.code} بنجاح.`);
   };
 
+  const handleSold = (sale: SaleRecord) => {
+    setDresses(getDresses());
+    setFeedback(`تم تسجيل البيع ${sale.saleNumber} للفستان ${sale.dressCode}.`);
+  };
+
   return (
     <section className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
@@ -120,17 +128,30 @@ export function DressesPage() {
           title="الفساتين"
           description="إدارة فساتين المحل وحالاتها وأسعار البيع والإيجار والتأمين من سجل واحد واضح."
         />
-        <button
-          type="button"
-          onClick={() => {
-            setFeedback(null);
-            setShowCreateModal(true);
-          }}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-        >
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          إضافة فستان
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setFeedback(null);
+              setShowSaleModal(true);
+            }}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          >
+            <Banknote aria-hidden="true" className="h-5 w-5" />
+            بيع فستان
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setFeedback(null);
+              setShowCreateModal(true);
+            }}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          >
+            <Plus aria-hidden="true" className="h-5 w-5" />
+            إضافة فستان
+          </button>
+        </div>
       </div>
 
       {feedback && (
@@ -219,6 +240,7 @@ export function DressesPage() {
       )}
 
       <AddDressModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
+      <SellDressModal open={showSaleModal} onClose={() => setShowSaleModal(false)} onCreated={handleSold} />
     </section>
   );
 }
