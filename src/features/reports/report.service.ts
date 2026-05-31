@@ -68,7 +68,7 @@ export function getTodayReport(): TodayReport {
 
   const paymentsToday = payments
     .filter((payment) => payment.paymentDate === todayDate)
-    .reduce((sum, payment) => sum + payment.amount, 0);
+    .reduce((sum, payment) => sum + (payment.direction === 'income' ? payment.amount : -payment.amount), 0);
 
   const expensesToday = expenses
     .filter((expense) => expense.expenseDate === todayDate)
