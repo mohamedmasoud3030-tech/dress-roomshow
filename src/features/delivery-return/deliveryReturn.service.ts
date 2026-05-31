@@ -1,9 +1,12 @@
+import { readCollection, writeCollection } from '../../services/localDatabase';
 import { deliveryReturnMockRecords } from './deliveryReturn.mock';
 import type {
   DeliveryReturnFilters,
   DeliveryReturnRecord,
   DeliveryReturnSummary,
 } from './deliveryReturn.types';
+
+const COLLECTION = 'delivery-return';
 
 export function calculateDepositRefund(
   depositAmount: number,
@@ -14,7 +17,16 @@ export function calculateDepositRefund(
 }
 
 export function getDeliveryReturnRecords(): DeliveryReturnRecord[] {
-  return deliveryReturnMockRecords;
+  return readCollection(COLLECTION, deliveryReturnMockRecords);
+}
+
+export function saveDeliveryReturnRecord(record: DeliveryReturnRecord): DeliveryReturnRecord {
+  const records = getDeliveryReturnRecords();
+  writeCollection(
+    COLLECTION,
+    [record, ...records.filter((item) => item.reservationNumber !== record.reservationNumber)],
+  );
+  return record;
 }
 
 export function filterDeliveryReturnRecords(
