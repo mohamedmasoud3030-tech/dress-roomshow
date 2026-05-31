@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
+import { DeliveryReturnModal } from './DeliveryReturnModal';
 import {
   filterDeliveryReturnRecords,
   getDeliveryReturnRecords,
   summarizeDeliveryReturnRecords,
 } from './deliveryReturn.service';
-import type { DeliveryReturnFilters, DeliveryReturnStatus } from './deliveryReturn.types';
+import type { DeliveryReturnFilters, DeliveryReturnRecord, DeliveryReturnStatus } from './deliveryReturn.types';
 
 const statusOptions: Array<{ value: DeliveryReturnStatus | 'all'; label: string }> = [
   { value: 'all', label: 'كل الحالات' },
@@ -48,8 +49,9 @@ export function DeliveryReturnPage() {
     search: '',
     status: 'all',
   });
-
-  const records = useMemo(() => getDeliveryReturnRecords(), []);
+  const [records, setRecords] = useState<DeliveryReturnRecord[]>(() => getDeliveryReturnRecords());
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const filteredRecords = useMemo(
     () => filterDeliveryReturnRecords(records, filters),
@@ -57,9 +59,14 @@ export function DeliveryReturnPage() {
   );
 
   const summary = useMemo(
-    () => summarizeDeliveryReturnRecords(filteredRecords),
-    [filteredRecords],
+    () => summarizeDeliveryReturnRecords(records),
+    [records],
   );
+
+  const handleCompleted = (record: DeliveryReturnRecord) => {
+    setRecords(getDeliveryReturnRecords());
+    setFeedback(`تم حفظ العملية للحجز ${record.reservationNumber} بنجاح.`);
+  };
 
   return (
     <section className="space-y-6">
@@ -68,10 +75,12 @@ export function DeliveryReturnPage() {
           <h1 className="text-3xl font-bold tracking-tight">إدارة التسليم والاسترجاع</h1>
           <p className="mt-2 text-slate-600">متابعة تسليم الفساتين واسترجاعها مع الرسوم والملاحظات التشغيلية.</p>
         </div>
-        <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
+        <button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
           عملية تسليم / استرجاع جديدة
         </button>
       </div>
+
+      {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -174,6 +183,8 @@ export function DeliveryReturnPage() {
           ))}
         </div>
       )}
+
+      <DeliveryReturnModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCompleted={handleCompleted} />
     </section>
   );
 }
