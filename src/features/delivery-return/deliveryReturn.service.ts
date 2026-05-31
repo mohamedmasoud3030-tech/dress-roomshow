@@ -1,4 +1,4 @@
-import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { readCollection, writeCollection } from '../../services/localDatabase';
 import { getReservations } from '../reservations/reservation.service';
 import type { Reservation } from '../reservations/reservation.types';
 import { deliveryReturnMockRecords } from './deliveryReturn.mock';
@@ -21,7 +21,7 @@ export function calculateDepositRefund(
 
 function createProjectedRecord(reservation: Reservation): DeliveryReturnRecord {
   return {
-    id: generateId(),
+    id: `queue-${reservation.id}`,
     reservationNumber: reservation.reservationNumber,
     customerName: reservation.customerName,
     customerPhone: reservation.customerPhone,
@@ -35,8 +35,12 @@ function createProjectedRecord(reservation: Reservation): DeliveryReturnRecord {
   };
 }
 
+function getStoredRecords(): DeliveryReturnRecord[] {
+  return readCollection(COLLECTION, deliveryReturnMockRecords);
+}
+
 export function getDeliveryReturnRecords(): DeliveryReturnRecord[] {
-  const records = readCollection(COLLECTION, deliveryReturnMockRecords);
+  const records = getStoredRecords();
   const projectedRecords = getReservations()
     .filter((reservation) => trackedReservationStatuses.has(reservation.status))
     .filter((reservation) => !records.some((record) => record.reservationNumber === reservation.reservationNumber))
@@ -46,7 +50,7 @@ export function getDeliveryReturnRecords(): DeliveryReturnRecord[] {
 }
 
 export function saveDeliveryReturnRecord(record: DeliveryReturnRecord): DeliveryReturnRecord {
-  const records = getDeliveryReturnRecords();
+  const records = getStoredRecords();
   writeCollection(
     COLLECTION,
     [record, ...records.filter((item) => item.reservationNumber !== record.reservationNumber)],
