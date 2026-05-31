@@ -97,8 +97,10 @@ export function ReportsPage() {
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-semibold">الملخص المالي</h2>
-        <div className="mt-4 grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-4">
-          <p>التحصيل: <span className="font-bold">{formatReportMoney(financial.totalCollected)}</span></p>
+        <div className="mt-4 grid gap-3 text-sm md:grid-cols-2 xl:grid-cols-3">
+          <p>إيرادات التأجير: <span className="font-bold">{formatReportMoney(financial.rentalCollected)}</span></p>
+          <p>إيرادات المبيعات: <span className="font-bold">{formatReportMoney(financial.salesCollected)}</span></p>
+          <p>إجمالي التحصيل: <span className="font-bold">{formatReportMoney(financial.totalCollected)}</span></p>
           <p>الاسترجاعات: <span className="font-bold">{formatReportMoney(financial.totalRefunded)}</span></p>
           <p>المصروفات: <span className="font-bold">{formatReportMoney(financial.totalExpenses)}</span></p>
           <p>الصافي: <span className="font-bold">{formatReportMoney(financial.netAmount)}</span></p>
