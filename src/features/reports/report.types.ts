@@ -1,3 +1,5 @@
+import type { DressStatus } from '../dresses/dress.types';
+
 export type ReportSummary = {
   totalDresses: number;
   activeReservations: number;
@@ -20,7 +22,7 @@ export type DressPerformanceRow = {
   code: string;
   name: string;
   timesRented: number;
-  status: 'available' | 'reserved' | 'maintenance';
+  status: DressStatus;
 };
 
 export type CustomerBalanceRow = {
