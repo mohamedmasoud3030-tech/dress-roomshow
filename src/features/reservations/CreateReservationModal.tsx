@@ -9,7 +9,7 @@ import { getCustomers } from '../customers/customer.service';
 import type { Customer } from '../customers/customer.types';
 import { getDresses } from '../dresses/dress.service';
 import type { Dress } from '../dresses/dress.types';
-import { createReservation } from './reservation.service';
+import { createReservation, RESERVATION_BUFFER_DAYS } from './reservation.service';
 import type { Reservation } from './reservation.types';
 
 const reservationSchema = z.object({
@@ -179,6 +179,10 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
             {errors.returnDate && <p className={errorClassName}>{errors.returnDate.message}</p>}
           </div>
         </fieldset>
+
+        <p className="rounded-xl bg-stone-50 px-3 py-2 text-xs leading-5 text-slate-600">
+          يتم حجز يوم تجهيز تلقائياً قبل الحجز وبعده ({RESERVATION_BUFFER_DAYS} يوم).
+        </p>
 
         <div className="grid gap-4 md:grid-cols-[220px_1fr]">
           <div>
