@@ -1,4 +1,4 @@
-import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { generateId, writeCollection } from '../../services/localDatabase';
 import { updateDressStatus } from '../dresses/dress.service';
 import { getReservations } from '../reservations/reservation.service';
 import type { Reservation } from '../reservations/reservation.types';
@@ -9,6 +9,13 @@ const RESERVATION_COLLECTION = 'reservations';
 
 type CompleteDeliveryInput = { reservationNumber: string; deliveryDateTime: string; deliveryCondition?: string; notes?: string };
 type CompleteReturnInput = { reservationNumber: string; returnDateTime: string; returnCondition?: string; lateFee: number; damageFee: number; nextDressStatus: 'available' | 'laundry' | 'maintenance' | 'damaged'; notes?: string };
+
+function validateDateTime(value: string, label: string): number {
+  const timestamp = new Date(value).getTime();
+  if (!value || Number.isNaN(timestamp)) throw new Error(`${label} مطلوبان.`);
+  if (timestamp > Date.now()) throw new Error(`${label} لا يمكن أن يكونا في المستقبل.`);
+  return timestamp;
+}
 
 function updateReservationStatus(reservationNumber: string, status: Reservation['status']): Reservation {
   const reservations = getReservations();
@@ -32,8 +39,9 @@ export function completeDelivery(input: CompleteDeliveryInput): DeliveryReturnRe
   const reservation = getReservations().find((item) => item.reservationNumber === input.reservationNumber);
   if (!reservation) throw new Error('الحجز المحدد غير موجود.');
   if (!['pending', 'confirmed'].includes(reservation.status)) throw new Error('الحجز غير مؤهل للتسليم حالياً.');
-  if (!input.deliveryDateTime) throw new Error('تاريخ ووقت التسليم مطلوبان.');
-  const record = saveDeliveryReturnRecord({ ...getBaseRecord(reservation), status: 'delivered', deliveryDateTime: input.deliveryDateTime, deliveryCondition: input.deliveryCondition?.trim() || undefined, notes: input.notes?.trim() || undefined });
+  validateDateTime(input.deliveryDateTime, 'تاريخ ووقت التسليم');
+  const base = getBaseRecord(reservation);
+  const record = saveDeliveryReturnRecord({ ...base, status: 'delivered', deliveryDateTime: input.deliveryDateTime, deliveryCondition: input.deliveryCondition?.trim() || undefined, notes: input.notes?.trim() || base.notes });
   updateReservationStatus(reservation.reservationNumber, 'delivered');
   updateDressStatus(reservation.dressCode, 'rented');
   return record;
@@ -43,10 +51,12 @@ export function completeReturn(input: CompleteReturnInput): DeliveryReturnRecord
   const reservation = getReservations().find((item) => item.reservationNumber === input.reservationNumber);
   if (!reservation) throw new Error('الحجز المحدد غير موجود.');
   if (!['delivered', 'overdue'].includes(reservation.status)) throw new Error('الحجز غير مؤهل للاسترجاع حالياً.');
-  if (!input.returnDateTime) throw new Error('تاريخ ووقت الاسترجاع مطلوبان.');
+  const returnTimestamp = validateDateTime(input.returnDateTime, 'تاريخ ووقت الاسترجاع');
   if (![input.lateFee, input.damageFee].every((amount) => Number.isFinite(amount) && amount >= 0)) throw new Error('رسوم التأخير أو الضرر غير صالحة.');
+  const base = getBaseRecord(reservation);
+  if (base.deliveryDateTime && returnTimestamp < new Date(base.deliveryDateTime).getTime()) throw new Error('وقت الاسترجاع لا يمكن أن يسبق وقت التسليم.');
   const status = input.damageFee > 0 || input.nextDressStatus === 'damaged' ? 'damaged' : input.lateFee > 0 ? 'late' : 'returned';
-  const record = saveDeliveryReturnRecord({ ...getBaseRecord(reservation), status, returnDateTime: input.returnDateTime, returnCondition: input.returnCondition?.trim() || undefined, lateFee: input.lateFee, damageFee: input.damageFee, depositRefundAmount: calculateDepositRefund(reservation.depositAmount, input.lateFee, input.damageFee), notes: input.notes?.trim() || undefined });
+  const record = saveDeliveryReturnRecord({ ...base, status, returnDateTime: input.returnDateTime, returnCondition: input.returnCondition?.trim() || undefined, lateFee: input.lateFee, damageFee: input.damageFee, depositRefundAmount: calculateDepositRefund(reservation.depositAmount, input.lateFee, input.damageFee), notes: input.notes?.trim() || base.notes });
   updateReservationStatus(reservation.reservationNumber, 'returned');
   updateDressStatus(reservation.dressCode, input.nextDressStatus);
   return record;
