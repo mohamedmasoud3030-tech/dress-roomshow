@@ -1,4 +1,5 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { mockReservations } from '../reservations/reservation.mock';
 import type { Reservation } from '../reservations/reservation.types';
 import { mockCustomers } from './customer.mock';
 import type { Customer, CustomerFilters, CustomerSummary } from './customer.types';
@@ -40,7 +41,7 @@ function hydrateCustomer(customer: Customer, reservations: Reservation[]): Custo
 
 export function getCustomers(): Customer[] {
   const customers = readCollection(COLLECTION, mockCustomers);
-  const reservations = readCollection<Reservation>(RESERVATION_COLLECTION, []);
+  const reservations = readCollection<Reservation>(RESERVATION_COLLECTION, mockReservations);
   return customers.map((customer) => hydrateCustomer(customer, reservations));
 }
 
