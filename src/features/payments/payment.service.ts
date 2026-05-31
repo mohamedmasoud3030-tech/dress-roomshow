@@ -83,10 +83,9 @@ export function summarizePayments(payments: PaymentRecord[]): PaymentSummary {
     },
   );
 
-  summary.remainingBalance = getReservations().reduce(
-    (total, reservation) => total + reservation.remainingAmount,
-    0,
-  );
+  summary.remainingBalance = getReservations()
+    .filter((reservation) => reservation.status !== 'cancelled')
+    .reduce((total, reservation) => total + reservation.remainingAmount, 0);
 
   return summary;
 }
