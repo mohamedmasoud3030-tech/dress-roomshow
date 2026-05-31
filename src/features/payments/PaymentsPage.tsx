@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { AddPaymentModal } from './AddPaymentModal';
 import {
   filterPayments,
   formatPaymentDirectionLabel,
@@ -11,6 +12,7 @@ import type {
   PaymentDirection,
   PaymentFilters,
   PaymentMethod,
+  PaymentRecord,
   PaymentType,
 } from './payment.types';
 
@@ -74,22 +76,29 @@ function formatDate(date: string): string {
 }
 
 export function PaymentsPage() {
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => getPayments());
   const [filters, setFilters] = useState<PaymentFilters>({
     search: '',
     type: 'all',
     method: 'all',
     direction: 'all',
   });
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
-  const payments = useMemo(() => getPayments(), []);
   const filteredPayments = useMemo(
     () => filterPayments(payments, filters),
     [payments, filters],
   );
   const summary = useMemo(
-    () => summarizePayments(filteredPayments),
-    [filteredPayments],
+    () => summarizePayments(payments),
+    [payments],
   );
+
+  const handleCreated = (payment: PaymentRecord) => {
+    setPayments((current) => [payment, ...current]);
+    setFeedback(`تم تسجيل الدفعة ${payment.paymentNumber} بنجاح.`);
+  };
 
   return (
     <section className="space-y-6">
@@ -98,10 +107,12 @@ export function PaymentsPage() {
           <h1 className="text-3xl font-bold tracking-tight">إدارة المدفوعات</h1>
           <p className="mt-2 text-slate-600">متابعة التحصيل والاسترجاع المرتبط بالحجوزات والتسليم والاسترجاع.</p>
         </div>
-        <button className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
+        <button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
           تسجيل دفعة جديدة
         </button>
       </div>
+
+      {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي التحصيل</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalCollected)}</p></article>
@@ -121,6 +132,8 @@ export function PaymentsPage() {
       {filteredPayments.length === 0 ? <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm"><p className="text-sm text-slate-500">لا توجد مدفوعات مطابقة للفلاتر الحالية.</p></article> : (
         <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-slate-500">رقم الدفعة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-slate-950">{payment.customerName}</h2><p className="text-sm text-slate-600">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${payment.direction === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{payment.direction === 'income' ? '+' : '-'} {formatAmount(payment.amount)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-slate-500">تاريخ الدفع</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{payment.notes}</p> : null}</article>)}</div>
       )}
+
+      <AddPaymentModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
     </section>
   );
 }
