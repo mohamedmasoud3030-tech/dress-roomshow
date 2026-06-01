@@ -6,6 +6,7 @@ import { DeliveryReturnPage } from '../features/delivery-return/DeliveryReturnPa
 import { DressesPage } from '../features/dresses/DressesPage';
 import { ExpensesPage } from '../features/expenses/ExpensesPage';
 import { PaymentsPage } from '../features/payments/PaymentsPage';
+import { PreferencesPage } from '../features/preferences/PreferencesPage';
 import { ReportsPage } from '../features/reports/ReportsPage';
 import { ReservationsPage } from '../features/reservations/ReservationsPage';
 
@@ -21,6 +22,7 @@ export function App() {
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="preferences" element={<PreferencesPage />} />
         <Route path="*" element={<DashboardPage />} />
       </Route>
     </Routes>
