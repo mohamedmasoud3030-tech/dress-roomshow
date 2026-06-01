@@ -30,6 +30,10 @@ export function ReportsPage() {
   const dressPerformance = useMemo(() => getDressPerformance(), []);
   const customerBalances = useMemo(() => getCustomerBalances(), []);
   const financial = useMemo(() => getFinancialSummary(appliedRange), [appliedRange]);
+  const dressesRequiringReview = useMemo(
+    () => dressPerformance.filter((dress) => dress.requiresReview).length,
+    [dressPerformance],
+  );
 
   const applyRange = () => {
     if (range.from && range.to && range.from > range.to) {
@@ -44,16 +48,17 @@ export function ReportsPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">التقارير البسيطة</h1>
-        <p className="mt-2 text-slate-600">نظرة سريعة على الأداء التشغيلي والمالي اعتماداً على بيانات النظام المحلية الحالية.</p>
+        <h1 className="text-3xl font-bold tracking-tight">التقارير التشغيلية والمالية</h1>
+        <p className="mt-2 text-slate-600">نظرة موحدة على الإيرادات والمصروفات وأداء دورة حياة الفساتين اعتماداً على بيانات النظام المحلية.</p>
       </div>
 
       {feedback && <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">{feedback}</div>}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي الفساتين</p><p className="mt-2 text-2xl font-bold">{summary.totalDresses}</p></article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الحجوزات النشطة</p><p className="mt-2 text-2xl font-bold">{summary.activeReservations}</p></article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي التحصيل</p><p className="mt-2 text-2xl font-bold">{formatReportMoney(summary.totalCollected)}</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">فساتين تحتاج مراجعة</p><p className="mt-2 text-2xl font-bold text-amber-700">{dressesRequiringReview}</p></article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي المصروفات</p><p className="mt-2 text-2xl font-bold">{formatReportMoney(summary.totalExpenses)}</p></article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الصافي</p><p className="mt-2 text-2xl font-bold">{formatReportMoney(summary.netAmount)}</p></article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">عميلات عليهن رصيد</p><p className="mt-2 text-2xl font-bold">{summary.customersWithBalance}</p></article>
@@ -81,9 +86,29 @@ export function ReportsPage() {
 
       <div className="grid gap-4 xl:grid-cols-2">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-lg font-semibold">أداء الفساتين</h2>
+          <h2 className="text-lg font-semibold">أداء دورة حياة الفساتين</h2>
           {dressPerformance.length === 0 ? <p className="mt-3 text-sm text-slate-500">لا توجد بيانات أداء حالياً.</p> : (
-            <div className="mt-3 space-y-2 text-sm">{dressPerformance.slice(0, 5).map((dress) => <div key={dress.id} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><p>{dress.code} - {dress.name}</p><p className="font-semibold">{dress.timesRented} | {statusLabel[dress.status] ?? dress.status}</p></div>)}</div>
+            <div className="mt-3 space-y-3 text-sm">
+              {dressPerformance.slice(0, 8).map((dress) => (
+                <div key={dress.id} className="rounded-xl bg-slate-50 p-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold">{dress.code} - {dress.name}</p>
+                      <p className="mt-1 text-xs text-slate-500">{dress.timesRented} تأجيرات | {statusLabel[dress.status] ?? dress.status}</p>
+                    </div>
+                    {dress.requiresReview && <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">يحتاج مراجعة</span>}
+                  </div>
+                  <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2 xl:grid-cols-3">
+                    <p>إيراد التأجير: <span className="font-bold">{formatReportMoney(dress.rentalRevenue)}</span></p>
+                    <p>إيراد البيع: <span className="font-bold">{formatReportMoney(dress.salesRevenue)}</span></p>
+                    <p>مصروفات مرتبطة: <span className="font-bold">{formatReportMoney(dress.relatedExpenses)}</span></p>
+                    <p>إجمالي الإيراد: <span className="font-bold">{formatReportMoney(dress.totalRevenue)}</span></p>
+                    <p>النتيجة الصافية: <span className="font-bold">{formatReportMoney(dress.netResult)}</span></p>
+                    <p>أيام بدون حركة: <span className="font-bold">{dress.inactivityDays ?? 'غير متاح'}</span></p>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </article>
 
