@@ -1,5 +1,6 @@
 import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
+import { recordAudit } from '../audit/audit.service';
 import { getReservations } from '../reservations/reservation.service';
 import { getDresses, updateDressStatus } from './dress.service';
 
@@ -72,5 +73,11 @@ export function addSale(input: AddSaleInput): SaleRecord {
 
   writeCollection(COLLECTION, [sale, ...getSales()]);
   updateDressStatus(dress.code, 'sold');
+  recordAudit({
+    action: 'sale',
+    entityType: 'sale',
+    entityId: sale.id,
+    summary: `تم تسجيل البيع ${sale.saleNumber} للفستان ${sale.dressCode}.`,
+  });
   return sale;
 }
