@@ -16,12 +16,20 @@ import type {
 } from './report.types';
 
 const activeReservationStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
+const DORMANT_DRESS_DAYS = 90;
 
 function isWithinRange(date: string, range?: DateRangeFilter): boolean {
   if (!range) return true;
   if (range.from && date < range.from) return false;
   if (range.to && date > range.to) return false;
   return true;
+}
+
+function calculateInactivityDays(lastMovementDate: string | null): number | null {
+  if (!lastMovementDate) return null;
+  const today = new Date(`${getTodayISO()}T00:00:00`).getTime();
+  const lastMovement = new Date(`${lastMovementDate}T00:00:00`).getTime();
+  return Math.max(Math.floor((today - lastMovement) / 86_400_000), 0);
 }
 
 export function formatReportMoney(amount: number): string {
@@ -54,9 +62,48 @@ export function getCustomerBalances(): CustomerBalanceRow[] {
 }
 
 export function getDressPerformance(): DressPerformanceRow[] {
+  const reservations = getReservations();
+  const sales = getSales();
+  const expenses = getExpenses();
+
   return getDresses()
-    .map(({ id, code, name, timesRented, status }) => ({ id, code, name, timesRented, status }))
-    .sort((a, b) => b.timesRented - a.timesRented);
+    .map(({ id, code, name, timesRented, status, purchasePrice }) => {
+      const relatedReservations = reservations.filter(
+        (reservation) => reservation.dressCode === code && reservation.status !== 'cancelled',
+      );
+      const relatedSales = sales.filter((sale) => sale.dressCode === code);
+      const relatedExpenseRecords = expenses.filter((expense) => expense.relatedDressCode === code);
+      const rentalRevenue = relatedReservations.reduce((sum, reservation) => sum + reservation.rentalPrice, 0);
+      const salesRevenue = relatedSales.reduce((sum, sale) => sum + sale.amount, 0);
+      const relatedExpenses = relatedExpenseRecords.reduce((sum, expense) => sum + expense.amount, 0);
+      const totalRevenue = rentalRevenue + salesRevenue;
+      const netResult = totalRevenue - purchasePrice - relatedExpenses;
+      const movementDates = [
+        ...relatedReservations.flatMap((reservation) => [reservation.pickupDate, reservation.returnDate]),
+        ...relatedSales.map((sale) => sale.saleDate),
+        ...relatedExpenseRecords.map((expense) => expense.expenseDate),
+      ];
+      const lastMovementDate = movementDates.sort((a, b) => b.localeCompare(a))[0] ?? null;
+      const inactivityDays = calculateInactivityDays(lastMovementDate);
+      const requiresReview =
+        (inactivityDays !== null && inactivityDays >= DORMANT_DRESS_DAYS) || relatedExpenses > totalRevenue;
+
+      return {
+        id,
+        code,
+        name,
+        timesRented,
+        status,
+        rentalRevenue,
+        salesRevenue,
+        relatedExpenses,
+        totalRevenue,
+        netResult,
+        inactivityDays,
+        requiresReview,
+      };
+    })
+    .sort((a, b) => b.totalRevenue - a.totalRevenue);
 }
 
 export function getTodayReport(): TodayReport {
