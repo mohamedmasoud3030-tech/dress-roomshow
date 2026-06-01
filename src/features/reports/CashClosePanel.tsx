@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
-import { calculateCashClose, saveCashClose, type CashCloseRecord } from './cashClose.service';
+import { saveCashClose, type CashCloseRecord } from './cashClose.service';
 
 type Form = { closeDate: string; openingCash: string; actualCash: string; notes: string };
 const field = 'mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
@@ -16,9 +16,7 @@ export function CashClosePanel() {
     event.preventDefault();
     setError(null);
     try {
-      const input = { closeDate: form.closeDate, openingCash: Number(form.openingCash), actualCash: Number(form.actualCash), notes: form.notes };
-      calculateCashClose(input);
-      setRecord(saveCashClose(input));
+      setRecord(saveCashClose({ closeDate: form.closeDate, openingCash: Number(form.openingCash), actualCash: Number(form.actualCash), notes: form.notes }));
     } catch (reason: unknown) {
       setError(reason instanceof Error ? reason.message : 'تعذر حفظ إقفال اليومية.');
     }
