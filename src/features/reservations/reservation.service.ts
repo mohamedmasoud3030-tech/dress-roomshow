@@ -2,11 +2,11 @@ import { generateId, generateNumber, readCollection, writeCollection } from '../
 import { getTodayISO } from '../../shared/utils/date';
 import { getCustomers } from '../customers/customer.service';
 import { getDresses } from '../dresses/dress.service';
+import { getAppPreferences } from '../preferences/preferences.service';
 import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
 
 const COLLECTION = 'reservations';
-export const RESERVATION_BUFFER_DAYS = 1;
 const activeStatuses = new Set<Reservation['status']>(['pending', 'confirmed', 'delivered', 'overdue']);
 const reservableDressStatuses = new Set(['available', 'reserved', 'rented']);
 
@@ -33,6 +33,10 @@ function addDays(dateValue: string, days: number): string {
   const date = new Date(`${dateValue}T00:00:00`);
   date.setDate(date.getDate() + days);
   return getTodayISO(date);
+}
+
+export function getReservationBufferDays(): number {
+  return getAppPreferences().reservationBufferDays;
 }
 
 function hydrateOverdueStatus(reservation: Reservation): Reservation {
@@ -83,12 +87,14 @@ export function summarizeReservations(reservations: Reservation[]): ReservationS
 }
 
 export function hasReservationOverlap(check: AvailabilityCheck, reservations: Reservation[]): boolean {
+  const bufferDays = getReservationBufferDays();
+
   return reservations.some((reservation) => {
     if (reservation.dressCode !== check.dressCode) return false;
     if (!activeStatuses.has(reservation.status)) return false;
 
-    const blockedStart = addDays(reservation.pickupDate, -RESERVATION_BUFFER_DAYS);
-    const blockedEnd = addDays(reservation.returnDate, RESERVATION_BUFFER_DAYS);
+    const blockedStart = addDays(reservation.pickupDate, -bufferDays);
+    const blockedEnd = addDays(reservation.returnDate, bufferDays);
     return blockedStart <= check.returnDate && check.pickupDate <= blockedEnd;
   });
 }
@@ -116,7 +122,7 @@ export function createReservation(input: CreateReservationInput): Reservation {
       reservations,
     )
   ) {
-    throw new Error('الفستان غير متاح خلال هذه الفترة أو يوم التجهيز قبلها أو بعدها.');
+    throw new Error('الفستان غير متاح خلال هذه الفترة أو أيام التجهيز قبلها أو بعدها.');
   }
 
   const totalAmount = dress.rentalPrice + input.depositAmount;
