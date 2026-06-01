@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { CashClosePanel } from './CashClosePanel';
 import {
   formatReportMoney,
   getCustomerBalances,
@@ -106,6 +107,8 @@ export function ReportsPage() {
           <p>الصافي: <span className="font-bold">{formatReportMoney(financial.netAmount)}</span></p>
         </div>
       </article>
+
+      <CashClosePanel />
     </section>
   );
 }
