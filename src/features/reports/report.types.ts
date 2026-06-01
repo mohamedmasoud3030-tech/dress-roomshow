@@ -23,6 +23,13 @@ export type DressPerformanceRow = {
   name: string;
   timesRented: number;
   status: DressStatus;
+  rentalRevenue: number;
+  salesRevenue: number;
+  relatedExpenses: number;
+  totalRevenue: number;
+  netResult: number;
+  inactivityDays: number | null;
+  requiresReview: boolean;
 };
 
 export type CustomerBalanceRow = {
