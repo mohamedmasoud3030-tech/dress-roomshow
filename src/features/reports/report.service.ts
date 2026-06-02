@@ -7,6 +7,7 @@ import { getDresses } from '../dresses/dress.service';
 import { getSales } from '../dresses/sale.service';
 import { getExpenses } from '../expenses/expense.service';
 import { getPayments } from '../payments/payment.service';
+import { getAppPreferences } from '../preferences/preferences.service';
 import { getReservations } from '../reservations/reservation.service';
 import type {
   CloseDayInput,
@@ -21,7 +22,6 @@ import type {
 } from './report.types';
 
 const activeReservationStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
-const DORMANT_DRESS_DAYS = 90;
 const DAY_CLOSE_COLLECTION = 'daily-closings';
 
 function isWithinRange(date: string, range?: DateRangeFilter): boolean {
@@ -75,6 +75,7 @@ export function getDressPerformance(): DressPerformanceRow[] {
   const reservations = getReservations();
   const sales = getSales();
   const expenses = getExpenses();
+  const dormantDressDays = getAppPreferences().dormantDressDays;
 
   return getDresses()
     .map(({ id, code, name, timesRented, status, purchasePrice }) => {
@@ -95,8 +96,11 @@ export function getDressPerformance(): DressPerformanceRow[] {
       ];
       const lastMovementDate = movementDates.sort((a, b) => b.localeCompare(a))[0] ?? null;
       const inactivityDays = calculateInactivityDays(lastMovementDate);
+      const roiPercent = purchasePrice > 0 ? (netResult / purchasePrice) * 100 : null;
+      const recoveredPurchaseCost = totalRevenue >= purchasePrice;
+      const maintenanceCostRatio = totalRevenue > 0 ? (relatedExpenses / totalRevenue) * 100 : relatedExpenses > 0 ? 100 : null;
       const requiresReview =
-        (inactivityDays !== null && inactivityDays >= DORMANT_DRESS_DAYS) || relatedExpenses > totalRevenue;
+        (inactivityDays !== null && inactivityDays >= dormantDressDays) || relatedExpenses > totalRevenue;
 
       return {
         id,
@@ -104,11 +108,16 @@ export function getDressPerformance(): DressPerformanceRow[] {
         name,
         timesRented,
         status,
+        purchasePrice,
         rentalRevenue,
         salesRevenue,
         relatedExpenses,
         totalRevenue,
         netResult,
+        roiPercent,
+        recoveredPurchaseCost,
+        maintenanceCostRatio,
+        lastMovementDate,
         inactivityDays,
         requiresReview,
       };
@@ -165,19 +174,26 @@ export function calculateDayClose(input: CloseDayInput): DayCloseRecord {
   const payments = getPayments().filter((payment) => payment.paymentDate === input.businessDate);
   const sales = getSales().filter((sale) => sale.saleDate === input.businessDate);
   const expenses = getExpenses().filter((expense) => expense.expenseDate === input.businessDate);
-  const paymentNetFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => payments
-    .filter((payment) => payment.method === method)
-    .reduce((total, payment) => total + (payment.direction === 'income' ? payment.amount : -payment.amount), 0);
-  const salesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(sales.filter((sale) => sale.paymentMethod === method));
-  const expensesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(expenses.filter((expense) => expense.paymentMethod === method));
+  const paymentIncomeFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(
+    payments.filter((payment) => payment.method === method && payment.direction === 'income'),
+  );
+  const paymentRefundsFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(
+    payments.filter((payment) => payment.method === method && payment.direction === 'refund'),
+  );
+  const salesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(
+    sales.filter((sale) => sale.paymentMethod === method),
+  );
+  const expensesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(
+    expenses.filter((expense) => expense.paymentMethod === method),
+  );
 
   const breakdown: DayCloseBreakdown = {
-    cashIncome: paymentNetFor('cash') + salesFor('cash'),
-    cashRefunds: sumAmounts(payments.filter((payment) => payment.method === 'cash' && payment.direction === 'refund')),
+    cashIncome: paymentIncomeFor('cash') + salesFor('cash'),
+    cashRefunds: paymentRefundsFor('cash'),
     cashExpenses: expensesFor('cash'),
-    cardNet: paymentNetFor('card') + salesFor('card') - expensesFor('card'),
-    bankTransferNet: paymentNetFor('bank_transfer') + salesFor('bank_transfer') - expensesFor('bank_transfer'),
-    otherNet: paymentNetFor('other') + salesFor('other') - expensesFor('other'),
+    cardNet: paymentIncomeFor('card') + salesFor('card') - paymentRefundsFor('card') - expensesFor('card'),
+    bankTransferNet: paymentIncomeFor('bank_transfer') + salesFor('bank_transfer') - paymentRefundsFor('bank_transfer') - expensesFor('bank_transfer'),
+    otherNet: paymentIncomeFor('other') + salesFor('other') - paymentRefundsFor('other') - expensesFor('other'),
   };
   const expectedCash = input.openingCash + breakdown.cashIncome - breakdown.cashRefunds - breakdown.cashExpenses;
 
