@@ -1,5 +1,7 @@
 import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
+import { recordAudit } from '../audit/audit.service';
+import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { getReservations, recordReservationPayment } from '../reservations/reservation.service';
 import { paymentMockRecords } from './payment.mock';
 import type {
@@ -26,28 +28,22 @@ export function getPayments(): PaymentRecord[] {
   return readCollection(COLLECTION, paymentMockRecords);
 }
 
-export function filterPayments(
-  payments: PaymentRecord[],
-  filters: PaymentFilters,
-): PaymentRecord[] {
+export function filterPayments(payments: PaymentRecord[], filters: PaymentFilters): PaymentRecord[] {
   const normalizedSearch = filters.search.trim().toLowerCase();
 
   return payments.filter((payment) => {
     const matchesType = filters.type === 'all' || payment.type === filters.type;
     const matchesMethod = filters.method === 'all' || payment.method === filters.method;
-    const matchesDirection =
-      filters.direction === 'all' || payment.direction === filters.direction;
+    const matchesDirection = filters.direction === 'all' || payment.direction === filters.direction;
 
-    if (!normalizedSearch) {
-      return matchesType && matchesMethod && matchesDirection;
-    }
+    if (!normalizedSearch) return matchesType && matchesMethod && matchesDirection;
 
     const matchesSearch =
-      payment.paymentNumber.toLowerCase().includes(normalizedSearch) ||
-      payment.reservationNumber.toLowerCase().includes(normalizedSearch) ||
-      payment.customerName.toLowerCase().includes(normalizedSearch) ||
-      payment.dressCode.toLowerCase().includes(normalizedSearch) ||
-      payment.dressName.toLowerCase().includes(normalizedSearch);
+      payment.paymentNumber.toLowerCase().includes(normalizedSearch)
+      || payment.reservationNumber.toLowerCase().includes(normalizedSearch)
+      || payment.customerName.toLowerCase().includes(normalizedSearch)
+      || payment.dressCode.toLowerCase().includes(normalizedSearch)
+      || payment.dressName.toLowerCase().includes(normalizedSearch);
 
     return matchesType && matchesMethod && matchesDirection && matchesSearch;
   });
@@ -56,31 +52,13 @@ export function filterPayments(
 export function summarizePayments(payments: PaymentRecord[]): PaymentSummary {
   const summary = payments.reduce<PaymentSummary>(
     (acc, payment) => {
-      if (payment.direction === 'income') {
-        acc.totalCollected += payment.amount;
-      }
-
-      if (payment.direction === 'refund') {
-        acc.totalRefunded += payment.amount;
-      }
-
-      if (payment.direction === 'income' && payment.type === 'deposit') {
-        acc.deposits += payment.amount;
-      }
-
-      if (payment.direction === 'income' && payment.type === 'penalty') {
-        acc.penalties += payment.amount;
-      }
-
+      if (payment.direction === 'income') acc.totalCollected += payment.amount;
+      if (payment.direction === 'refund') acc.totalRefunded += payment.amount;
+      if (payment.direction === 'income' && payment.type === 'deposit') acc.deposits += payment.amount;
+      if (payment.direction === 'income' && payment.type === 'penalty') acc.penalties += payment.amount;
       return acc;
     },
-    {
-      totalCollected: 0,
-      deposits: 0,
-      penalties: 0,
-      totalRefunded: 0,
-      remainingBalance: 0,
-    },
+    { totalCollected: 0, deposits: 0, penalties: 0, totalRefunded: 0, remainingBalance: 0 },
   );
 
   summary.remainingBalance = getReservations()
@@ -98,6 +76,7 @@ export function addPayment(input: AddPaymentInput): PaymentRecord {
   if (!input.paymentDate) throw new Error('تاريخ الدفع مطلوب.');
   if (input.paymentDate > getTodayISO()) throw new Error('تاريخ الدفع لا يمكن أن يكون في المستقبل.');
   if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة الدفعة يجب أن تكون أكبر من صفر.');
+  assertBusinessDateOpen(input.paymentDate);
 
   const updatedReservation = recordReservationPayment({
     reservationNumber: reservation.reservationNumber,
@@ -123,6 +102,13 @@ export function addPayment(input: AddPaymentInput): PaymentRecord {
   };
 
   writeCollection(COLLECTION, [payment, ...getPayments()]);
+  recordAudit({
+    action: direction === 'refund' ? 'refund' : 'payment',
+    entityType: 'payment',
+    entityId: payment.id,
+    summary: `تم تسجيل الحركة ${payment.paymentNumber} على الحجز ${payment.reservationNumber}.`,
+    nextValues: { direction, amount: payment.amount, method: payment.method, paymentDate: payment.paymentDate },
+  });
   return payment;
 }
 
@@ -134,26 +120,5 @@ export function formatPaymentTypeLabel(type: PaymentType): string {
     refund: 'استرجاع',
     adjustment: 'تسوية',
   };
-
   return labels[type];
-}
-
-export function formatPaymentMethodLabel(method: PaymentMethod): string {
-  const labels: Record<PaymentMethod, string> = {
-    cash: 'نقداً',
-    card: 'بطاقة',
-    bank_transfer: 'تحويل بنكي',
-    other: 'أخرى',
-  };
-
-  return labels[method];
-}
-
-export function formatPaymentDirectionLabel(direction: PaymentDirection): string {
-  const labels: Record<PaymentDirection, string> = {
-    income: 'تحصيل',
-    refund: 'استرجاع',
-  };
-
-  return labels[direction];
 }
