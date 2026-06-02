@@ -52,10 +52,13 @@ export function getFinancialSummary(range?: DateRangeFilter): FinancialSummary {
   const expenses = getExpenses().filter((expense) => isWithinRange(expense.expenseDate, range));
 
   const rentalCollected = payments
+    .filter((payment) => payment.direction === 'income' && payment.type === 'rental')
+    .reduce((sum, payment) => sum + payment.amount, 0);
+  const paymentCollections = payments
     .filter((payment) => payment.direction === 'income')
     .reduce((sum, payment) => sum + payment.amount, 0);
   const salesCollected = sales.reduce((sum, sale) => sum + sale.amount, 0);
-  const totalCollected = rentalCollected + salesCollected;
+  const totalCollected = paymentCollections + salesCollected;
   const totalRefunded = payments
     .filter((payment) => payment.direction === 'refund')
     .reduce((sum, payment) => sum + payment.amount, 0);
@@ -136,7 +139,11 @@ export function getTodayReport(): TodayReport {
   const returnsToday = reservations.filter((reservation) => reservation.returnDate === todayDate).length;
   const paymentsToday = payments
     .filter((payment) => payment.paymentDate === todayDate)
-    .reduce((sum, payment) => sum + (payment.direction === 'income' ? payment.amount : -payment.amount), 0)
+    .reduce((sum, payment) => {
+      if (payment.direction === 'income') return sum + payment.amount;
+      if (payment.direction === 'refund') return sum - payment.amount;
+      return sum;
+    }, 0)
     + sales
       .filter((sale) => sale.saleDate === todayDate)
       .reduce((sum, sale) => sum + sale.amount, 0);
