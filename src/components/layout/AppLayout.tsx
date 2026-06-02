@@ -5,6 +5,7 @@ import {
   PackageCheck,
   Plus,
   ReceiptText,
+  Settings2,
   Shirt,
   UsersRound,
   WalletCards,
@@ -20,6 +21,7 @@ const navigation = [
   { to: '/payments', label: 'المدفوعات', icon: WalletCards },
   { to: '/expenses', label: 'المصروفات', icon: ReceiptText },
   { to: '/reports', label: 'التقارير', icon: BarChart3 },
+  { to: '/preferences', label: 'الإعدادات والنسخ', icon: Settings2 },
 ] as const;
 
 const focusRing =
