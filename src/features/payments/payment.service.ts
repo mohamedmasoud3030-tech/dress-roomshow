@@ -122,3 +122,21 @@ export function formatPaymentTypeLabel(type: PaymentType): string {
   };
   return labels[type];
 }
+
+export function formatPaymentMethodLabel(method: PaymentMethod): string {
+  const labels: Record<PaymentMethod, string> = {
+    cash: 'نقداً',
+    card: 'بطاقة',
+    bank_transfer: 'تحويل بنكي',
+    other: 'أخرى',
+  };
+  return labels[method];
+}
+
+export function formatPaymentDirectionLabel(direction: PaymentDirection): string {
+  const labels: Record<PaymentDirection, string> = {
+    income: 'تحصيل',
+    refund: 'استرجاع',
+  };
+  return labels[direction];
+}
