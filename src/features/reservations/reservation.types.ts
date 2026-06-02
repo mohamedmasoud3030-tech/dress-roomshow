@@ -15,6 +15,10 @@ export type Reservation = {
   totalAmount: number;
   paidAmount: number;
   remainingAmount: number;
+  assessedFeesAmount?: number;
+  refundedAmount?: number;
+  settledDepositAmount?: number;
+  retainedDepositAmount?: number;
   notes?: string;
 };
 
