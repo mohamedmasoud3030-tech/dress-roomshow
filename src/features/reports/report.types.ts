@@ -52,3 +52,31 @@ export type DateRangeFilter = {
   from: string;
   to: string;
 };
+
+export type DayCloseBreakdown = {
+  cashIncome: number;
+  cashRefunds: number;
+  cashExpenses: number;
+  cardNet: number;
+  bankTransferNet: number;
+  otherNet: number;
+};
+
+export type DayCloseRecord = {
+  id: string;
+  businessDate: string;
+  openingCash: number;
+  expectedCash: number;
+  actualCash: number;
+  difference: number;
+  breakdown: DayCloseBreakdown;
+  notes?: string;
+  closedAt: string;
+};
+
+export type CloseDayInput = {
+  businessDate: string;
+  openingCash: number;
+  actualCash: number;
+  notes?: string;
+};
