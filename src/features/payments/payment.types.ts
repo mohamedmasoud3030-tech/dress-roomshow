@@ -4,6 +4,7 @@ export type PaymentType =
   | 'late_fee'
   | 'damage_fee'
   | 'deposit_settlement'
+  | 'retained_deposit'
   | 'penalty'
   | 'refund'
   | 'adjustment';
