@@ -23,11 +23,16 @@ export type DressPerformanceRow = {
   name: string;
   timesRented: number;
   status: DressStatus;
+  purchasePrice: number;
   rentalRevenue: number;
   salesRevenue: number;
   relatedExpenses: number;
   totalRevenue: number;
   netResult: number;
+  roiPercent: number | null;
+  recoveredPurchaseCost: boolean;
+  maintenanceCostRatio: number | null;
+  lastMovementDate: string | null;
   inactivityDays: number | null;
   requiresReview: boolean;
 };
