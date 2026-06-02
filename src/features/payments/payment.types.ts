@@ -1,8 +1,18 @@
-export type PaymentType = 'rental' | 'deposit' | 'penalty' | 'refund' | 'adjustment';
+export type PaymentType =
+  | 'rental'
+  | 'deposit'
+  | 'late_fee'
+  | 'damage_fee'
+  | 'deposit_settlement'
+  | 'penalty'
+  | 'refund'
+  | 'adjustment';
+
+export type ManualPaymentType = 'rental' | 'deposit' | 'penalty' | 'refund' | 'adjustment';
 
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
 
-export type PaymentDirection = 'income' | 'refund';
+export type PaymentDirection = 'income' | 'refund' | 'settlement';
 
 export type PaymentRecord = {
   id: string;
@@ -17,6 +27,7 @@ export type PaymentRecord = {
   direction: PaymentDirection;
   amount: number;
   reservationTotal: number;
+  source?: 'manual' | 'return';
   notes?: string;
 };
 
@@ -29,8 +40,12 @@ export type PaymentFilters = {
 
 export type PaymentSummary = {
   totalCollected: number;
+  rentalCollected: number;
   deposits: number;
+  retainedDeposits: number;
   penalties: number;
+  lateFees: number;
+  damageFees: number;
   totalRefunded: number;
   remainingBalance: number;
 };
