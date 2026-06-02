@@ -29,10 +29,38 @@ type RecordReservationPaymentInput = {
   amount: number;
 };
 
+type SettleReservationReturnInput = {
+  reservationNumber: string;
+  lateFee: number;
+  damageFee: number;
+  refundAmount: number;
+  settledDepositAmount: number;
+  retainedDepositAmount: number;
+};
+
 function addDays(dateValue: string, days: number): string {
   const date = new Date(`${dateValue}T00:00:00`);
   date.setDate(date.getDate() + days);
   return getTodayISO(date);
+}
+
+function calculateRemainingAmount(reservation: Reservation): number {
+  const assessedFeesAmount = reservation.assessedFeesAmount ?? 0;
+  const refundedAmount = reservation.refundedAmount ?? 0;
+  const settledDepositAmount = reservation.settledDepositAmount ?? 0;
+  return Math.max(reservation.totalAmount + assessedFeesAmount - reservation.paidAmount - settledDepositAmount + refundedAmount, 0);
+}
+
+function writeUpdatedReservation(reservations: Reservation[], updatedReservation: Reservation): Reservation {
+  const normalizedReservation = {
+    ...updatedReservation,
+    remainingAmount: calculateRemainingAmount(updatedReservation),
+  };
+  writeCollection(
+    COLLECTION,
+    reservations.map((item) => (item.id === normalizedReservation.id ? normalizedReservation : item)),
+  );
+  return normalizedReservation;
 }
 
 export function getReservationBufferDays(): number {
@@ -141,6 +169,10 @@ export function createReservation(input: CreateReservationInput): Reservation {
     totalAmount,
     paidAmount: 0,
     remainingAmount: totalAmount,
+    assessedFeesAmount: 0,
+    refundedAmount: 0,
+    settledDepositAmount: 0,
+    retainedDepositAmount: 0,
     notes: input.notes?.trim() || undefined,
   };
 
@@ -158,34 +190,49 @@ export function recordReservationPayment(input: RecordReservationPaymentInput): 
   if (input.type === 'refund' && input.direction !== 'refund') throw new Error('حركة الاسترجاع غير صالحة.');
   if (input.type !== 'refund' && input.direction === 'refund') throw new Error('اختاري نوع حركة مالية مناسب للاسترجاع.');
 
-  let totalAmount = reservation.totalAmount;
-  let paidAmount = reservation.paidAmount;
+  const netCollectedAmount = reservation.paidAmount - (reservation.refundedAmount ?? 0);
+  if (input.direction === 'refund' && input.amount > netCollectedAmount) {
+    throw new Error('قيمة الاسترجاع تتجاوز المبلغ المحصل فعلياً على الحجز.');
+  }
 
-  if (input.direction === 'refund') {
-    if (input.amount > paidAmount) throw new Error('قيمة الاسترجاع تتجاوز المبلغ المحصل على الحجز.');
-    totalAmount = Math.max(totalAmount - input.amount, 0);
-    paidAmount = Math.max(paidAmount - input.amount, 0);
-  } else {
-    const isAdditionalCharge = input.type === 'penalty' || input.type === 'adjustment';
-    if (!isAdditionalCharge && input.amount > reservation.remainingAmount) {
-      throw new Error('قيمة الدفعة تتجاوز الرصيد المتبقي على الحجز.');
-    }
-    if (isAdditionalCharge) totalAmount += input.amount;
-    paidAmount += input.amount;
+  const isAdditionalCharge = input.type === 'penalty' || input.type === 'adjustment';
+  if (input.direction === 'income' && !isAdditionalCharge && input.amount > reservation.remainingAmount) {
+    throw new Error('قيمة الدفعة تتجاوز الرصيد المتبقي على الحجز.');
   }
 
   const updatedReservation: Reservation = {
     ...reservation,
-    totalAmount,
-    paidAmount,
-    remainingAmount: Math.max(totalAmount - paidAmount, 0),
+    paidAmount: input.direction === 'income' ? reservation.paidAmount + input.amount : reservation.paidAmount,
+    refundedAmount: (reservation.refundedAmount ?? 0) + (input.direction === 'refund' ? input.amount : 0),
+    assessedFeesAmount: (reservation.assessedFeesAmount ?? 0) + (isAdditionalCharge ? input.amount : 0),
   };
 
-  writeCollection(
-    COLLECTION,
-    reservations.map((item) => (item.id === reservation.id ? updatedReservation : item)),
-  );
-  return updatedReservation;
+  return writeUpdatedReservation(reservations, updatedReservation);
+}
+
+export function settleReservationReturn(input: SettleReservationReturnInput): Reservation {
+  const reservations = getReservations();
+  const reservation = reservations.find((item) => item.reservationNumber === input.reservationNumber);
+
+  if (!reservation) throw new Error('الحجز المحدد غير موجود.');
+  if (!['delivered', 'overdue'].includes(reservation.status)) throw new Error('الحجز غير مؤهل لتسوية الاسترجاع حالياً.');
+  if ((reservation.settledDepositAmount ?? 0) > 0) throw new Error('تمت تسوية عربون هذا الحجز بالفعل.');
+  if (![input.lateFee, input.damageFee, input.refundAmount, input.settledDepositAmount, input.retainedDepositAmount].every((amount) => Number.isFinite(amount) && amount >= 0)) {
+    throw new Error('بيانات التسوية المالية غير صالحة.');
+  }
+  if (input.refundAmount + input.retainedDepositAmount > input.settledDepositAmount) {
+    throw new Error('إجمالي رد العربون والعربون المحتجز يتجاوز قيمة العربون المسوّاة.');
+  }
+
+  const updatedReservation: Reservation = {
+    ...reservation,
+    assessedFeesAmount: (reservation.assessedFeesAmount ?? 0) + input.lateFee + input.damageFee,
+    refundedAmount: (reservation.refundedAmount ?? 0) + input.refundAmount,
+    settledDepositAmount: (reservation.settledDepositAmount ?? 0) + input.settledDepositAmount,
+    retainedDepositAmount: (reservation.retainedDepositAmount ?? 0) + input.retainedDepositAmount,
+  };
+
+  return writeUpdatedReservation(reservations, updatedReservation);
 }
 
 export function cancelReservation(id: string): void {
