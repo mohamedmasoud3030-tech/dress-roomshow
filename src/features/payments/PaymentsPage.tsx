@@ -19,10 +19,14 @@ import type {
 const typeOptions: Array<{ value: PaymentType | 'all'; label: string }> = [
   { value: 'all', label: 'كل الأنواع' },
   { value: 'rental', label: 'إيجار' },
-  { value: 'deposit', label: 'عربون' },
-  { value: 'penalty', label: 'غرامة' },
-  { value: 'refund', label: 'استرجاع' },
-  { value: 'adjustment', label: 'تسوية' },
+  { value: 'deposit', label: 'عربون محصل' },
+  { value: 'late_fee', label: 'رسوم تأخير' },
+  { value: 'damage_fee', label: 'رسوم ضرر' },
+  { value: 'deposit_settlement', label: 'تسوية عربون' },
+  { value: 'retained_deposit', label: 'عربون محتجز' },
+  { value: 'penalty', label: 'غرامة مسددة' },
+  { value: 'refund', label: 'استرجاع نقدي' },
+  { value: 'adjustment', label: 'تسوية مسددة' },
 ];
 
 const methodOptions: Array<{ value: PaymentMethod | 'all'; label: string }> = [
@@ -30,18 +34,23 @@ const methodOptions: Array<{ value: PaymentMethod | 'all'; label: string }> = [
   { value: 'cash', label: 'نقداً' },
   { value: 'card', label: 'بطاقة' },
   { value: 'bank_transfer', label: 'تحويل بنكي' },
-  { value: 'other', label: 'أخرى' },
+  { value: 'other', label: 'قيد غير نقدي / أخرى' },
 ];
 
 const directionOptions: Array<{ value: PaymentDirection | 'all'; label: string }> = [
   { value: 'all', label: 'كل الاتجاهات' },
   { value: 'income', label: 'تحصيل' },
   { value: 'refund', label: 'استرجاع' },
+  { value: 'settlement', label: 'تسوية غير نقدية' },
 ];
 
 const typeBadgeClasses: Record<PaymentType, string> = {
   rental: 'bg-blue-100 text-blue-800',
   deposit: 'bg-violet-100 text-violet-800',
+  late_fee: 'bg-orange-100 text-orange-800',
+  damage_fee: 'bg-rose-100 text-rose-800',
+  deposit_settlement: 'bg-slate-200 text-slate-800',
+  retained_deposit: 'bg-amber-100 text-amber-800',
   penalty: 'bg-orange-100 text-orange-800',
   refund: 'bg-emerald-100 text-emerald-800',
   adjustment: 'bg-slate-200 text-slate-800',
@@ -57,6 +66,7 @@ const methodBadgeClasses: Record<PaymentMethod, string> = {
 const directionBadgeClasses: Record<PaymentDirection, string> = {
   income: 'bg-emerald-100 text-emerald-800',
   refund: 'bg-rose-100 text-rose-800',
+  settlement: 'bg-slate-200 text-slate-800',
 };
 
 function formatAmount(amount: number): string {
@@ -73,6 +83,18 @@ function formatDate(date: string): string {
     month: '2-digit',
     day: '2-digit',
   });
+}
+
+function formatMovementAmount(payment: PaymentRecord): string {
+  if (payment.direction === 'income') return `+ ${formatAmount(payment.amount)}`;
+  if (payment.direction === 'refund') return `- ${formatAmount(payment.amount)}`;
+  return formatAmount(payment.amount);
+}
+
+function movementAmountClass(direction: PaymentDirection): string {
+  if (direction === 'income') return 'text-emerald-700';
+  if (direction === 'refund') return 'text-rose-700';
+  return 'text-slate-700';
 }
 
 export function PaymentsPage() {
@@ -105,7 +127,7 @@ export function PaymentsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">إدارة المدفوعات</h1>
-          <p className="mt-2 text-slate-600">متابعة التحصيل والاسترجاع المرتبط بالحجوزات والتسليم والاسترجاع.</p>
+          <p className="mt-2 text-slate-600">متابعة التحصيل النقدي والاسترجاعات والتسويات غير النقدية المرتبطة بالحجوزات.</p>
         </div>
         <button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="rounded-xl bg-violet-700 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-violet-800">
           تسجيل دفعة جديدة
@@ -115,10 +137,10 @@ export function PaymentsPage() {
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي التحصيل</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalCollected)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">العربونات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.deposits)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الغرامات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.penalties)}</p></article>
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الاسترجاعات</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalRefunded)}</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">إجمالي التحصيل النقدي</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalCollected)}</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">العربونات المحصلة</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.deposits)}</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">العربون المحتجز</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.retainedDeposits)}</p></article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الاسترجاعات النقدية</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.totalRefunded)}</p></article>
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm text-slate-500">الرصيد المتبقي</p><p className="mt-2 text-2xl font-bold">{formatAmount(summary.remainingBalance)}</p></article>
       </div>
 
@@ -130,7 +152,7 @@ export function PaymentsPage() {
       </div>
 
       {filteredPayments.length === 0 ? <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm"><p className="text-sm text-slate-500">لا توجد مدفوعات مطابقة للفلاتر الحالية.</p></article> : (
-        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-slate-500">رقم الدفعة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-slate-950">{payment.customerName}</h2><p className="text-sm text-slate-600">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${payment.direction === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{payment.direction === 'income' ? '+' : '-'} {formatAmount(payment.amount)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-slate-500">تاريخ الدفع</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{payment.notes}</p> : null}</article>)}</div>
+        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-slate-500">رقم الحركة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-slate-950">{payment.customerName}</h2><p className="text-sm text-slate-600">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${movementAmountClass(payment.direction)}`}>{formatMovementAmount(payment)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-slate-500">تاريخ الحركة</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.notes ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{payment.notes}</p> : null}</article>)}</div>
       )}
 
       <AddPaymentModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
