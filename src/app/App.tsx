@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
+import { AuditLogPage } from '../features/audit/AuditLogPage';
 import { CustomersPage } from '../features/customers/CustomersPage';
+import { DailyClosingPage } from '../features/daily-closing/DailyClosingPage';
 import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { DeliveryReturnPage } from '../features/delivery-return/DeliveryReturnPage';
 import { DressesPage } from '../features/dresses/DressesPage';
@@ -22,6 +24,8 @@ export function App() {
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="daily-closing" element={<DailyClosingPage />} />
+        <Route path="audit" element={<AuditLogPage />} />
         <Route path="preferences" element={<PreferencesPage />} />
         <Route path="*" element={<DashboardPage />} />
       </Route>
