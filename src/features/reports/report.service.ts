@@ -1,5 +1,7 @@
+import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { recordAudit } from '../audit/audit.service';
 import { getCustomers } from '../customers/customer.service';
 import { getDresses } from '../dresses/dress.service';
 import { getSales } from '../dresses/sale.service';
@@ -7,8 +9,11 @@ import { getExpenses } from '../expenses/expense.service';
 import { getPayments } from '../payments/payment.service';
 import { getReservations } from '../reservations/reservation.service';
 import type {
+  CloseDayInput,
   CustomerBalanceRow,
   DateRangeFilter,
+  DayCloseBreakdown,
+  DayCloseRecord,
   DressPerformanceRow,
   FinancialSummary,
   ReportSummary,
@@ -17,6 +22,7 @@ import type {
 
 const activeReservationStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
 const DORMANT_DRESS_DAYS = 90;
+const DAY_CLOSE_COLLECTION = 'daily-closings';
 
 function isWithinRange(date: string, range?: DateRangeFilter): boolean {
   if (!range) return true;
@@ -30,6 +36,10 @@ function calculateInactivityDays(lastMovementDate: string | null): number | null
   const today = new Date(`${getTodayISO()}T00:00:00`).getTime();
   const lastMovement = new Date(`${lastMovementDate}T00:00:00`).getTime();
   return Math.max(Math.floor((today - lastMovement) / 86_400_000), 0);
+}
+
+function sumAmounts(items: Array<{ amount: number }>): number {
+  return items.reduce((total, item) => total + item.amount, 0);
 }
 
 export function formatReportMoney(amount: number): string {
@@ -140,4 +150,63 @@ export function getReportSummary(range?: DateRangeFilter): ReportSummary {
     netAmount: financial.netAmount,
     customersWithBalance: getCustomerBalances().length,
   };
+}
+
+export function getDayClosings(): DayCloseRecord[] {
+  return readCollection<DayCloseRecord>(DAY_CLOSE_COLLECTION, []).sort((a, b) => b.businessDate.localeCompare(a.businessDate));
+}
+
+export function calculateDayClose(input: CloseDayInput): DayCloseRecord {
+  if (!input.businessDate) throw new Error('تاريخ اليومية مطلوب.');
+  if (input.businessDate > getTodayISO()) throw new Error('لا يمكن إقفال يومية بتاريخ مستقبلي.');
+  if (!Number.isFinite(input.openingCash) || input.openingCash < 0) throw new Error('رصيد البداية غير صالح.');
+  if (!Number.isFinite(input.actualCash) || input.actualCash < 0) throw new Error('الرصيد الفعلي غير صالح.');
+
+  const payments = getPayments().filter((payment) => payment.paymentDate === input.businessDate);
+  const sales = getSales().filter((sale) => sale.saleDate === input.businessDate);
+  const expenses = getExpenses().filter((expense) => expense.expenseDate === input.businessDate);
+  const paymentNetFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => payments
+    .filter((payment) => payment.method === method)
+    .reduce((total, payment) => total + (payment.direction === 'income' ? payment.amount : -payment.amount), 0);
+  const salesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(sales.filter((sale) => sale.paymentMethod === method));
+  const expensesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(expenses.filter((expense) => expense.paymentMethod === method));
+
+  const breakdown: DayCloseBreakdown = {
+    cashIncome: paymentNetFor('cash') + salesFor('cash'),
+    cashRefunds: sumAmounts(payments.filter((payment) => payment.method === 'cash' && payment.direction === 'refund')),
+    cashExpenses: expensesFor('cash'),
+    cardNet: paymentNetFor('card') + salesFor('card') - expensesFor('card'),
+    bankTransferNet: paymentNetFor('bank_transfer') + salesFor('bank_transfer') - expensesFor('bank_transfer'),
+    otherNet: paymentNetFor('other') + salesFor('other') - expensesFor('other'),
+  };
+  const expectedCash = input.openingCash + breakdown.cashIncome - breakdown.cashRefunds - breakdown.cashExpenses;
+
+  return {
+    id: generateId(),
+    businessDate: input.businessDate,
+    openingCash: input.openingCash,
+    expectedCash,
+    actualCash: input.actualCash,
+    difference: input.actualCash - expectedCash,
+    breakdown,
+    notes: input.notes?.trim() || undefined,
+    closedAt: new Date().toISOString(),
+  };
+}
+
+export function closeDay(input: CloseDayInput): DayCloseRecord {
+  const closings = getDayClosings();
+  if (closings.some((closing) => closing.businessDate === input.businessDate)) throw new Error('تم إقفال هذه اليومية بالفعل.');
+  const closing = calculateDayClose(input);
+  writeCollection(DAY_CLOSE_COLLECTION, [closing, ...closings]);
+  recordAudit({ action: 'close-day', entityType: 'daily-closing', entityId: closing.id, summary: `تم إقفال يومية ${closing.businessDate}.` });
+  return closing;
+}
+
+export function reopenDay(id: string): void {
+  const closings = getDayClosings();
+  const closing = closings.find((item) => item.id === id);
+  if (!closing) throw new Error('اليومية المحددة غير موجودة.');
+  writeCollection(DAY_CLOSE_COLLECTION, closings.filter((item) => item.id !== id));
+  recordAudit({ action: 'reopen-day', entityType: 'daily-closing', entityId: closing.id, summary: `تمت إعادة فتح يومية ${closing.businessDate}.` });
 }
