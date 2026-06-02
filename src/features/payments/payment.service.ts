@@ -1,5 +1,6 @@
 import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
+import { calculateReturnSettlement } from '../../shared/utils/financialCalculations.js';
 import { recordAudit } from '../audit/audit.service';
 import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { getReservations, recordReservationPayment, settleReservationReturn } from '../reservations/reservation.service';
@@ -188,17 +189,32 @@ export function recordReturnSettlement(input: RecordReturnSettlementInput): Retu
   assertBusinessDateOpen(input.paymentDate);
 
   const payments = getPayments();
+  const reservationPayments = payments.filter((payment) => payment.reservationNumber === reservation.reservationNumber);
   const depositCollected = Math.min(
     reservation.depositAmount,
-    payments
-      .filter((payment) => payment.reservationNumber === reservation.reservationNumber && payment.type === 'deposit' && payment.direction === 'income')
+    reservationPayments
+      .filter((payment) => payment.type === 'deposit' && payment.direction === 'income')
       .reduce((total, payment) => total + payment.amount, 0),
   );
-  const availableDeposit = Math.max(depositCollected - (reservation.refundedAmount ?? 0), 0);
-  const assessedFees = input.lateFee + input.damageFee;
-  const retainedDepositAmount = Math.min(availableDeposit, assessedFees);
-  const refundAmount = Math.max(availableDeposit - retainedDepositAmount, 0);
-  const settledDepositAmount = reservation.depositAmount;
+  const totalCollected = reservationPayments
+    .filter((payment) => payment.direction === 'income')
+    .reduce((total, payment) => total + payment.amount, 0);
+  const previouslyRefundedAmount = reservationPayments
+    .filter((payment) => payment.direction === 'refund')
+    .reduce((total, payment) => total + payment.amount, 0);
+  const previouslyRefundedDepositAmount = reservationPayments
+    .filter((payment) => payment.type === 'refund' && payment.direction === 'refund' && payment.source === 'return')
+    .reduce((total, payment) => total + payment.amount, 0);
+  const settlement = calculateReturnSettlement({
+    depositAmount: reservation.depositAmount,
+    depositCollected,
+    totalCollected,
+    previouslyRefundedAmount,
+    previouslyRefundedDepositAmount,
+    lateFee: input.lateFee,
+    damageFee: input.damageFee,
+  });
+  const { refundAmount, retainedDepositAmount, settledDepositAmount } = settlement;
 
   const updatedReservation = settleReservationReturn({
     reservationNumber: reservation.reservationNumber,

@@ -1,5 +1,6 @@
 import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
+import { calculateReservationRemainingAmount } from '../../shared/utils/financialCalculations.js';
 import { getCustomers } from '../customers/customer.service';
 import { getDresses } from '../dresses/dress.service';
 import { getAppPreferences } from '../preferences/preferences.service';
@@ -45,10 +46,13 @@ function addDays(dateValue: string, days: number): string {
 }
 
 function calculateRemainingAmount(reservation: Reservation): number {
-  const assessedFeesAmount = reservation.assessedFeesAmount ?? 0;
-  const refundedAmount = reservation.refundedAmount ?? 0;
-  const settledDepositAmount = reservation.settledDepositAmount ?? 0;
-  return Math.max(reservation.totalAmount + assessedFeesAmount - reservation.paidAmount - settledDepositAmount + refundedAmount, 0);
+  return calculateReservationRemainingAmount({
+    totalAmount: reservation.totalAmount,
+    assessedFeesAmount: reservation.assessedFeesAmount,
+    paidAmount: reservation.paidAmount,
+    settledDepositAmount: reservation.settledDepositAmount,
+    refundedAmount: reservation.refundedAmount,
+  });
 }
 
 function writeUpdatedReservation(reservations: Reservation[], updatedReservation: Reservation): Reservation {

@@ -15,10 +15,17 @@ export function calculateReservationRemainingAmount(input) {
 export function calculateReturnSettlement(input) {
   const depositAmount = normalizeAmount(input.depositAmount);
   const depositCollected = Math.min(normalizeAmount(input.depositCollected), depositAmount);
+  const totalCollected = normalizeAmount(input.totalCollected);
   const previouslyRefundedAmount = normalizeAmount(input.previouslyRefundedAmount);
+  const previouslyRefundedDepositAmount = Math.min(
+    normalizeAmount(input.previouslyRefundedDepositAmount),
+    depositCollected,
+  );
   const lateFee = normalizeAmount(input.lateFee);
   const damageFee = normalizeAmount(input.damageFee);
-  const availableDepositAmount = Math.max(depositCollected - previouslyRefundedAmount, 0);
+  const netCollectedAmount = Math.max(totalCollected - previouslyRefundedAmount, 0);
+  const refundableDepositBalance = Math.max(depositCollected - previouslyRefundedDepositAmount, 0);
+  const availableDepositAmount = Math.min(refundableDepositBalance, netCollectedAmount);
   const assessedFeesAmount = lateFee + damageFee;
   const retainedDepositAmount = Math.min(availableDepositAmount, assessedFeesAmount);
 
