@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
 import { getTodayISO } from '../../shared/utils/date';
-import { recordAudit } from '../audit/audit.service';
 import { getDresses } from '../dresses/dress.service';
-import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { addExpense } from './expense.service';
 import type { ExpenseCategory, ExpensePaymentMethod, ExpenseRecord } from './expense.types';
 
@@ -22,9 +20,7 @@ export function AddExpenseModal({ open, onClose, onCreated }: Props) {
     event.preventDefault();
     setError(null);
     try {
-      assertBusinessDateOpen(form.expenseDate);
       const expense = addExpense({ ...form, amount: Number(form.amount), relatedDressCode: form.relatedDressCode || undefined });
-      recordAudit({ action: 'create', entityType: 'expense', entityId: expense.id, summary: `تم تسجيل المصروف ${expense.expenseNumber}.`, nextValues: { amount: expense.amount, paymentMethod: expense.paymentMethod, expenseDate: expense.expenseDate } });
       onCreated(expense);
       close();
     } catch (reason: unknown) {
