@@ -1,4 +1,5 @@
 import { readCollection } from '../../services/localDatabase';
+import { isActiveDayClosing } from '../../shared/utils/dailyClosingCalculations.js';
 import { getTodayISO } from '../../shared/utils/date';
 import type { DressStatus } from '../dresses/dress.types';
 import { mockReservations } from '../reservations/reservation.mock';
@@ -13,7 +14,7 @@ function getStoredReservations(): Reservation[] {
 
 export function assertBusinessDateOpen(businessDate: string): void {
   const isClosed = readCollection<DayCloseRecord>('daily-closings', [])
-    .some((closing) => closing.businessDate === businessDate);
+    .some((closing) => closing.businessDate === businessDate && isActiveDayClosing(closing.status));
 
   if (isClosed) {
     throw new Error(`تم إقفال يومية ${businessDate}. أعيدي فتح اليومية قبل تسجيل أو تعديل أي حركة مالية تخص هذا التاريخ.`);
