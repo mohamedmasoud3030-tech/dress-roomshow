@@ -9,7 +9,7 @@ export type AppPreferences = {
 const COLLECTION = 'preferences';
 
 export const DEFAULT_APP_PREFERENCES: AppPreferences = {
-  showroomName: 'Dress roomshow',
+  showroomName: 'LENA',
   reservationBufferDays: 1,
   dormantDressDays: 90,
 };
