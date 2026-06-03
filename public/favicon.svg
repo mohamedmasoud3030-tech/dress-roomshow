@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Dress roomshow">
-  <rect width="64" height="64" rx="12" fill="#7c3aed"/>
-  <path d="M20 18h24l-4 8v20H24V26z" fill="#fff"/>
-  <circle cx="32" cy="14" r="4" fill="#fff"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LENA"><defs><linearGradient id="b" x2="1" y2="1"><stop stop-color="#7A263D"/><stop offset="1" stop-color="#55192B"/></linearGradient><linearGradient id="g" x2="1" y2="1"><stop stop-color="#F4D99E"/><stop offset="1" stop-color="#C69342"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#b)"/><path fill="url(#g)" d="M20 13h13v31c0 4 2 6 6 6h9c4 0 7-1 10-5-1 8-6 12-15 12H20z"/><path fill="url(#g)" d="M32 24c7 4 11 10 13 19 1 4 3 7 7 9-8 0-13-3-16-8-2-5-4-12-4-20z"/></svg>
