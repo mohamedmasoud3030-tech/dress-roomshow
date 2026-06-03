@@ -58,14 +58,21 @@ export type DateRangeFilter = {
   to: string;
 };
 
-export type DayCloseBreakdown = {
-  cashIncome: number;
-  cashRefunds: number;
-  cashExpenses: number;
-  cardNet: number;
-  bankTransferNet: number;
-  otherNet: number;
+export type DayCloseMethodBreakdown = {
+  collections: number;
+  refunds: number;
+  expenses: number;
+  net: number;
 };
+
+export type DayCloseBreakdown = {
+  cash: DayCloseMethodBreakdown;
+  card: DayCloseMethodBreakdown;
+  bankTransfer: DayCloseMethodBreakdown;
+  other: DayCloseMethodBreakdown;
+};
+
+export type DayCloseStatus = 'closed' | 'reopened';
 
 export type DayCloseRecord = {
   id: string;
@@ -76,7 +83,10 @@ export type DayCloseRecord = {
   difference: number;
   breakdown: DayCloseBreakdown;
   notes?: string;
+  status: DayCloseStatus;
   closedAt: string;
+  reopenedAt?: string;
+  reopenReason?: string;
 };
 
 export type CloseDayInput = {
