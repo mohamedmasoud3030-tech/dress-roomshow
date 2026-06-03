@@ -5,7 +5,7 @@ import { formatMoneyOMR } from '../../shared/utils/format';
 import { getReservations } from '../reservations/reservation.service';
 import type { Reservation } from '../reservations/reservation.types';
 import { addPayment } from './payment.service';
-import type { PaymentMethod, PaymentRecord, PaymentType } from './payment.types';
+import type { ManualPaymentType, PaymentMethod, PaymentRecord } from './payment.types';
 
 type AddPaymentModalProps = {
   open: boolean;
@@ -16,7 +16,7 @@ type AddPaymentModalProps = {
 type PaymentForm = {
   reservationNumber: string;
   paymentDate: string;
-  type: PaymentType;
+  type: ManualPaymentType;
   method: PaymentMethod;
   amount: string;
   notes: string;
@@ -28,9 +28,9 @@ function getDefaultForm(): PaymentForm {
   return { reservationNumber: '', paymentDate: getTodayISO(), type: 'rental', method: 'cash', amount: '', notes: '' };
 }
 
-function isEligible(reservation: Reservation, type: PaymentType): boolean {
+function isEligible(reservation: Reservation, type: ManualPaymentType): boolean {
   if (reservation.status === 'cancelled') return false;
-  if (type === 'refund') return reservation.paidAmount > 0;
+  if (type === 'refund') return reservation.paidAmount - (reservation.refundedAmount ?? 0) > 0;
   if (type === 'penalty' || type === 'adjustment') return true;
   return reservation.remainingAmount > 0;
 }
@@ -42,7 +42,7 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
   const selected = reservations.find((item) => item.reservationNumber === form.reservationNumber);
   const maximum = selected
     ? form.type === 'refund'
-      ? selected.paidAmount
+      ? selected.paidAmount - (selected.refundedAmount ?? 0)
       : form.type === 'rental' || form.type === 'deposit'
         ? selected.remainingAmount
         : undefined
@@ -77,9 +77,9 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
     <Modal open={open} onClose={close} title="تسجيل دفعة جديدة" className="max-w-2xl">
       <form onSubmit={submit} className="space-y-4">
         {submitError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-800">{submitError}</p>}
-        <label className="block text-sm font-bold text-slate-700">نوع الحركة<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as PaymentType, reservationNumber: '' }))} className={fieldClass}><option value="rental">تحصيل إيجار</option><option value="deposit">تحصيل عربون أو تأمين</option><option value="penalty">غرامة مسددة</option><option value="adjustment">تسوية مسددة</option><option value="refund">استرجاع مبلغ</option></select></label>
+        <label className="block text-sm font-bold text-slate-700">نوع الحركة<select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as ManualPaymentType, reservationNumber: '' }))} className={fieldClass}><option value="rental">تحصيل إيجار</option><option value="deposit">تحصيل عربون أو تأمين</option><option value="penalty">غرامة مسددة</option><option value="adjustment">تسوية مسددة</option><option value="refund">استرجاع مبلغ</option></select></label>
         <label className="block text-sm font-bold text-slate-700">الحجز<select required value={form.reservationNumber} onChange={(event) => setForm((current) => ({ ...current, reservationNumber: event.target.value }))} className={fieldClass}><option value="">اختاري الحجز</option>{reservations.map((item) => <option key={item.id} value={item.reservationNumber}>{item.reservationNumber} — {item.customerName} — {item.dressCode}</option>)}</select></label>
-        {selected && <div className="grid gap-2 rounded-xl bg-amber-50 p-3 text-sm sm:grid-cols-3"><span>الإجمالي: <b>{formatMoneyOMR(selected.totalAmount)}</b></span><span>المحصل: <b>{formatMoneyOMR(selected.paidAmount)}</b></span><span>المتبقي: <b>{formatMoneyOMR(selected.remainingAmount)}</b></span></div>}
+        {selected && <div className="grid gap-2 rounded-xl bg-amber-50 p-3 text-sm sm:grid-cols-3"><span>الإجمالي الأصلي: <b>{formatMoneyOMR(selected.totalAmount)}</b></span><span>المحصل: <b>{formatMoneyOMR(selected.paidAmount)}</b></span><span>المتبقي: <b>{formatMoneyOMR(selected.remainingAmount)}</b></span></div>}
         <div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-bold text-slate-700">القيمة (ر.ع)<input required type="number" min="0.001" max={maximum} step="0.001" value={form.amount} onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} className={fieldClass} />{maximum !== undefined && <span className="mt-1 block text-xs text-slate-500">الحد الأقصى: {formatMoneyOMR(maximum)}</span>}</label><label className="block text-sm font-bold text-slate-700">تاريخ الدفع<input required type="date" max={getTodayISO()} value={form.paymentDate} onChange={(event) => setForm((current) => ({ ...current, paymentDate: event.target.value }))} className={fieldClass} /></label></div>
         <div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-bold text-slate-700">وسيلة الدفع<select value={form.method} onChange={(event) => setForm((current) => ({ ...current, method: event.target.value as PaymentMethod }))} className={fieldClass}><option value="cash">نقداً</option><option value="card">بطاقة</option><option value="bank_transfer">تحويل بنكي</option><option value="other">أخرى</option></select></label><label className="block text-sm font-bold text-slate-700">ملاحظات<textarea rows={3} maxLength={500} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} className={fieldClass} /></label></div>
         {reservations.length === 0 && <p className="text-sm font-bold text-amber-700">لا توجد حجوزات مؤهلة لهذه الحركة حالياً.</p>}

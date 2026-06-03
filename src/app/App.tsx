@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
+import { AuditLogPage } from '../features/audit/AuditLogPage';
 import { CustomersPage } from '../features/customers/CustomersPage';
 import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { DeliveryReturnPage } from '../features/delivery-return/DeliveryReturnPage';
@@ -7,6 +8,7 @@ import { DressesPage } from '../features/dresses/DressesPage';
 import { ExpensesPage } from '../features/expenses/ExpensesPage';
 import { PaymentsPage } from '../features/payments/PaymentsPage';
 import { PreferencesPage } from '../features/preferences/PreferencesPage';
+import { DailyClosingPage } from '../features/reports/DailyClosingPage';
 import { ReportsPage } from '../features/reports/ReportsPage';
 import { ReservationsPage } from '../features/reservations/ReservationsPage';
 
@@ -21,6 +23,8 @@ export function App() {
         <Route path="delivery-return" element={<DeliveryReturnPage />} />
         <Route path="payments" element={<PaymentsPage />} />
         <Route path="expenses" element={<ExpensesPage />} />
+        <Route path="daily-closing" element={<DailyClosingPage />} />
+        <Route path="audit-log" element={<AuditLogPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="preferences" element={<PreferencesPage />} />
         <Route path="*" element={<DashboardPage />} />

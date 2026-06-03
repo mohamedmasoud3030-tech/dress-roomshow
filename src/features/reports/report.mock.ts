@@ -1,6 +1,8 @@
 import type { CustomerBalanceRow, DressPerformanceRow } from './report.types';
 
-export const reportMockDresses: DressPerformanceRow[] = [
+type ReportMockDress = Pick<DressPerformanceRow, 'id' | 'code' | 'name' | 'timesRented' | 'status'>;
+
+export const reportMockDresses: ReportMockDress[] = [
   { id: 'dress-1', code: 'DR-025', name: 'فستان مخملي أزرق', timesRented: 14, status: 'reserved' },
   { id: 'dress-2', code: 'DR-011', name: 'فستان دانتيل عاجي', timesRented: 11, status: 'available' },
   { id: 'dress-3', code: 'DR-008', name: 'فستان وردي مطرز', timesRented: 10, status: 'available' },
