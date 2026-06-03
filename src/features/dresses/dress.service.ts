@@ -1,4 +1,5 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { recordAudit } from '../audit/audit.service';
 import { mockDresses } from './dress.mock';
 import type { Dress, DressFilters, DressStatus, DressSummary } from './dress.types';
 
@@ -24,6 +25,7 @@ export function updateDressStatus(code: string, status: DressStatus): Dress {
   const dresses = getDresses();
   const dress = dresses.find((item) => item.code === code);
   if (!dress) throw new Error('الفستان المحدد غير موجود.');
+  if (dress.status === status) return dress;
 
   const updatedDress: Dress = {
     ...dress,
@@ -31,10 +33,15 @@ export function updateDressStatus(code: string, status: DressStatus): Dress {
     timesRented: status === 'rented' && dress.status !== 'rented' ? dress.timesRented + 1 : dress.timesRented,
   };
 
-  writeCollection(
-    COLLECTION,
-    dresses.map((item) => (item.id === dress.id ? updatedDress : item)),
-  );
+  writeCollection(COLLECTION, dresses.map((item) => (item.id === dress.id ? updatedDress : item)));
+  recordAudit({
+    action: 'status-change',
+    entityType: 'dress',
+    entityId: dress.id,
+    summary: `تم تغيير حالة الفستان ${dress.code}.`,
+    previousValues: { status: dress.status },
+    nextValues: { status },
+  });
   return updatedDress;
 }
 
@@ -98,5 +105,12 @@ export function addDress(input: AddDressInput): Dress {
   };
 
   writeCollection(COLLECTION, [dress, ...dresses]);
+  recordAudit({
+    action: 'create',
+    entityType: 'dress',
+    entityId: dress.id,
+    summary: `تمت إضافة الفستان ${dress.code}.`,
+    nextValues: { code: dress.code, status: dress.status, purchasePrice: dress.purchasePrice },
+  });
   return dress;
 }
