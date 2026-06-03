@@ -1,6 +1,8 @@
 import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
+import { recordAudit } from '../audit/audit.service';
 import { getDresses } from '../dresses/dress.service';
+import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { expenseMockRecords } from './expense.mock';
 import type {
   ExpenseCategory,
@@ -37,6 +39,7 @@ export function addExpense(input: AddExpenseInput): ExpenseRecord {
   if (input.expenseDate > getTodayISO()) throw new Error('تاريخ المصروف لا يمكن أن يكون في المستقبل.');
   if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة المصروف يجب أن تكون أكبر من صفر.');
   if (input.relatedDressCode && !relatedDress) throw new Error('الفستان المحدد غير موجود.');
+  assertBusinessDateOpen(input.expenseDate);
 
   const expense: ExpenseRecord = {
     id: generateId(),
@@ -52,6 +55,7 @@ export function addExpense(input: AddExpenseInput): ExpenseRecord {
   };
 
   writeCollection(COLLECTION, [expense, ...getExpenses()]);
+  recordAudit({ action: 'create', entityType: 'expense', entityId: expense.id, summary: `تم تسجيل المصروف ${expense.expenseNumber}.`, nextValues: { amount: expense.amount, paymentMethod: expense.paymentMethod, expenseDate: expense.expenseDate } });
   return expense;
 }
 
