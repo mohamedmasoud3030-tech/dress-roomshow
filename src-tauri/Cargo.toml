@@ -1,8 +1,8 @@
 [package]
 name = "dress-roomshow"
 version = "0.1.0"
-description = "Dress roomshow desktop app"
-authors = ["Dress roomshow"]
+description = "LENA desktop app"
+authors = ["LENA"]
 edition = "2021"
 
 [build-dependencies]
