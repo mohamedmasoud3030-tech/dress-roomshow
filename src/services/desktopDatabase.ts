@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 
 const PREFIX = 'dress-roomshow:';
+let previousSnapshot = '';
 
 function readMirror(): Record<string, string> {
   const entries: Record<string, string> = {};
@@ -25,16 +26,22 @@ function applyMirror(entries: Record<string, string>): void {
   });
 }
 
+async function synchronizeDesktopMirror(): Promise<void> {
+  const entries = readMirror();
+  const serialized = JSON.stringify(entries);
+  if (serialized === previousSnapshot) return;
+  await invoke('save_desktop_snapshot', { entries });
+  previousSnapshot = serialized;
+}
+
 export async function bootstrapDesktopDatabase(): Promise<void> {
   try {
     const entries = await invoke<Record<string, string> | null>('load_desktop_snapshot');
     if (entries) applyMirror(entries);
-    else await invoke('save_desktop_snapshot', { entries: readMirror() });
+    previousSnapshot = JSON.stringify(readMirror());
+    if (!entries) await synchronizeDesktopMirror();
+    window.setInterval(() => void synchronizeDesktopMirror().catch(() => undefined), 500);
   } catch {
     // Browser and PWA builds intentionally continue with localStorage only.
   }
-}
-
-export function syncDesktopDatabase(): void {
-  void invoke('save_desktop_snapshot', { entries: readMirror() }).catch(() => undefined);
 }
