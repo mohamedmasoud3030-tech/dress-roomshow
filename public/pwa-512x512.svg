@@ -1,5 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Dress roomshow icon 512">
-  <rect width="512" height="512" rx="96" fill="#7c3aed"/>
-  <path d="M160 142h192l-28 56v172H188V198z" fill="#fff"/>
-  <circle cx="256" cy="104" r="28" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">LENA app icon</title>
+  <desc id="desc">A gold L monogram with a subtle evening-gown fold on a burgundy rounded-square background.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7A263D"/>
+      <stop offset="100%" stop-color="#55192B"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.95" y2="1">
+      <stop offset="0%" stop-color="#F4D99E"/>
+      <stop offset="48%" stop-color="#DFB86D"/>
+      <stop offset="100%" stop-color="#C69342"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path fill="url(#gold)" d="M162 114C162 102 171 94 184 94H232C245 94 254 102 254 114V348C254 367 262 374 282 374H351C372 374 388 366 403 350L415 337C421 331 431 335 429 344C422 376 408 398 386 412C365 426 339 432 306 432H182C170 432 162 424 162 412Z"/>
+  <path fill="#621E32" d="M205 132H216V353C216 394 233 404 275 404H306V417H205Z"/>
+  <path fill="url(#gold)" d="M252 193C292 218 320 255 331 302C339 336 358 360 389 374C359 375 333 367 312 352C289 335 272 309 264 276C256 243 253 217 252 193Z"/>
+  <path fill="#E8C77F" opacity="0.72" d="M266 227C290 251 304 279 310 311C315 334 327 353 346 367C326 359 310 347 298 331C281 308 271 274 266 227Z"/>
 </svg>
