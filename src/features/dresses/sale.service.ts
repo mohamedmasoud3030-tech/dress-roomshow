@@ -1,6 +1,7 @@
 import { generateId, generateNumber, readCollection, writeCollection } from '../../services/localDatabase';
 import { getTodayISO } from '../../shared/utils/date';
 import { recordAudit } from '../audit/audit.service';
+import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { getReservations } from '../reservations/reservation.service';
 import { getDresses, updateDressStatus } from './dress.service';
 
@@ -57,6 +58,7 @@ export function addSale(input: AddSaleInput): SaleRecord {
   if (!input.saleDate) throw new Error('تاريخ البيع مطلوب.');
   if (input.saleDate > getTodayISO()) throw new Error('تاريخ البيع لا يمكن أن يكون في المستقبل.');
   if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة البيع يجب أن تكون أكبر من صفر.');
+  assertBusinessDateOpen(input.saleDate);
 
   const sale: SaleRecord = {
     id: generateId(),
@@ -78,6 +80,7 @@ export function addSale(input: AddSaleInput): SaleRecord {
     entityType: 'sale',
     entityId: sale.id,
     summary: `تم تسجيل البيع ${sale.saleNumber} للفستان ${sale.dressCode}.`,
+    nextValues: { saleDate: sale.saleDate, amount: sale.amount, paymentMethod: sale.paymentMethod },
   });
   return sale;
 }

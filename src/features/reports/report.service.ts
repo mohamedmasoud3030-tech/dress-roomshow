@@ -1,4 +1,5 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { createDayCloseMethodBreakdown, isActiveDayClosing } from '../../shared/utils/dailyClosingCalculations.js';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { recordAudit } from '../audit/audit.service';
@@ -14,6 +15,7 @@ import type {
   CustomerBalanceRow,
   DateRangeFilter,
   DayCloseBreakdown,
+  DayCloseMethodBreakdown,
   DayCloseRecord,
   DressPerformanceRow,
   FinancialSummary,
@@ -23,6 +25,20 @@ import type {
 
 const activeReservationStatuses = new Set(['pending', 'confirmed', 'delivered', 'overdue']);
 const DAY_CLOSE_COLLECTION = 'daily-closings';
+
+type LegacyDayCloseBreakdown = Partial<DayCloseBreakdown> & {
+  cashIncome?: number;
+  cashRefunds?: number;
+  cashExpenses?: number;
+  cardNet?: number;
+  bankTransferNet?: number;
+  otherNet?: number;
+};
+
+type StoredDayCloseRecord = Omit<DayCloseRecord, 'breakdown' | 'status'> & {
+  breakdown: LegacyDayCloseBreakdown;
+  status?: DayCloseRecord['status'];
+};
 
 function isWithinRange(date: string, range?: DateRangeFilter): boolean {
   if (!range) return true;
@@ -40,6 +56,40 @@ function calculateInactivityDays(lastMovementDate: string | null): number | null
 
 function sumAmounts(items: Array<{ amount: number }>): number {
   return items.reduce((total, item) => total + item.amount, 0);
+}
+
+function normalizeLegacyNet(net = 0): DayCloseMethodBreakdown {
+  return createDayCloseMethodBreakdown({
+    collections: Math.max(net, 0),
+    refunds: Math.max(-net, 0),
+    expenses: 0,
+  });
+}
+
+function normalizeMethodBreakdown(
+  current: DayCloseMethodBreakdown | undefined,
+  legacyCollections = 0,
+  legacyRefunds = 0,
+  legacyExpenses = 0,
+): DayCloseMethodBreakdown {
+  return createDayCloseMethodBreakdown(current ?? {
+    collections: legacyCollections,
+    refunds: legacyRefunds,
+    expenses: legacyExpenses,
+  });
+}
+
+function normalizeDayCloseRecord(record: StoredDayCloseRecord): DayCloseRecord {
+  return {
+    ...record,
+    status: record.status ?? 'closed',
+    breakdown: {
+      cash: normalizeMethodBreakdown(record.breakdown.cash, record.breakdown.cashIncome, record.breakdown.cashRefunds, record.breakdown.cashExpenses),
+      card: record.breakdown.card ? normalizeMethodBreakdown(record.breakdown.card) : normalizeLegacyNet(record.breakdown.cardNet),
+      bankTransfer: record.breakdown.bankTransfer ? normalizeMethodBreakdown(record.breakdown.bankTransfer) : normalizeLegacyNet(record.breakdown.bankTransferNet),
+      other: record.breakdown.other ? normalizeMethodBreakdown(record.breakdown.other) : normalizeLegacyNet(record.breakdown.otherNet),
+    },
+  };
 }
 
 export function formatReportMoney(amount: number): string {
@@ -169,7 +219,9 @@ export function getReportSummary(range?: DateRangeFilter): ReportSummary {
 }
 
 export function getDayClosings(): DayCloseRecord[] {
-  return readCollection<DayCloseRecord>(DAY_CLOSE_COLLECTION, []).sort((a, b) => b.businessDate.localeCompare(a.businessDate));
+  return readCollection<StoredDayCloseRecord>(DAY_CLOSE_COLLECTION, [])
+    .map(normalizeDayCloseRecord)
+    .sort((a, b) => b.closedAt.localeCompare(a.closedAt));
 }
 
 export function calculateDayClose(input: CloseDayInput): DayCloseRecord {
@@ -193,16 +245,19 @@ export function calculateDayClose(input: CloseDayInput): DayCloseRecord {
   const expensesFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => sumAmounts(
     expenses.filter((expense) => expense.paymentMethod === method),
   );
+  const breakdownFor = (method: 'cash' | 'card' | 'bank_transfer' | 'other') => createDayCloseMethodBreakdown({
+    collections: paymentIncomeFor(method) + salesFor(method),
+    refunds: paymentRefundsFor(method),
+    expenses: expensesFor(method),
+  });
 
   const breakdown: DayCloseBreakdown = {
-    cashIncome: paymentIncomeFor('cash') + salesFor('cash'),
-    cashRefunds: paymentRefundsFor('cash'),
-    cashExpenses: expensesFor('cash'),
-    cardNet: paymentIncomeFor('card') + salesFor('card') - paymentRefundsFor('card') - expensesFor('card'),
-    bankTransferNet: paymentIncomeFor('bank_transfer') + salesFor('bank_transfer') - paymentRefundsFor('bank_transfer') - expensesFor('bank_transfer'),
-    otherNet: paymentIncomeFor('other') + salesFor('other') - paymentRefundsFor('other') - expensesFor('other'),
+    cash: breakdownFor('cash'),
+    card: breakdownFor('card'),
+    bankTransfer: breakdownFor('bank_transfer'),
+    other: breakdownFor('other'),
   };
-  const expectedCash = input.openingCash + breakdown.cashIncome - breakdown.cashRefunds - breakdown.cashExpenses;
+  const expectedCash = input.openingCash + breakdown.cash.net;
 
   return {
     id: generateId(),
@@ -213,23 +268,50 @@ export function calculateDayClose(input: CloseDayInput): DayCloseRecord {
     difference: input.actualCash - expectedCash,
     breakdown,
     notes: input.notes?.trim() || undefined,
+    status: 'closed',
     closedAt: new Date().toISOString(),
   };
 }
 
 export function closeDay(input: CloseDayInput): DayCloseRecord {
   const closings = getDayClosings();
-  if (closings.some((closing) => closing.businessDate === input.businessDate)) throw new Error('تم إقفال هذه اليومية بالفعل.');
+  if (closings.some((closing) => closing.businessDate === input.businessDate && isActiveDayClosing(closing.status))) {
+    throw new Error('تم إقفال هذه اليومية بالفعل.');
+  }
   const closing = calculateDayClose(input);
   writeCollection(DAY_CLOSE_COLLECTION, [closing, ...closings]);
-  recordAudit({ action: 'close-day', entityType: 'daily-closing', entityId: closing.id, summary: `تم إقفال يومية ${closing.businessDate}.` });
+  recordAudit({
+    action: 'close-day',
+    entityType: 'daily-closing',
+    entityId: closing.id,
+    summary: `تم إقفال يومية ${closing.businessDate}.`,
+    nextValues: { expectedCash: closing.expectedCash, actualCash: closing.actualCash, difference: closing.difference },
+  });
   return closing;
 }
 
-export function reopenDay(id: string): void {
+export function reopenDay(id: string, reason: string): DayCloseRecord {
   const closings = getDayClosings();
   const closing = closings.find((item) => item.id === id);
+  const normalizedReason = reason.trim();
   if (!closing) throw new Error('اليومية المحددة غير موجودة.');
-  writeCollection(DAY_CLOSE_COLLECTION, closings.filter((item) => item.id !== id));
-  recordAudit({ action: 'reopen-day', entityType: 'daily-closing', entityId: closing.id, summary: `تمت إعادة فتح يومية ${closing.businessDate}.` });
+  if (!isActiveDayClosing(closing.status)) throw new Error('تمت إعادة فتح هذه اليومية بالفعل.');
+  if (!normalizedReason) throw new Error('سبب إعادة فتح اليومية مطلوب لحفظ سجل واضح.');
+
+  const reopened: DayCloseRecord = {
+    ...closing,
+    status: 'reopened',
+    reopenedAt: new Date().toISOString(),
+    reopenReason: normalizedReason,
+  };
+  writeCollection(DAY_CLOSE_COLLECTION, closings.map((item) => (item.id === id ? reopened : item)));
+  recordAudit({
+    action: 'reopen-day',
+    entityType: 'daily-closing',
+    entityId: closing.id,
+    summary: `تمت إعادة فتح يومية ${closing.businessDate}.`,
+    previousValues: { status: closing.status },
+    nextValues: { status: reopened.status, reason: normalizedReason },
+  });
+  return reopened;
 }

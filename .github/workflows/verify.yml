@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feat/operational-completion
   pull_request:
 
 jobs:
@@ -25,8 +24,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Financial settlement tests
-        run: npm run test:finance
+      - name: Operational tests
+        run: npm test
 
       - name: Lint
         run: npm run lint

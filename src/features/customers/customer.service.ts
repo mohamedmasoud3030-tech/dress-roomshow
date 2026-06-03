@@ -1,4 +1,5 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { recordAudit } from '../audit/audit.service';
 import { mockReservations } from '../reservations/reservation.mock';
 import type { Reservation } from '../reservations/reservation.types';
 import { mockCustomers } from './customer.mock';
@@ -101,5 +102,12 @@ export function addCustomer(input: AddCustomerInput): Customer {
   };
 
   writeCollection(COLLECTION, [customer, ...customers]);
+  recordAudit({
+    action: 'create',
+    entityType: 'customer',
+    entityId: customer.id,
+    summary: `تمت إضافة العميلة ${customer.name}.`,
+    nextValues: { name: customer.name, phone: customer.phone, status: customer.status },
+  });
   return customer;
 }
