@@ -39,8 +39,14 @@ export function AppLayout() {
 
       <aside className="fixed inset-y-0 right-0 hidden w-72 border-l border-slate-800 bg-slate-950 px-5 py-6 text-stone-100 shadow-xl lg:block">
         <div className="mb-8 border-b border-slate-800 pb-6">
-          <p className="text-sm font-medium tracking-wide text-amber-300">Dress roomshow</p>
-          <h1 className="mt-2 text-2xl font-bold">إدارة محل الفساتين</h1>
+          <div className="flex items-center gap-3">
+            <img src="/favicon.svg" alt="" aria-hidden="true" className="h-12 w-12 rounded-2xl shadow-lg" />
+            <div>
+              <p className="text-2xl font-extrabold tracking-[0.22em] text-amber-300">LENA</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Dress Showroom</p>
+            </div>
+          </div>
+          <h1 className="mt-5 text-2xl font-bold">إدارة محل الفساتين</h1>
           <p className="mt-2 text-xs leading-6 text-slate-400">تشغيل يومي منظم للمخزون والحجوزات والتحصيل.</p>
         </div>
 
@@ -68,9 +74,12 @@ export function AppLayout() {
       <main id="main-content" className="min-h-screen pb-24 lg:pr-72 lg:pb-0">
         <header className="sticky top-0 z-20 border-b border-stone-200 bg-stone-50/95 px-4 py-4 shadow-sm backdrop-blur sm:px-6">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold text-amber-700">Dress roomshow</p>
-              <h2 className="mt-1 text-lg font-bold text-slate-950 sm:text-xl">تشغيل يومي سريع ومنظم</h2>
+            <div className="flex items-center gap-3">
+              <img src="/favicon.svg" alt="" aria-hidden="true" className="h-10 w-10 rounded-xl shadow-sm lg:hidden" />
+              <div>
+                <p className="text-xs font-extrabold tracking-[0.2em] text-amber-700">LENA</p>
+                <h2 className="mt-1 text-lg font-bold text-slate-950 sm:text-xl">تشغيل يومي سريع ومنظم</h2>
+              </div>
             </div>
             <Link
               to="/reservations?new=1"
