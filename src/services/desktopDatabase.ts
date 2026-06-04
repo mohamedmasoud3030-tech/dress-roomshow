@@ -34,15 +34,21 @@ async function synchronizeDesktopMirror(): Promise<void> {
   previousSnapshot = serialized;
 }
 
-export async function bootstrapDesktopDatabase(): Promise<void> {
+async function bootstrapDesktopDatabase(): Promise<void> {
   try {
-    const entries = await invoke<Record<string, string> | null>('load_desktop_snapshot');
-    if (entries) applyMirror(entries);
-    const currentEntries = readMirror();
-    if (!entries) await invoke('save_desktop_snapshot', { entries: currentEntries });
-    previousSnapshot = JSON.stringify(currentEntries);
+    const localEntries = readMirror();
+    const desktopEntries = await invoke<Record<string, string> | null>('load_desktop_snapshot');
+    if (desktopEntries && JSON.stringify(desktopEntries) !== JSON.stringify(localEntries)) {
+      applyMirror(desktopEntries);
+      window.location.reload();
+      return;
+    }
+    if (!desktopEntries) await invoke('save_desktop_snapshot', { entries: localEntries });
+    previousSnapshot = JSON.stringify(readMirror());
     window.setInterval(() => void synchronizeDesktopMirror().catch(() => undefined), 500);
   } catch {
     // Browser and PWA builds intentionally continue with localStorage only.
   }
 }
+
+void bootstrapDesktopDatabase();
