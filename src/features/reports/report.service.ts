@@ -1,5 +1,6 @@
 import { getExpenses } from '../expenses/expense.service';
 import { getPayments } from '../payments/payment.service';
+import { getSalesInvoices, getSalesReturns } from '../dresses/salesLedger.service';
 import { reportMockCustomers, reportMockDresses, reportMockReservations } from './report.mock';
 import type {
   CustomerBalanceRow,
@@ -24,19 +25,24 @@ export function formatReportMoney(amount: number): string {
 export function getFinancialSummary(): FinancialSummary {
   const payments = getPayments();
   const expenses = getExpenses();
+  const salesInvoices = getSalesInvoices();
+  const salesReturns = getSalesReturns();
 
   const totalCollected = payments
     .filter((payment) => payment.direction === 'income')
     .reduce((sum, payment) => sum + payment.amount, 0);
 
+  const salesCollected = salesInvoices.reduce((sum, invoice) => sum + invoice.subtotal, 0);
+
   const totalRefunded = payments
     .filter((payment) => payment.direction === 'refund')
     .reduce((sum, payment) => sum + payment.amount, 0);
+  const salesRefunded = salesReturns.reduce((sum, record) => sum + record.amount, 0);
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const netAmount = totalCollected - totalRefunded - totalExpenses;
+  const netAmount = totalCollected + salesCollected - totalRefunded - salesRefunded - totalExpenses;
 
-  return { totalCollected, totalRefunded, totalExpenses, netAmount };
+  return { totalCollected: totalCollected + salesCollected, totalRefunded: totalRefunded + salesRefunded, totalExpenses, netAmount };
 }
 
 export function getCustomerBalances(): CustomerBalanceRow[] {

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { filterReservations, getReservations, getReservationsFromLocalDb, summarizeReservations } from './reservation.service';
 import type { ReservationFilters, ReservationStatus } from './reservation.types';
+import { printRentalContract } from './printRentalContract';
 import { EmptyState } from '../../components/shared/EmptyState';
 import { FilterPanel } from '../../components/shared/FilterPanel';
 import { PageHeader } from '../../components/shared/PageHeader';
@@ -90,6 +91,23 @@ export function ReservationsPage() {
             <p className="mt-2 text-sm text-[#7A7168]">{reservation.pickupDate} / {reservation.returnDate}</p>
             <span className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeClasses[reservation.status]}`}>
               {statusLabels[reservation.status]}
+            </span>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(event) => {
+                event.stopPropagation();
+                printRentalContract(reservation);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.stopPropagation();
+                  printRentalContract(reservation);
+                }
+              }}
+              className="mt-3 me-2 inline-flex rounded-full bg-[#8B5E3C] px-3 py-1 text-xs font-semibold text-white"
+            >
+              طباعة عقد الإيجار
             </span>
           </button>
         ))}
