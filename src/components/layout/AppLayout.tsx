@@ -3,9 +3,12 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 const navigation = [
   { to: '/', label: 'لوحة التحكم' },
   { to: '/dresses', label: 'الفساتين' },
+  { to: '/sales', label: 'المبيعات والفواتير' },
   { to: '/customers', label: 'العملاء' },
   { to: '/reservations', label: 'الحجوزات' },
+  { to: '/reservations/calendar', label: 'تقويم الحجوزات' },
   { to: '/delivery-return', label: 'التسليم والاسترجاع' },
+  { to: '/service-tasks', label: 'الخدمة' },
   { to: '/payments', label: 'المدفوعات' },
   { to: '/expenses', label: 'المصروفات' },
   { to: '/reports', label: 'التقارير' },

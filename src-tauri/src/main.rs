@@ -2,6 +2,7 @@
 
 use rusqlite::{params, Connection};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::{fs, path::PathBuf};
 use tauri::{AppHandle, Manager};
 
@@ -130,6 +131,16 @@ struct DeliveryReturnRecord {
   updated_at: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalDocumentRecord {
+  id: String,
+  collection: String,
+  payload: Value,
+  created_at: String,
+  updated_at: String,
+}
+
 fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
   let dir = app
     .path()
@@ -137,7 +148,20 @@ fn db_path(app: &AppHandle) -> Result<PathBuf, String> {
     .map_err(|err| format!("failed to resolve app data dir: {err}"))?;
 
   fs::create_dir_all(&dir).map_err(|err| format!("failed to create app data dir: {err}"))?;
-  Ok(dir.join("dress_roomshow.db"))
+  let new_path = dir.join("lena.sqlite3");
+  let legacy_path = dir.join("dress_roomshow.db");
+  if !new_path.exists() && legacy_path.exists() {
+    fs::copy(&legacy_path, &new_path)
+      .map_err(|err| format!("failed to migrate legacy sqlite database path: {err}"))?;
+  }
+  Ok(new_path)
+}
+
+fn validate_document_collection(collection: &str) -> Result<(), String> {
+  match collection {
+    "sales-invoices" | "sales-returns" | "service-tasks" => Ok(()),
+    _ => Err(format!("unsupported local document collection: {collection}")),
+  }
 }
 
 fn open_db(app: &AppHandle) -> Result<Connection, String> {
@@ -272,6 +296,15 @@ fn initialize_schema(conn: &Connection) -> Result<(), String> {
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS local_documents (
+      id TEXT NOT NULL,
+      collection TEXT NOT NULL,
+      payload TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (collection, id)
+    );
     ",
   )
   .map_err(|err| format!("failed to initialize schema: {err}"))
@@ -385,6 +418,48 @@ fn insert_delivery_return(app: AppHandle, record: DeliveryReturnRecord) -> Resul
   Ok(())
 }
 
+#[tauri::command]
+fn list_local_documents(app: AppHandle, collection: String) -> Result<Vec<LocalDocumentRecord>, String> {
+  validate_document_collection(&collection)?;
+  let conn = open_db(&app)?;
+  initialize_schema(&conn)?;
+  let mut stmt = conn
+    .prepare("SELECT id,collection,payload,created_at,updated_at FROM local_documents WHERE collection = ?1 ORDER BY datetime(created_at) DESC")
+    .map_err(|err| format!("failed to prepare local document list query: {err}"))?;
+  let rows = stmt
+    .query_map(params![collection], |row| {
+      let payload_text: String = row.get(2)?;
+      let payload = serde_json::from_str::<Value>(&payload_text).map_err(|err| {
+        rusqlite::Error::FromSqlConversionFailure(2, rusqlite::types::Type::Text, Box::new(err))
+      })?;
+      Ok(LocalDocumentRecord {
+        id: row.get(0)?,
+        collection: row.get(1)?,
+        payload,
+        created_at: row.get(3)?,
+        updated_at: row.get(4)?,
+      })
+    })
+    .map_err(|err| format!("failed to query local documents: {err}"))?;
+  rows.collect::<Result<Vec<_>, _>>()
+    .map_err(|err| format!("failed to parse local documents: {err}"))
+}
+
+#[tauri::command]
+fn insert_local_document(app: AppHandle, document: LocalDocumentRecord) -> Result<(), String> {
+  validate_document_collection(&document.collection)?;
+  let conn = open_db(&app)?;
+  initialize_schema(&conn)?;
+  let payload = serde_json::to_string(&document.payload)
+    .map_err(|err| format!("failed to serialize local document payload: {err}"))?;
+  conn.execute(
+    "INSERT OR REPLACE INTO local_documents (id,collection,payload,created_at,updated_at) VALUES (?1,?2,?3,?4,?5)",
+    params![document.id, document.collection, payload, document.created_at, document.updated_at],
+  )
+  .map_err(|err| format!("failed to insert local document: {err}"))?;
+  Ok(())
+}
+
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
@@ -400,7 +475,9 @@ fn main() {
       list_expenses,
       insert_expense,
       list_delivery_returns,
-      insert_delivery_return
+      insert_delivery_return,
+      list_local_documents,
+      insert_local_document
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");

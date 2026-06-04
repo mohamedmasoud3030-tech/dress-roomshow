@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Search, Shirt, Sparkles, Wrench } from 'lucide-react';
 import { addDressToLocalDb, filterDresses, getDresses, getDressesFromLocalDb, summarizeDresses } from './dress.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
@@ -112,7 +113,7 @@ function DressCard({ dress, onQuickReserve, onViewDetails }: DressCardProps) {
 
         <div className="grid grid-cols-2 gap-2">
           <button onClick={() => onQuickReserve(dress)} className="rounded-xl bg-[#8B5E3C] px-3 py-2 text-sm font-semibold text-white">حجز سريع</button>
-          <button onClick={() => onViewDetails(dress)} className="rounded-xl border border-[#E8DED2] px-3 py-2 text-sm font-semibold text-[#8B5E3C]">تفاصيل</button>
+          <Link to={`/dresses/${encodeURIComponent(dress.code)}`} onClick={() => onViewDetails(dress)} className="rounded-xl border border-[#E8DED2] px-3 py-2 text-center text-sm font-semibold text-[#8B5E3C]">تفاصيل</Link>
         </div>
       </div>
     </article>

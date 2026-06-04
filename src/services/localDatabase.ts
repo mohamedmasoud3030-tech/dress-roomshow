@@ -117,6 +117,16 @@ type NullableOptionalRecord<T extends Record<string, unknown>> = {
   [K in keyof T]: T[K] extends string | undefined ? string | null : T[K];
 };
 
+export type LocalDocumentCollection = 'sales-invoices' | 'sales-returns' | 'service-tasks';
+
+type LocalDocumentRecord<T> = {
+  id: string;
+  collection: LocalDocumentCollection;
+  payload: T;
+  createdAt: string;
+  updatedAt: string;
+};
+
 const isTauriRuntime = () =>
   typeof globalThis !== 'undefined' &&
   typeof globalThis.window !== 'undefined' &&
@@ -199,5 +209,20 @@ export async function loadLocalDeliveryReturns(): Promise<LocalDeliveryReturnRec
 export async function saveLocalDeliveryReturn(record: LocalDeliveryReturnRecord): Promise<boolean> {
   if (!isTauriRuntime()) return false;
   await invoke('insert_delivery_return', { record: nullifyOptionalStrings(record) });
+  return true;
+}
+
+export async function loadLocalDocuments<T>(collection: LocalDocumentCollection): Promise<T[] | null> {
+  if (!isTauriRuntime()) return null;
+  const rows = await invoke<Array<LocalDocumentRecord<T>>>('list_local_documents', { collection });
+  return rows.map((row) => row.payload);
+}
+
+export async function saveLocalDocument<T>(collection: LocalDocumentCollection, id: string, payload: T): Promise<boolean> {
+  if (!isTauriRuntime()) return false;
+  const now = new Date().toISOString();
+  await invoke('insert_local_document', {
+    document: { id, collection, payload, createdAt: now, updatedAt: now },
+  });
   return true;
 }
