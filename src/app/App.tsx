@@ -1,3 +1,4 @@
+import '../services/desktopDatabase';
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AuditLogPage } from '../features/audit/AuditLogPage';
