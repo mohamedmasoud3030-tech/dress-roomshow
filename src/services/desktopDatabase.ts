@@ -14,6 +14,12 @@ function readMirror(): Record<string, string> {
   return entries;
 }
 
+function serialize(entries: Record<string, string>): string {
+  return JSON.stringify(
+    Object.fromEntries(Object.entries(entries).sort(([left], [right]) => left.localeCompare(right))),
+  );
+}
+
 function applyMirror(entries: Record<string, string>): void {
   const keys: string[] = [];
   for (let index = 0; index < window.localStorage.length; index += 1) {
@@ -28,7 +34,7 @@ function applyMirror(entries: Record<string, string>): void {
 
 async function synchronizeDesktopMirror(): Promise<void> {
   const entries = readMirror();
-  const serialized = JSON.stringify(entries);
+  const serialized = serialize(entries);
   if (serialized === previousSnapshot) return;
   await invoke('save_desktop_snapshot', { entries });
   previousSnapshot = serialized;
@@ -38,13 +44,13 @@ async function bootstrapDesktopDatabase(): Promise<void> {
   try {
     const localEntries = readMirror();
     const desktopEntries = await invoke<Record<string, string> | null>('load_desktop_snapshot');
-    if (desktopEntries && JSON.stringify(desktopEntries) !== JSON.stringify(localEntries)) {
+    if (desktopEntries && serialize(desktopEntries) !== serialize(localEntries)) {
       applyMirror(desktopEntries);
       window.location.reload();
       return;
     }
     if (!desktopEntries) await invoke('save_desktop_snapshot', { entries: localEntries });
-    previousSnapshot = JSON.stringify(readMirror());
+    previousSnapshot = serialize(readMirror());
     window.setInterval(() => void synchronizeDesktopMirror().catch(() => undefined), 500);
   } catch {
     // Browser and PWA builds intentionally continue with localStorage only.
