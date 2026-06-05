@@ -114,7 +114,7 @@ export function updateServiceTask(id: string, input: UpdateServiceTaskInput): Se
   const cost = input.cost ?? task.cost;
   const expectedCompletionDate = input.expectedCompletionDate ?? task.expectedCompletionDate;
   if (expectedCompletionDate < task.sentDate) throw new Error('تاريخ الإنجاز المتوقع غير صالح.');
-  if (status !== 'completed' && conflictsWithUpcomingReservation(task.dressCode, expectedCompletionDate)) throw new Error('موعد إنجاز الخدمة يتعارض مع حجز قادم أو فترة التجهيز الخاصة به.');
+  if (activeStatuses.has(status) && conflictsWithUpcomingReservation(task.dressCode, expectedCompletionDate)) throw new Error('موعد إنجاز الخدمة يتعارض مع حجز قادم أو فترة التجهيز الخاصة به.');
   if (actualCompletionDate && (actualCompletionDate < task.sentDate || actualCompletionDate > getTodayISO())) throw new Error('تاريخ الإنجاز الفعلي غير صالح.');
   if (!Number.isFinite(cost) || cost < 0) throw new Error('تكلفة الخدمة غير صالحة.');
 
@@ -127,11 +127,14 @@ export function updateServiceTask(id: string, input: UpdateServiceTaskInput): Se
       const expense = addExpense({ expenseDate: completionDate, title: `تكلفة خدمة ${next.taskNumber}`, category: expenseCategory(next.type), amount: next.cost, paymentMethod: next.paymentMethod, relatedDressCode: next.dressCode, notes: next.notes });
       next = { ...next, linkedExpenseId: expense.id };
     }
+  }
+
+  if (status === 'completed' || status === 'cancelled') {
     updateDressStatus(next.dressCode, resolveDressStatusAfterService(next.dressCode));
   }
 
   writeCollection(COLLECTION, tasks.map((item) => item.id === id ? next : item));
-  recordAudit({ action: status === 'completed' ? 'return' : 'update', entityType: 'service-task', entityId: next.id, summary: status === 'completed' ? `تم إكمال مهمة الخدمة ${next.taskNumber}.` : `تم تحديث مهمة الخدمة ${next.taskNumber}.`, previousValues: { status: task.status, cost: task.cost }, nextValues: { status: next.status, cost: next.cost, linkedExpenseId: next.linkedExpenseId } });
+  recordAudit({ action: status === 'completed' ? 'return' : 'update', entityType: 'service-task', entityId: next.id, summary: status === 'completed' ? `تم إكمال مهمة الخدمة ${next.taskNumber}.` : status === 'cancelled' ? `تم إلغاء مهمة الخدمة ${next.taskNumber}.` : `تم تحديث مهمة الخدمة ${next.taskNumber}.`, previousValues: { status: task.status, cost: task.cost }, nextValues: { status: next.status, cost: next.cost, linkedExpenseId: next.linkedExpenseId } });
   return next;
 }
 
