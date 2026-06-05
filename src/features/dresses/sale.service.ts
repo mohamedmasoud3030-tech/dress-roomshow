@@ -10,6 +10,7 @@ export type SalePaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
 export type SaleRecord = {
   id: string;
   saleNumber: string;
+  invoiceNumber?: string;
   saleDate: string;
   dressCode: string;
   dressName: string;
