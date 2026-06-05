@@ -1,8 +1,9 @@
+import '../services/desktopDatabase';
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { AuditLogPage } from '../features/audit/AuditLogPage';
 import { CustomersPage } from '../features/customers/CustomersPage';
-import { DashboardPage } from '../features/dashboard/DashboardPage';
+import { DashboardWithClosingAlertPage } from '../features/dashboard/DashboardWithClosingAlertPage';
 import { DeliveryReturnPage } from '../features/delivery-return/DeliveryReturnPage';
 import { DressesPage } from '../features/dresses/DressesPage';
 import { ExpensesPage } from '../features/expenses/ExpensesPage';
@@ -16,7 +17,7 @@ export function App() {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route index element={<DashboardPage />} />
+        <Route index element={<DashboardWithClosingAlertPage />} />
         <Route path="dresses" element={<DressesPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="reservations" element={<ReservationsPage />} />
@@ -27,7 +28,7 @@ export function App() {
         <Route path="audit-log" element={<AuditLogPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="preferences" element={<PreferencesPage />} />
-        <Route path="*" element={<DashboardPage />} />
+        <Route path="*" element={<DashboardWithClosingAlertPage />} />
       </Route>
     </Routes>
   );

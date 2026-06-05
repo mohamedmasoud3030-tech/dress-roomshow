@@ -1,7 +1,9 @@
 import {
   BarChart3,
   CalendarDays,
+  ClipboardList,
   LayoutDashboard,
+  LockKeyhole,
   PackageCheck,
   Plus,
   ReceiptText,
@@ -20,6 +22,8 @@ const navigation = [
   { to: '/delivery-return', label: 'التسليم والاسترجاع', icon: PackageCheck },
   { to: '/payments', label: 'المدفوعات', icon: WalletCards },
   { to: '/expenses', label: 'المصروفات', icon: ReceiptText },
+  { to: '/daily-closing', label: 'إقفال اليومية', icon: LockKeyhole },
+  { to: '/audit-log', label: 'سجل التدقيق', icon: ClipboardList },
   { to: '/reports', label: 'التقارير', icon: BarChart3 },
   { to: '/preferences', label: 'الإعدادات والنسخ', icon: Settings2 },
 ] as const;
@@ -37,7 +41,7 @@ export function AppLayout() {
         الانتقال إلى المحتوى الرئيسي
       </a>
 
-      <aside className="fixed inset-y-0 right-0 hidden w-72 border-l border-slate-800 bg-slate-950 px-5 py-6 text-stone-100 shadow-xl lg:block">
+      <aside className="fixed inset-y-0 right-0 hidden w-72 overflow-y-auto border-l border-slate-800 bg-slate-950 px-5 py-6 text-stone-100 shadow-xl lg:block">
         <div className="mb-8 border-b border-slate-800 pb-6">
           <div className="flex items-center gap-3">
             <img src="/favicon.svg" alt="" aria-hidden="true" className="h-12 w-12 rounded-2xl shadow-lg" />
