@@ -9,8 +9,8 @@ import type { Dress } from './dress.types';
 
 const initialStatuses = ['available', 'laundry', 'maintenance', 'damaged', 'inactive'] as const;
 const MAX_SOURCE_IMAGE_BYTES = 10 * 1024 * 1024;
-const MAX_STORED_IMAGE_CHARACTERS = 1_500_000;
-const MAX_IMAGE_DIMENSION = 1200;
+const MAX_STORED_IMAGE_CHARACTERS = 350_000;
+const MAX_IMAGE_DIMENSION = 900;
 
 const dressSchema = z
   .object({
@@ -81,7 +81,7 @@ async function compressDressImage(file: File): Promise<string> {
     const context = canvas.getContext('2d');
     if (!context) throw new Error('تعذر تجهيز الصورة للحفظ.');
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    for (const quality of [0.82, 0.68, 0.54]) {
+    for (const quality of [0.76, 0.62, 0.48, 0.36]) {
       const dataUrl = canvas.toDataURL('image/jpeg', quality);
       if (dataUrl.length <= MAX_STORED_IMAGE_CHARACTERS) return dataUrl;
     }
@@ -163,7 +163,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
       <div><label htmlFor={`${fieldId}-description`} className={labelClassName}>وصف مختصر</label><textarea id={`${fieldId}-description`} rows={3} maxLength={300} {...register('description')} className={fieldClassName} placeholder="تفاصيل القصة أو التطريز أو الاستخدام المناسب" />{errors.description && <p className={errorClassName}>{errors.description.message}</p>}</div>
       <section className="rounded-xl border border-slate-200 bg-stone-50 p-4">
         <label htmlFor={`${fieldId}-image`} className={labelClassName}>صورة الفستان</label>
-        <p className="mb-3 text-xs text-slate-500">اختاري صورة من الجهاز. يتم ضغطها وحفظها محلياً مع بيانات الفستان لتعمل دون إنترنت.</p>
+        <p className="mb-3 text-xs text-slate-500">اختاري صورة من الجهاز. يتم حفظ نسخة عرض مضغوطة محلياً مع بيانات الفستان لتعمل دون إنترنت.</p>
         <input ref={imageInputRef} id={`${fieldId}-image`} type="file" accept="image/*" onChange={handleImageSelected} className="block w-full text-sm file:ml-3 file:cursor-pointer file:rounded-xl file:border-0 file:bg-slate-950 file:px-4 file:py-2 file:font-bold file:text-white" />
         {isProcessingImage && <p className="mt-2 text-xs font-bold text-amber-700">جارٍ تجهيز الصورة...</p>}
         {imageError && <p className={errorClassName}>{imageError}</p>}
