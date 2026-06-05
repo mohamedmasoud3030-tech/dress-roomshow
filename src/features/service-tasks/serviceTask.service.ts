@@ -47,6 +47,7 @@ export function createServiceTask(input: CreateServiceTaskInput): ServiceTask {
   const now = new Date().toISOString();
   if (!dress) throw new Error('الفستان المحدد غير موجود.');
   if (dress.status === 'sold' || dress.status === 'inactive') throw new Error('لا يمكن إنشاء مهمة خدمة لفستان مباع أو غير نشط.');
+  if (dress.status === 'rented' || getReservations().some((reservation) => reservation.dressCode === dress.code && ['delivered', 'overdue'].includes(reservation.status))) throw new Error('لا يمكن إرسال الفستان للخدمة وهو ما زال لدى العميلة.');
   if (getActiveServiceTasksForDress(dress.code).length > 0) throw new Error('يوجد بالفعل مهمة خدمة نشطة لهذا الفستان.');
   if (!input.sentDate || input.sentDate > getTodayISO()) throw new Error('تاريخ الإرسال غير صالح.');
   if (!input.expectedCompletionDate || input.expectedCompletionDate < input.sentDate) throw new Error('تاريخ الإنجاز المتوقع غير صالح.');
@@ -78,12 +79,13 @@ export function updateServiceTask(id: string, input: UpdateServiceTaskInput): Se
   const tasks = getServiceTasks();
   const task = tasks.find((item) => item.id === id);
   if (!task) throw new Error('مهمة الخدمة غير موجودة.');
+  if (!activeStatuses.has(task.status)) throw new Error('لا يمكن تعديل مهمة خدمة منتهية أو ملغاة.');
 
   const status = normalizeStatus(input.status ?? task.status);
   const actualCompletionDate = input.actualCompletionDate ?? task.actualCompletionDate;
   const cost = input.cost ?? task.cost;
   if (input.expectedCompletionDate && input.expectedCompletionDate < task.sentDate) throw new Error('تاريخ الإنجاز المتوقع غير صالح.');
-  if (actualCompletionDate && actualCompletionDate < task.sentDate) throw new Error('تاريخ الإنجاز الفعلي غير صالح.');
+  if (actualCompletionDate && (actualCompletionDate < task.sentDate || actualCompletionDate > getTodayISO())) throw new Error('تاريخ الإنجاز الفعلي غير صالح.');
   if (!Number.isFinite(cost) || cost < 0) throw new Error('تكلفة الخدمة غير صالحة.');
 
   let next: ServiceTask = { ...task, ...input, status, cost, actualCompletionDate, notes: input.notes?.trim() || task.notes, updatedAt: new Date().toISOString() };
@@ -95,8 +97,9 @@ export function updateServiceTask(id: string, input: UpdateServiceTaskInput): Se
       const expense = addExpense({ expenseDate: completionDate, title: `تكلفة خدمة ${next.taskNumber}`, category: expenseCategory(next.type), amount: next.cost, paymentMethod: next.paymentMethod, relatedDressCode: next.dressCode, notes: next.notes });
       next = { ...next, linkedExpenseId: expense.id };
     }
-    const hasFutureReservation = getReservations().some((reservation) => reservation.dressCode === next.dressCode && ['pending', 'confirmed'].includes(reservation.status) && reservation.returnDate >= getTodayISO());
-    updateDressStatus(next.dressCode, hasFutureReservation ? 'reserved' : 'available');
+    const reservations = getReservations().filter((reservation) => reservation.dressCode === next.dressCode);
+    const nextDressStatus = reservations.some((reservation) => ['delivered', 'overdue'].includes(reservation.status)) ? 'rented' : reservations.some((reservation) => ['pending', 'confirmed'].includes(reservation.status) && reservation.returnDate >= getTodayISO()) ? 'reserved' : 'available';
+    updateDressStatus(next.dressCode, nextDressStatus);
   }
 
   writeCollection(COLLECTION, tasks.map((item) => item.id === id ? next : item));
