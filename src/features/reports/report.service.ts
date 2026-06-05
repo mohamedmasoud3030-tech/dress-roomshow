@@ -21,6 +21,7 @@ type StoredDayCloseRecord = Omit<DayCloseRecord, 'breakdown' | 'status'> & { bre
 
 function isWithinRange(date: string, range?: DateRangeFilter): boolean { return !range || (!range.from || date >= range.from) && (!range.to || date <= range.to); }
 function sum(items: Array<{ amount: number }>): number { return items.reduce((total, item) => total + item.amount, 0); }
+function sumSaleRefunds(items: Array<{ amount: number; refundAmount?: number }>): number { return items.reduce((total, item) => total + (item.refundAmount ?? item.amount), 0); }
 function legacyNet(net = 0): DayCloseMethodBreakdown { return createDayCloseMethodBreakdown({ collections: Math.max(net, 0), refunds: Math.max(-net, 0), expenses: 0 }); }
 function normalize(current: DayCloseMethodBreakdown | undefined, collections = 0, refunds = 0, expenses = 0): DayCloseMethodBreakdown { return createDayCloseMethodBreakdown(current ?? { collections, refunds, expenses }); }
 function normalizeClosing(record: StoredDayCloseRecord): DayCloseRecord { return { ...record, status: record.status ?? 'closed', breakdown: { cash: normalize(record.breakdown.cash, record.breakdown.cashIncome, record.breakdown.cashRefunds, record.breakdown.cashExpenses), card: record.breakdown.card ? normalize(record.breakdown.card) : legacyNet(record.breakdown.cardNet), bankTransfer: record.breakdown.bankTransfer ? normalize(record.breakdown.bankTransfer) : legacyNet(record.breakdown.bankTransferNet), other: record.breakdown.other ? normalize(record.breakdown.other) : legacyNet(record.breakdown.otherNet) } }; }
@@ -36,7 +37,7 @@ export function getFinancialSummary(range?: DateRangeFilter): FinancialSummary {
   const rentalCollected = sum(payments.filter((item) => item.direction === 'income' && item.type === 'rental'));
   const salesCollected = sum(sales);
   const totalCollected = sum(payments.filter((item) => item.direction === 'income')) + salesCollected;
-  const totalRefunded = sum(payments.filter((item) => item.direction === 'refund')) + sum(saleReturns);
+  const totalRefunded = sum(payments.filter((item) => item.direction === 'refund')) + sumSaleRefunds(saleReturns);
   const totalExpenses = sum(expenses);
   return { rentalCollected, salesCollected, totalCollected, totalRefunded, totalExpenses, netAmount: totalCollected - totalRefunded - totalExpenses };
 }
@@ -51,7 +52,7 @@ export function getDressPerformance(): DressPerformanceRow[] {
     const relatedReturns = returns.filter((item) => item.dressCode === code);
     const relatedExpenses = expenses.filter((item) => item.relatedDressCode === code);
     const rentalRevenue = relatedReservations.reduce((total, item) => total + item.rentalPrice, 0);
-    const salesRevenue = sum(relatedSales) - sum(relatedReturns);
+    const salesRevenue = sum(relatedSales) - sumSaleRefunds(relatedReturns);
     const expenseTotal = sum(relatedExpenses); const totalRevenue = rentalRevenue + salesRevenue; const netResult = totalRevenue - purchasePrice - expenseTotal;
     const movements = [...relatedReservations.flatMap((item) => [item.pickupDate, item.returnDate]), ...relatedSales.map((item) => item.saleDate), ...relatedReturns.map((item) => item.returnDate), ...relatedExpenses.map((item) => item.expenseDate)];
     const lastMovementDate = movements.sort((a, b) => b.localeCompare(a))[0] ?? null; const inactiveDays = inactivityDays(lastMovementDate);
@@ -61,7 +62,7 @@ export function getDressPerformance(): DressPerformanceRow[] {
 
 export function getTodayReport(): TodayReport {
   const date = getTodayISO(); const reservations = getReservations(); const payments = getPayments(); const sales = getSales(); const saleReturns = getSaleReturns(); const expenses = getExpenses();
-  const paymentsToday = payments.filter((item) => item.paymentDate === date).reduce((total, item) => item.direction === 'income' ? total + item.amount : item.direction === 'refund' ? total - item.amount : total, 0) + sum(sales.filter((item) => item.saleDate === date)) - sum(saleReturns.filter((item) => item.returnDate === date));
+  const paymentsToday = payments.filter((item) => item.paymentDate === date).reduce((total, item) => item.direction === 'income' ? total + item.amount : item.direction === 'refund' ? total - item.amount : total, 0) + sum(sales.filter((item) => item.saleDate === date)) - sumSaleRefunds(saleReturns.filter((item) => item.returnDate === date));
   return { date, pickupsToday: reservations.filter((item) => item.pickupDate === date).length, returnsToday: reservations.filter((item) => item.returnDate === date).length, paymentsToday, expensesToday: sum(expenses.filter((item) => item.expenseDate === date)) };
 }
 
@@ -72,7 +73,7 @@ export function calculateDayClose(input: CloseDayInput): DayCloseRecord {
   if (!input.businessDate) throw new Error('تاريخ اليومية مطلوب.'); if (input.businessDate > getTodayISO()) throw new Error('لا يمكن إقفال يومية بتاريخ مستقبلي.'); if (!Number.isFinite(input.openingCash) || input.openingCash < 0) throw new Error('رصيد البداية غير صالح.'); if (!Number.isFinite(input.actualCash) || input.actualCash < 0) throw new Error('الرصيد الفعلي غير صالح.');
   const payments = getPayments().filter((item) => item.paymentDate === input.businessDate); const sales = getSales().filter((item) => item.saleDate === input.businessDate); const returns = getSaleReturns().filter((item) => item.returnDate === input.businessDate); const expenses = getExpenses().filter((item) => item.expenseDate === input.businessDate);
   const paymentIncome = (method: Method) => sum(payments.filter((item) => item.method === method && item.direction === 'income'));
-  const refunds = (method: Method) => sum(payments.filter((item) => item.method === method && item.direction === 'refund')) + sum(returns.filter((item) => item.paymentMethod === method));
+  const refunds = (method: Method) => sum(payments.filter((item) => item.method === method && item.direction === 'refund')) + sumSaleRefunds(returns.filter((item) => item.paymentMethod === method));
   const salesIncome = (method: Method) => sum(sales.filter((item) => item.paymentMethod === method)); const expenseTotal = (method: Method) => sum(expenses.filter((item) => item.paymentMethod === method));
   const methodBreakdown = (method: Method) => createDayCloseMethodBreakdown({ collections: paymentIncome(method) + salesIncome(method), refunds: refunds(method), expenses: expenseTotal(method) });
   const breakdown: DayCloseBreakdown = { cash: methodBreakdown('cash'), card: methodBreakdown('card'), bankTransfer: methodBreakdown('bank_transfer'), other: methodBreakdown('other') }; const expectedCash = input.openingCash + breakdown.cash.net;
