@@ -1,6 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ImagePlus, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
@@ -102,18 +102,18 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
   const isForRent = watch('isForRent');
   const isForSale = watch('isForSale');
 
-  const clearImage = () => {
+  const clearImage = useCallback(() => {
     setImageDataUrl(null);
     setImageError(null);
     if (imageInputRef.current) imageInputRef.current.value = '';
-  };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
     reset(getDefaultValues());
     setSubmitError(null);
     clearImage();
-  }, [open, reset]);
+  }, [clearImage, open, reset]);
 
   const closeModal = () => {
     reset(getDefaultValues());
