@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Banknote, Plus, Search, Shirt } from 'lucide-react';
+import { Banknote, Eye, Plus, Printer, Search, Shirt } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
 import { SellDressModal } from './SellDressModal';
+import { normalizeDressCodeIdentifier } from './barcode';
 import type { SaleRecord } from './sale.service';
 import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
+import { printDressLabel } from './printDressLabel';
 
 const statusLabels: Record<DressStatus, string> = {
   available: 'متاح',
@@ -95,6 +98,10 @@ function DressCard({ dress }: { dress: Dress }) {
           {dress.isForSale && <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">للبيع</span>}
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">تأجر {dress.timesRented} مرات</span>
         </div>
+        <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+          <Link to={`/dresses/${encodeURIComponent(dress.code)}`} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700"><Eye className="h-4 w-4" />التفاصيل</Link>
+          <button type="button" onClick={() => printDressLabel(dress)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700"><Printer className="h-4 w-4" />ملصق</button>
+        </div>
       </div>
     </article>
   );
@@ -106,6 +113,8 @@ export function DressesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [quickCode, setQuickCode] = useState('');
+  const navigate = useNavigate();
 
   const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
   const summary = useMemo(() => summarizeDresses(dresses), [dresses]);
@@ -118,6 +127,14 @@ export function DressesPage() {
   const handleSold = (sale: SaleRecord) => {
     setDresses(getDresses());
     setFeedback(`تم تسجيل البيع ${sale.saleNumber} للفستان ${sale.dressCode}.`);
+  };
+
+  const openQuickCode = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const normalized = normalizeDressCodeIdentifier(quickCode);
+    const dress = dresses.find((item) => normalizeDressCodeIdentifier(item.code) === normalized);
+    if (!dress) { setFeedback('لم يتم العثور على فستان بهذا الكود.'); return; }
+    navigate(`/dresses/${encodeURIComponent(dress.code)}`);
   };
 
   return (
@@ -168,6 +185,7 @@ export function DressesPage() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <form onSubmit={openQuickCode} className="mb-3 grid gap-3 lg:grid-cols-[1fr_150px]"><label className="relative block"><span className="sr-only">فتح الفستان بالكود</span><Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input type="search" value={quickCode} onChange={(event) => setQuickCode(event.target.value)} placeholder="امسحي الباركود أو أدخلي كود الفستان للفتح المباشر" className="h-12 w-full rounded-xl border border-amber-200 bg-amber-50/40 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30" /></label><button type="submit" className="min-h-12 rounded-xl bg-amber-600 px-4 text-sm font-bold text-white">فتح الكود</button></form>
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px]">
           <label className="relative block">
             <span className="sr-only">البحث في الفساتين</span>

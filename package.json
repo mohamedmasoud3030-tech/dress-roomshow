@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test:finance": "node --test tests/finance-settlement.test.mjs",
     "test:daily-closing": "node --test tests/daily-closing.test.mjs",
-    "test": "npm run test:finance && npm run test:daily-closing",
+    "test:workflows": "node --test tests/post-pr60-workflows.test.mjs",
+    "test": "npm run test:finance && npm run test:daily-closing && npm run test:workflows",
     "tauri": "tauri"
   },
   "dependencies": {

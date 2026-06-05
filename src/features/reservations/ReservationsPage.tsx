@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { CalendarCheck, CircleAlert, Plus, Search, XCircle } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { CalendarCheck, CircleAlert, Plus, Printer, Search, XCircle } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { CreateReservationModal } from './CreateReservationModal';
+import { printRentalContract } from './printRentalContract';
 import { cancelReservation, filterReservations, getReservations, summarizeReservations } from './reservation.service';
 import type { Reservation, ReservationFilters, ReservationStatus } from './reservation.types';
 
@@ -51,7 +52,7 @@ function ReservationCard({ reservation, onCancel }: { reservation: Reservation; 
       </div>
 
       {reservation.notes && <p className="mt-4 rounded-xl bg-stone-50 p-3 text-sm leading-6 text-slate-600">{reservation.notes}</p>}
-      {canCancel && <div className="mt-4 flex justify-end border-t border-slate-100 pt-4"><button type="button" onClick={() => onCancel(reservation.id)} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"><XCircle aria-hidden="true" className="h-4 w-4" />إلغاء الحجز</button></div>}
+      <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4"><button type="button" onClick={() => printRentalContract(reservation)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"><Printer aria-hidden="true" className="h-4 w-4" />طباعة العقد</button>{canCancel && <button type="button" onClick={() => onCancel(reservation.id)} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"><XCircle aria-hidden="true" className="h-4 w-4" />إلغاء الحجز</button>}</div>
     </article>
   );
 }
@@ -76,7 +77,7 @@ export function ReservationsPage() {
   };
 
   return <section className="space-y-6">
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"><PageHeader eyebrow="الحجوزات" title="إدارة الحجوزات" description="إنشاء الحجوزات، منع التعارضات، ومتابعة مواعيد الاستلام والإرجاع." /><button type="button" onClick={openCreateModal} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"><Plus aria-hidden="true" className="h-5 w-5" />حجز جديد</button></div>
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"><PageHeader eyebrow="الحجوزات" title="إدارة الحجوزات" description="إنشاء الحجوزات، منع التعارضات، ومتابعة مواعيد الاستلام والإرجاع." /><div className="flex flex-wrap gap-3"><Link to="/reservations/calendar" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"><CalendarCheck aria-hidden="true" className="h-5 w-5" />عرض التقويم</Link><button type="button" onClick={openCreateModal} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"><Plus aria-hidden="true" className="h-5 w-5" />حجز جديد</button></div></div>
     {feedback && <div role="status" className={`rounded-xl border px-4 py-3 text-sm font-bold ${feedback.tone === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>{feedback.message}</div>}
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><SummaryCard label="إجمالي الحجوزات" value={summary.total} /><SummaryCard label="الحجوزات النشطة" value={summary.active} tone="positive" /><SummaryCard label="عمليات اليوم" value={summary.today} hint="استلام أو إرجاع" /><SummaryCard label="متأخرة" value={summary.overdue} tone={summary.overdue > 0 ? 'danger' : 'default'} /></div>
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">

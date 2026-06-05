@@ -5,6 +5,7 @@ export type AuditEntityType =
   | 'payment'
   | 'expense'
   | 'sale'
+  | 'service-task'
   | 'delivery-return'
   | 'daily-closing'
   | 'backup'
