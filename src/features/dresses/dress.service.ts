@@ -105,6 +105,10 @@ export function addDress(input: AddDressInput): Dress {
   };
 
   writeCollection(COLLECTION, [dress, ...dresses]);
+  const persistedDress = getDresses().find((item) => item.id === dress.id);
+  if (!persistedDress || persistedDress.mainImageUrl !== dress.mainImageUrl) {
+    throw new Error('تعذر حفظ الفستان محلياً. قد تكون مساحة التخزين ممتلئة؛ اختاري صورة أصغر أو صدّري نسخة احتياطية ثم حاولي مرة أخرى.');
+  }
   recordAudit({
     action: 'create',
     entityType: 'dress',

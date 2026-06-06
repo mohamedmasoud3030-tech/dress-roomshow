@@ -2,6 +2,7 @@ import {
   BarChart3,
   CalendarDays,
   ClipboardList,
+  DollarSign,
   LayoutDashboard,
   LockKeyhole,
   PackageCheck,
@@ -11,14 +12,17 @@ import {
   Shirt,
   UsersRound,
   WalletCards,
+  Wrench,
 } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 
 const navigation = [
   { to: '/', label: 'لوحة التحكم', icon: LayoutDashboard },
   { to: '/dresses', label: 'الفساتين', icon: Shirt },
+  { to: '/sales', label: 'المبيعات', icon: DollarSign },
   { to: '/customers', label: 'العملاء', icon: UsersRound },
   { to: '/reservations', label: 'الحجوزات', icon: CalendarDays },
+  { to: '/service-tasks', label: 'الخدمات', icon: Wrench },
   { to: '/delivery-return', label: 'التسليم والاسترجاع', icon: PackageCheck },
   { to: '/payments', label: 'المدفوعات', icon: WalletCards },
   { to: '/expenses', label: 'المصروفات', icon: ReceiptText },
