@@ -1,0 +1,6 @@
+interface:
+  display_name: "Dress Roomshow"
+  short_description: "Repo-specific patterns and workflows for dress-roomshow"
+  default_prompt: "Use the dress-roomshow repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true
