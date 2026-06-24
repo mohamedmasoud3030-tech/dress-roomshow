@@ -123,3 +123,33 @@ test('a prior explicit deposit refund is deducted from the refundable deposit ba
   assert.equal(settlement.availableDepositAmount, 30);
   assert.equal(settlement.refundAmount, 30);
 });
+
+test('explicit deposit refund history cannot exceed total prior refunds', () => {
+  const settlement = calculateReturnSettlement({
+    depositAmount: 50,
+    depositCollected: 50,
+    totalCollected: 150,
+    previouslyRefundedAmount: 10,
+    previouslyRefundedDepositAmount: 40,
+    lateFee: 0,
+    damageFee: 0,
+  });
+
+  assert.equal(settlement.availableDepositAmount, 40);
+  assert.equal(settlement.refundAmount, 40);
+});
+
+test('explicit deposit refund history cannot exceed collected deposit', () => {
+  const settlement = calculateReturnSettlement({
+    depositAmount: 50,
+    depositCollected: 20,
+    totalCollected: 120,
+    previouslyRefundedAmount: 50,
+    previouslyRefundedDepositAmount: 50,
+    lateFee: 0,
+    damageFee: 0,
+  });
+
+  assert.equal(settlement.availableDepositAmount, 0);
+  assert.equal(settlement.refundAmount, 0);
+});
