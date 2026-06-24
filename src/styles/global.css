@@ -5,7 +5,7 @@
 :root {
   font-family: 'Noto Sans Arabic', Tahoma, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   color: #0f172a;
-  background: #fafaf9;
+  background: #f8fafc;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -18,11 +18,14 @@ html,
 body {
   min-width: 320px;
   min-height: 100%;
-  background: #fafaf9;
+  background: #f8fafc;
 }
 
 body {
   margin: 0;
+  background:
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.12), transparent 32rem),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 a {

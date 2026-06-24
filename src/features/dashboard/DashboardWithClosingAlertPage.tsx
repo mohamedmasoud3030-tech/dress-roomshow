@@ -15,7 +15,7 @@ export function DashboardWithClosingAlertPage() {
       {!closedToday && (
         <Link
           to="/daily-closing"
-          className="flex items-center justify-between gap-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-amber-950 shadow-sm transition hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          className="flex items-center justify-between gap-4 rounded-3xl border border-amber-200 bg-amber-50/95 p-5 text-amber-950 shadow-sm ring-1 ring-amber-100 transition hover:-translate-y-0.5 hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
         >
           <div>
             <p className="text-xs font-bold text-amber-700">إجراء مطلوب اليوم</p>
