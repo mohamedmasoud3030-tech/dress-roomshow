@@ -50,7 +50,7 @@ export function AppLayout() {
     return () => window.removeEventListener(DESKTOP_SYNC_STATUS_EVENT, updateStatus);
   }, []);
 
-  const showDesktopSyncWarning = desktopSyncStatus.state === 'error';
+  const showDesktopSyncWarning = desktopSyncStatus.state === 'error' || desktopSyncStatus.state === 'browser-fallback';
 
   return (
     <div className="min-h-screen overflow-hidden bg-slate-50 text-slate-950" dir="rtl">

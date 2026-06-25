@@ -37,12 +37,12 @@ export function getAppPreferences(): AppPreferences {
 
 export function saveAppPreferences(input: AppPreferences): AppPreferences {
   const normalized = normalizePreferences(input);
-  if (!input.showroomName.trim()) throw new Error('Showroom name is required.');
+  if (!input.showroomName.trim()) throw new Error('اسم المعرض مطلوب.');
   if (!Number.isInteger(input.reservationBufferDays) || input.reservationBufferDays < 0 || input.reservationBufferDays > 14) {
-    throw new Error('Reservation buffer days must be an integer between 0 and 14.');
+    throw new Error('أيام الفاصل الزمني للحجز يجب أن تكون رقماً بين 0 و 14.');
   }
   if (!Number.isInteger(input.dormantDressDays) || input.dormantDressDays < 1 || input.dormantDressDays > 3650) {
-    throw new Error('Dormant dress days must be a positive integer.');
+    throw new Error('أيام اعتبار الفستان خاملاً يجب أن تكون رقماً موجباً.');
   }
 
   writeCollection(COLLECTION, [normalized]);
