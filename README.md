@@ -22,9 +22,12 @@ React وTypeScript وVite وTailwind CSS وReact Router وTauri 2 وSQLite.
 ## التحقق
 
 - `npm test`
+- `npm run typecheck`
 - `npm run lint`
 - `npm run build`
 - `npm run tauri -- info`
+
+يفعل فحص TypeScript خيارات `noUnusedLocals` و`noUnusedParameters` عبر `tsconfig.json`، لذلك تفشل بوابة CI عند وجود متغيرات محلية أو معاملات غير مستخدمة. لا يغطي هذا الفحص الرموز المصدرة غير المستخدمة على مستوى الحزمة؛ يمكن إضافة أداة تحليل exports مثل Knip أو ts-prune في مرحلة لاحقة إذا احتاج الفريق بوابة أكثر صرامة.
 
 ## حالة الإطلاق
 
