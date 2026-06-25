@@ -1,11 +1,12 @@
 import type { DayCloseBreakdown } from './report.types';
 import { formatReportMoney } from './report.service';
+import { BASIC_PAYMENT_METHOD_LABELS } from '../payments/payment.constants';
 
 const methods: Array<{ key: keyof DayCloseBreakdown; label: string }> = [
-  { key: 'cash', label: 'نقداً' },
-  { key: 'card', label: 'بطاقة' },
-  { key: 'bankTransfer', label: 'تحويل بنكي' },
-  { key: 'other', label: 'أخرى' },
+  { key: 'cash', label: BASIC_PAYMENT_METHOD_LABELS.cash },
+  { key: 'card', label: BASIC_PAYMENT_METHOD_LABELS.card },
+  { key: 'bankTransfer', label: BASIC_PAYMENT_METHOD_LABELS.bank_transfer },
+  { key: 'other', label: BASIC_PAYMENT_METHOD_LABELS.other },
 ];
 
 type Props = { breakdown: DayCloseBreakdown };

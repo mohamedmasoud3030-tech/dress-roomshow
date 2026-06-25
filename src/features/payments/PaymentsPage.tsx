@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { AddPaymentModal } from './AddPaymentModal';
 import {
+  PAYMENT_DIRECTION_FILTER_OPTIONS,
+  PAYMENT_METHOD_FILTER_OPTIONS,
+  PAYMENT_TYPE_FILTER_OPTIONS,
+} from './payment.constants';
+import {
   filterPayments,
   formatPaymentDirectionLabel,
   formatPaymentMethodLabel,
@@ -15,34 +20,6 @@ import type {
   PaymentRecord,
   PaymentType,
 } from './payment.types';
-
-const typeOptions: Array<{ value: PaymentType | 'all'; label: string }> = [
-  { value: 'all', label: 'كل الأنواع' },
-  { value: 'rental', label: 'إيجار' },
-  { value: 'deposit', label: 'عربون محصل' },
-  { value: 'late_fee', label: 'رسوم تأخير' },
-  { value: 'damage_fee', label: 'رسوم ضرر' },
-  { value: 'deposit_settlement', label: 'تسوية عربون' },
-  { value: 'retained_deposit', label: 'عربون محتجز' },
-  { value: 'penalty', label: 'غرامة مسددة' },
-  { value: 'refund', label: 'استرجاع نقدي' },
-  { value: 'adjustment', label: 'تسوية مسددة' },
-];
-
-const methodOptions: Array<{ value: PaymentMethod | 'all'; label: string }> = [
-  { value: 'all', label: 'كل وسائل الدفع' },
-  { value: 'cash', label: 'نقداً' },
-  { value: 'card', label: 'بطاقة' },
-  { value: 'bank_transfer', label: 'تحويل بنكي' },
-  { value: 'other', label: 'قيد غير نقدي / أخرى' },
-];
-
-const directionOptions: Array<{ value: PaymentDirection | 'all'; label: string }> = [
-  { value: 'all', label: 'كل الاتجاهات' },
-  { value: 'income', label: 'تحصيل' },
-  { value: 'refund', label: 'استرجاع' },
-  { value: 'settlement', label: 'تسوية غير نقدية' },
-];
 
 const typeBadgeClasses: Record<PaymentType, string> = {
   rental: 'bg-blue-100 text-blue-800',
@@ -146,9 +123,9 @@ export function PaymentsPage() {
 
       <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4">
         <input value={filters.search} onChange={(e)=>setFilters((p)=>({...p,search:e.target.value}))} placeholder="بحث برقم الدفعة أو الحجز أو العميل أو الفستان" className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100" />
-        <select value={filters.type} onChange={(e)=>setFilters((p)=>({...p,type:e.target.value as PaymentType | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{typeOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
-        <select value={filters.method} onChange={(e)=>setFilters((p)=>({...p,method:e.target.value as PaymentMethod | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{methodOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
-        <select value={filters.direction} onChange={(e)=>setFilters((p)=>({...p,direction:e.target.value as PaymentDirection | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{directionOptions.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+        <select value={filters.type} onChange={(e)=>setFilters((p)=>({...p,type:e.target.value as PaymentType | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{PAYMENT_TYPE_FILTER_OPTIONS.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+        <select value={filters.method} onChange={(e)=>setFilters((p)=>({...p,method:e.target.value as PaymentMethod | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{PAYMENT_METHOD_FILTER_OPTIONS.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
+        <select value={filters.direction} onChange={(e)=>setFilters((p)=>({...p,direction:e.target.value as PaymentDirection | 'all'}))} className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">{PAYMENT_DIRECTION_FILTER_OPTIONS.map((o)=><option key={o.value} value={o.value}>{o.label}</option>)}</select>
       </div>
 
       {filteredPayments.length === 0 ? <article className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm"><p className="text-sm text-slate-500">لا توجد مدفوعات مطابقة للفلاتر الحالية.</p></article> : (

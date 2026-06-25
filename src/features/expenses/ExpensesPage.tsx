@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AddExpenseModal } from './AddExpenseModal';
+import { EXPENSE_CATEGORY_FILTER_OPTIONS, EXPENSE_PAYMENT_METHOD_FILTER_OPTIONS } from './expense.constants';
 import {
   filterExpenses,
   formatExpenseCategoryLabel,
@@ -8,25 +9,6 @@ import {
   summarizeExpenses,
 } from './expense.service';
 import type { ExpenseCategory, ExpenseFilters, ExpensePaymentMethod, ExpenseRecord } from './expense.types';
-
-const categoryOptions: Array<{ value: ExpenseCategory | 'all'; label: string }> = [
-  { value: 'all', label: 'كل الفئات' },
-  { value: 'laundry', label: 'غسيل' },
-  { value: 'tailoring', label: 'تعديل وخياطة' },
-  { value: 'maintenance', label: 'صيانة' },
-  { value: 'purchase', label: 'شراء' },
-  { value: 'rent', label: 'إيجار' },
-  { value: 'salary', label: 'رواتب' },
-  { value: 'other', label: 'أخرى' },
-];
-
-const paymentMethodOptions: Array<{ value: ExpensePaymentMethod | 'all'; label: string }> = [
-  { value: 'all', label: 'كل وسائل الدفع' },
-  { value: 'cash', label: 'نقداً' },
-  { value: 'card', label: 'بطاقة' },
-  { value: 'bank_transfer', label: 'تحويل بنكي' },
-  { value: 'other', label: 'أخرى' },
-];
 
 const categoryBadgeClasses: Record<ExpenseCategory, string> = {
   laundry: 'bg-sky-100 text-sky-800',
@@ -108,7 +90,7 @@ export function ExpensesPage() {
           }
           className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
         >
-          {categoryOptions.map((option) => (
+          {EXPENSE_CATEGORY_FILTER_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -124,7 +106,7 @@ export function ExpensesPage() {
           }
           className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
         >
-          {paymentMethodOptions.map((option) => (
+          {EXPENSE_PAYMENT_METHOD_FILTER_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

@@ -5,6 +5,7 @@ import { recordAudit } from '../audit/audit.service';
 import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { getReservations, recordReservationPayment, settleReservationReturn } from '../reservations/reservation.service';
 import type { Reservation } from '../reservations/reservation.types';
+import { PAYMENT_DIRECTION_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_TYPE_LABELS } from './payment.constants';
 import { paymentMockRecords } from './payment.mock';
 import type {
   ManualPaymentType,
@@ -289,35 +290,13 @@ export function recordReturnSettlement(input: RecordReturnSettlementInput): Retu
 }
 
 export function formatPaymentTypeLabel(type: PaymentType): string {
-  const labels: Record<PaymentType, string> = {
-    rental: 'إيجار',
-    deposit: 'عربون محصل',
-    late_fee: 'رسوم تأخير',
-    damage_fee: 'رسوم ضرر',
-    deposit_settlement: 'تسوية عربون',
-    retained_deposit: 'عربون محتجز',
-    penalty: 'غرامة مسددة',
-    refund: 'استرجاع نقدي',
-    adjustment: 'تسوية مسددة',
-  };
-  return labels[type];
+  return PAYMENT_TYPE_LABELS[type];
 }
 
 export function formatPaymentMethodLabel(method: PaymentMethod): string {
-  const labels: Record<PaymentMethod, string> = {
-    cash: 'نقداً',
-    card: 'بطاقة',
-    bank_transfer: 'تحويل بنكي',
-    other: 'قيد غير نقدي / أخرى',
-  };
-  return labels[method];
+  return PAYMENT_METHOD_LABELS[method];
 }
 
 export function formatPaymentDirectionLabel(direction: PaymentDirection): string {
-  const labels: Record<PaymentDirection, string> = {
-    income: 'تحصيل',
-    refund: 'استرجاع',
-    settlement: 'تسوية غير نقدية',
-  };
-  return labels[direction];
+  return PAYMENT_DIRECTION_LABELS[direction];
 }
