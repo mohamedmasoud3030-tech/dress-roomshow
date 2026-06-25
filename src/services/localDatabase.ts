@@ -1,3 +1,5 @@
+import { createStoragePersistenceError } from './storagePersistenceError.ts';
+
 const STORAGE_PREFIX = 'dress-roomshow';
 const METADATA_KEY = `${STORAGE_PREFIX}:metadata`;
 
@@ -96,8 +98,8 @@ function saveMetadata(metadata: DatabaseMetadata): void {
 
   try {
     storage.setItem(METADATA_KEY, JSON.stringify(metadata));
-  } catch {
-    // Persistence failures must not crash the offline-first UI.
+  } catch (error) {
+    throw createStoragePersistenceError('save-metadata', undefined, error);
   }
 }
 
@@ -154,16 +156,19 @@ export function writeCollection<T>(collection: string, items: T[]): void {
   initializeLocalDatabase();
   const key = getCollectionKey(collection);
   const snapshot = cloneItems(items);
-  memoryCollections.set(key, snapshot);
 
   const storage = getStorage();
-  if (!storage) return;
+  if (!storage) {
+    memoryCollections.set(key, snapshot);
+    return;
+  }
 
   try {
     storage.setItem(key, JSON.stringify(snapshot));
+    memoryCollections.set(key, snapshot);
     saveMetadata(createMetadata());
-  } catch {
-    // Persistence failures must not crash the offline-first UI.
+  } catch (error) {
+    throw createStoragePersistenceError('write-collection', collection, error);
   }
 }
 

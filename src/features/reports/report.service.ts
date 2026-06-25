@@ -1,4 +1,5 @@
 import { generateId, readCollection, writeCollection } from '../../services/localDatabase';
+import { MS_PER_DAY } from '../../shared/domain/businessRules';
 import { createDayCloseMethodBreakdown, isActiveDayClosing } from '../../shared/utils/dailyClosingCalculations.js';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
@@ -24,7 +25,7 @@ function sum(items: Array<{ amount: number }>): number { return items.reduce((to
 function legacyNet(net = 0): DayCloseMethodBreakdown { return createDayCloseMethodBreakdown({ collections: Math.max(net, 0), refunds: Math.max(-net, 0), expenses: 0 }); }
 function normalize(current: DayCloseMethodBreakdown | undefined, collections = 0, refunds = 0, expenses = 0): DayCloseMethodBreakdown { return createDayCloseMethodBreakdown(current ?? { collections, refunds, expenses }); }
 function normalizeClosing(record: StoredDayCloseRecord): DayCloseRecord { return { ...record, status: record.status ?? 'closed', breakdown: { cash: normalize(record.breakdown.cash, record.breakdown.cashIncome, record.breakdown.cashRefunds, record.breakdown.cashExpenses), card: record.breakdown.card ? normalize(record.breakdown.card) : legacyNet(record.breakdown.cardNet), bankTransfer: record.breakdown.bankTransfer ? normalize(record.breakdown.bankTransfer) : legacyNet(record.breakdown.bankTransferNet), other: record.breakdown.other ? normalize(record.breakdown.other) : legacyNet(record.breakdown.otherNet) } }; }
-function inactivityDays(date: string | null): number | null { if (!date) return null; return Math.max(Math.floor((new Date(`${getTodayISO()}T00:00:00`).getTime() - new Date(`${date}T00:00:00`).getTime()) / 86_400_000), 0); }
+function inactivityDays(date: string | null): number | null { if (!date) return null; return Math.max(Math.floor((new Date(`${getTodayISO()}T00:00:00`).getTime() - new Date(`${date}T00:00:00`).getTime()) / MS_PER_DAY), 0); }
 
 export function formatReportMoney(amount: number): string { return formatMoneyOMR(amount, 2); }
 

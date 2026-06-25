@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { DRESS_STATUS_LABELS } from '../../shared/domain/dressConstants';
 import {
   formatReportMoney,
   getCustomerBalances,
@@ -8,17 +9,6 @@ import {
   getTodayReport,
 } from './report.service';
 import type { DateRangeFilter } from './report.types';
-
-const statusLabel: Record<string, string> = {
-  available: 'متاح',
-  reserved: 'محجوز',
-  rented: 'مؤجر',
-  laundry: 'في المغسلة',
-  maintenance: 'صيانة أو تعديل',
-  damaged: 'متضرر',
-  sold: 'مباع',
-  inactive: 'غير نشط',
-};
 
 export function ReportsPage() {
   const [range, setRange] = useState<DateRangeFilter>({ from: '', to: '' });
@@ -94,7 +84,7 @@ export function ReportsPage() {
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="font-semibold">{dress.code} - {dress.name}</p>
-                      <p className="mt-1 text-xs text-slate-500">{dress.timesRented} تأجيرات | {statusLabel[dress.status] ?? dress.status}</p>
+                      <p className="mt-1 text-xs text-slate-500">{dress.timesRented} تأجيرات | {DRESS_STATUS_LABELS[dress.status]}</p>
                     </div>
                     {dress.requiresReview && <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">يحتاج مراجعة</span>}
                   </div>
