@@ -3,6 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
+import { MAX_NOTES_LENGTH } from '../../shared/domain/businessRules';
+import { FORM_ERROR_CLASS_NAME, FORM_FIELD_CLASS_NAME, FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
 import { addCustomer } from './customer.service';
 import type { Customer } from './customer.types';
 
@@ -12,7 +15,7 @@ const customerSchema = z.object({
   address: z.string().trim().max(160, 'العنوان طويل جداً.').optional(),
   measurements: z.string().trim().max(250, 'تفاصيل المقاسات طويلة جداً.').optional(),
   status: z.enum(['normal', 'trusted', 'warning', 'blocked']),
-  notes: z.string().trim().max(500, 'الملاحظات يجب ألا تتجاوز 500 حرف.').optional(),
+  notes: z.string().trim().max(MAX_NOTES_LENGTH, `الملاحظات يجب ألا تتجاوز ${MAX_NOTES_LENGTH} حرف.`).optional(),
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -22,11 +25,6 @@ type AddCustomerModalProps = {
   onClose: () => void;
   onCreated: (customer: Customer) => void;
 };
-
-const fieldClassName =
-  'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30';
-const labelClassName = 'mb-1.5 block text-sm font-bold text-slate-700';
-const errorClassName = 'mt-1 text-xs font-medium text-rose-700';
 
 function getDefaultValues(): CustomerFormValues {
   return {
@@ -41,7 +39,7 @@ function getDefaultValues(): CustomerFormValues {
 
 export function AddCustomerModal({ open, onClose, onCreated }: AddCustomerModalProps) {
   const fieldId = useId();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
   const {
     register,
     handleSubmit,
@@ -72,27 +70,25 @@ export function AddCustomerModal({ open, onClose, onCreated }: AddCustomerModalP
       onCreated(customer);
       closeModal();
     } catch (error: unknown) {
-      setSubmitError(error instanceof Error ? error.message : 'تعذر إضافة العميلة. حاولي مرة أخرى.');
+      setSubmitError(error);
     }
   };
 
   return (
     <Modal open={open} onClose={closeModal} title="إضافة عميلة جديدة" className="max-w-2xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-        {submitError && (
-          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
-            {submitError}
-          </div>
+        {submitError !== null && (
+          <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة العميلة. حاولي مرة أخرى." />
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${fieldId}-name`} className={labelClassName}>اسم العميلة</label>
-            <input id={`${fieldId}-name`} autoComplete="name" {...register('name')} className={fieldClassName} placeholder="الاسم الكامل" />
-            {errors.name && <p className={errorClassName}>{errors.name.message}</p>}
+            <label htmlFor={`${fieldId}-name`} className={FORM_LABEL_CLASS_NAME}>اسم العميلة</label>
+            <input id={`${fieldId}-name`} autoComplete="name" {...register('name')} className={FORM_FIELD_CLASS_NAME} placeholder="الاسم الكامل" />
+            {errors.name && <p className={FORM_ERROR_CLASS_NAME}>{errors.name.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-phone`} className={labelClassName}>رقم الهاتف</label>
+            <label htmlFor={`${fieldId}-phone`} className={FORM_LABEL_CLASS_NAME}>رقم الهاتف</label>
             <input
               id={`${fieldId}-phone`}
               type="tel"
@@ -100,22 +96,22 @@ export function AddCustomerModal({ open, onClose, onCreated }: AddCustomerModalP
               autoComplete="tel"
               dir="ltr"
               {...register('phone')}
-              className={fieldClassName}
+              className={FORM_FIELD_CLASS_NAME}
               placeholder="9XXXXXXX"
             />
-            {errors.phone && <p className={errorClassName}>{errors.phone.message}</p>}
+            {errors.phone && <p className={FORM_ERROR_CLASS_NAME}>{errors.phone.message}</p>}
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${fieldId}-address`} className={labelClassName}>العنوان</label>
-            <input id={`${fieldId}-address`} autoComplete="address-level2" {...register('address')} className={fieldClassName} placeholder="المحافظة / المنطقة" />
-            {errors.address && <p className={errorClassName}>{errors.address.message}</p>}
+            <label htmlFor={`${fieldId}-address`} className={FORM_LABEL_CLASS_NAME}>العنوان</label>
+            <input id={`${fieldId}-address`} autoComplete="address-level2" {...register('address')} className={FORM_FIELD_CLASS_NAME} placeholder="المحافظة / المنطقة" />
+            {errors.address && <p className={FORM_ERROR_CLASS_NAME}>{errors.address.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-status`} className={labelClassName}>تصنيف العميلة</label>
-            <select id={`${fieldId}-status`} {...register('status')} className={fieldClassName}>
+            <label htmlFor={`${fieldId}-status`} className={FORM_LABEL_CLASS_NAME}>تصنيف العميلة</label>
+            <select id={`${fieldId}-status`} {...register('status')} className={FORM_FIELD_CLASS_NAME}>
               <option value="normal">عادية</option>
               <option value="trusted">موثوقة</option>
               <option value="warning">تنبيه</option>
@@ -125,22 +121,22 @@ export function AddCustomerModal({ open, onClose, onCreated }: AddCustomerModalP
         </div>
 
         <div>
-          <label htmlFor={`${fieldId}-measurements`} className={labelClassName}>المقاسات</label>
+          <label htmlFor={`${fieldId}-measurements`} className={FORM_LABEL_CLASS_NAME}>المقاسات</label>
           <textarea
             id={`${fieldId}-measurements`}
             rows={3}
             maxLength={250}
             {...register('measurements')}
-            className={fieldClassName}
+            className={FORM_FIELD_CLASS_NAME}
             placeholder="مثال: الطول 165 سم، المقاس M، وملاحظات التفصيل"
           />
-          {errors.measurements && <p className={errorClassName}>{errors.measurements.message}</p>}
+          {errors.measurements && <p className={FORM_ERROR_CLASS_NAME}>{errors.measurements.message}</p>}
         </div>
 
         <div>
-          <label htmlFor={`${fieldId}-notes`} className={labelClassName}>ملاحظات التعامل</label>
-          <textarea id={`${fieldId}-notes`} rows={3} maxLength={500} {...register('notes')} className={fieldClassName} placeholder="ملاحظات اختيارية عن التفضيلات أو المتابعة" />
-          {errors.notes && <p className={errorClassName}>{errors.notes.message}</p>}
+          <label htmlFor={`${fieldId}-notes`} className={FORM_LABEL_CLASS_NAME}>ملاحظات التعامل</label>
+          <textarea id={`${fieldId}-notes`} rows={3} maxLength={MAX_NOTES_LENGTH} {...register('notes')} className={FORM_FIELD_CLASS_NAME} placeholder="ملاحظات اختيارية عن التفضيلات أو المتابعة" />
+          {errors.notes && <p className={FORM_ERROR_CLASS_NAME}>{errors.notes.message}</p>}
         </div>
 
         <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">

@@ -13,7 +13,8 @@ import {
   UsersRound,
   WalletCards,
 } from 'lucide-react';
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { PersistenceErrorBoundary } from '../shared/PersistenceErrorBoundary';
 import {
   DESKTOP_SYNC_STATUS_EVENT,
   getDesktopSyncStatus,
@@ -38,6 +39,7 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2';
 
 export function AppLayout() {
+  const location = useLocation();
   const [desktopSyncStatus, setDesktopSyncStatus] = useState<DesktopSyncStatus>(() => getDesktopSyncStatus());
 
   useEffect(() => {
@@ -120,7 +122,9 @@ export function AppLayout() {
               {desktopSyncStatus.message}
             </div>
           )}
-          <Outlet />
+          <PersistenceErrorBoundary key={location.pathname}>
+            <Outlet />
+          </PersistenceErrorBoundary>
         </div>
       </main>
 

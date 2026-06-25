@@ -3,6 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
+import { MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
+import { FORM_ERROR_CLASS_NAME, FORM_FIELD_CLASS_NAME, FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
 import { addDress } from './dress.service';
 import type { Dress } from './dress.types';
 
@@ -15,14 +18,14 @@ const dressSchema = z
     category: z.enum(['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'أخرى']),
     color: z.string().trim().min(1, 'لون الفستان مطلوب.').max(50, 'اسم اللون طويل جداً.'),
     size: z.string().trim().min(1, 'مقاس الفستان مطلوب.').max(30, 'المقاس طويل جداً.'),
-    purchasePrice: z.coerce.number().finite('سعر الشراء غير صالح.').min(0, 'سعر الشراء لا يمكن أن يكون سالباً.'),
-    rentalPrice: z.coerce.number().finite('سعر الإيجار غير صالح.').min(0, 'سعر الإيجار لا يمكن أن يكون سالباً.'),
-    salePrice: z.coerce.number().finite('سعر البيع غير صالح.').min(0, 'سعر البيع لا يمكن أن يكون سالباً.'),
-    depositAmount: z.coerce.number().finite('قيمة التأمين غير صالحة.').min(0, 'قيمة التأمين لا يمكن أن تكون سالبة.'),
+    purchasePrice: z.coerce.number().finite('سعر الشراء غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الشراء لا يمكن أن يكون سالباً.'),
+    rentalPrice: z.coerce.number().finite('سعر الإيجار غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الإيجار لا يمكن أن يكون سالباً.'),
+    salePrice: z.coerce.number().finite('سعر البيع غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر البيع لا يمكن أن يكون سالباً.'),
+    depositAmount: z.coerce.number().finite('قيمة التأمين غير صالحة.').min(MIN_ZERO_AMOUNT, 'قيمة التأمين لا يمكن أن تكون سالبة.'),
     status: z.enum(initialStatuses),
     isForRent: z.boolean(),
     isForSale: z.boolean(),
-    notes: z.string().trim().max(500, 'الملاحظات يجب ألا تتجاوز 500 حرف.').optional(),
+    notes: z.string().trim().max(MAX_NOTES_LENGTH, `الملاحظات يجب ألا تتجاوز ${MAX_NOTES_LENGTH} حرف.`).optional(),
   })
   .superRefine((values, context) => {
     if (!values.isForRent && !values.isForSale) {
@@ -66,10 +69,7 @@ const statusLabels: Record<(typeof initialStatuses)[number], string> = {
   inactive: 'غير نشط',
 };
 
-const fieldClassName =
-  'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30 read-only:cursor-not-allowed read-only:bg-stone-100 read-only:text-slate-400';
-const labelClassName = 'mb-1.5 block text-sm font-bold text-slate-700';
-const errorClassName = 'mt-1 text-xs font-medium text-rose-700';
+const dressFieldClassName = `${FORM_FIELD_CLASS_NAME} read-only:cursor-not-allowed read-only:bg-stone-100 read-only:text-slate-400`;
 
 function getDefaultValues(): DressFormValues {
   return {
@@ -91,7 +91,7 @@ function getDefaultValues(): DressFormValues {
 
 export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) {
   const fieldId = useId();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
   const {
     register,
     handleSubmit,
@@ -133,28 +133,26 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
       onCreated(dress);
       closeModal();
     } catch (error: unknown) {
-      setSubmitError(error instanceof Error ? error.message : 'تعذر إضافة الفستان. حاولي مرة أخرى.');
+      setSubmitError(error);
     }
   };
 
   return (
     <Modal open={open} onClose={closeModal} title="إضافة فستان جديد" className="max-w-3xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-        {submitError && (
-          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
-            {submitError}
-          </div>
+        {submitError !== null && (
+          <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة الفستان. حاولي مرة أخرى." />
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${fieldId}-name`} className={labelClassName}>اسم الفستان</label>
-            <input id={`${fieldId}-name`} {...register('name')} className={fieldClassName} placeholder="مثال: فستان سهرة كحلي مطرز" />
-            {errors.name && <p className={errorClassName}>{errors.name.message}</p>}
+            <label htmlFor={`${fieldId}-name`} className={FORM_LABEL_CLASS_NAME}>اسم الفستان</label>
+            <input id={`${fieldId}-name`} {...register('name')} className={dressFieldClassName} placeholder="مثال: فستان سهرة كحلي مطرز" />
+            {errors.name && <p className={FORM_ERROR_CLASS_NAME}>{errors.name.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-category`} className={labelClassName}>الفئة</label>
-            <select id={`${fieldId}-category`} {...register('category')} className={fieldClassName}>
+            <label htmlFor={`${fieldId}-category`} className={FORM_LABEL_CLASS_NAME}>الفئة</label>
+            <select id={`${fieldId}-category`} {...register('category')} className={dressFieldClassName}>
               <option value="زفاف">زفاف</option>
               <option value="خطوبة">خطوبة</option>
               <option value="سهرة">سهرة</option>
@@ -166,21 +164,21 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${fieldId}-color`} className={labelClassName}>اللون</label>
-            <input id={`${fieldId}-color`} {...register('color')} className={fieldClassName} placeholder="مثال: كحلي" />
-            {errors.color && <p className={errorClassName}>{errors.color.message}</p>}
+            <label htmlFor={`${fieldId}-color`} className={FORM_LABEL_CLASS_NAME}>اللون</label>
+            <input id={`${fieldId}-color`} {...register('color')} className={dressFieldClassName} placeholder="مثال: كحلي" />
+            {errors.color && <p className={FORM_ERROR_CLASS_NAME}>{errors.color.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-size`} className={labelClassName}>المقاس</label>
-            <input id={`${fieldId}-size`} dir="ltr" {...register('size')} className={fieldClassName} placeholder="مثال: M أو 42" />
-            {errors.size && <p className={errorClassName}>{errors.size.message}</p>}
+            <label htmlFor={`${fieldId}-size`} className={FORM_LABEL_CLASS_NAME}>المقاس</label>
+            <input id={`${fieldId}-size`} dir="ltr" {...register('size')} className={dressFieldClassName} placeholder="مثال: M أو 42" />
+            {errors.size && <p className={FORM_ERROR_CLASS_NAME}>{errors.size.message}</p>}
           </div>
         </div>
 
         <div>
-          <label htmlFor={`${fieldId}-description`} className={labelClassName}>وصف مختصر</label>
-          <textarea id={`${fieldId}-description`} rows={3} maxLength={300} {...register('description')} className={fieldClassName} placeholder="تفاصيل القصة أو التطريز أو الاستخدام المناسب" />
-          {errors.description && <p className={errorClassName}>{errors.description.message}</p>}
+          <label htmlFor={`${fieldId}-description`} className={FORM_LABEL_CLASS_NAME}>وصف مختصر</label>
+          <textarea id={`${fieldId}-description`} rows={3} maxLength={300} {...register('description')} className={dressFieldClassName} placeholder="تفاصيل القصة أو التطريز أو الاستخدام المناسب" />
+          {errors.description && <p className={FORM_ERROR_CLASS_NAME}>{errors.description.message}</p>}
         </div>
 
         <fieldset className="rounded-xl border border-slate-200 bg-stone-50 p-4">
@@ -195,45 +193,45 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
               متاح للبيع
             </label>
           </div>
-          {errors.isForRent && <p className={errorClassName}>{errors.isForRent.message}</p>}
+          {errors.isForRent && <p className={FORM_ERROR_CLASS_NAME}>{errors.isForRent.message}</p>}
         </fieldset>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div>
-            <label htmlFor={`${fieldId}-purchase-price`} className={labelClassName}>سعر الشراء (ر.ع)</label>
-            <input id={`${fieldId}-purchase-price`} type="number" min="0" step="0.001" inputMode="decimal" {...register('purchasePrice')} className={fieldClassName} />
-            {errors.purchasePrice && <p className={errorClassName}>{errors.purchasePrice.message}</p>}
+            <label htmlFor={`${fieldId}-purchase-price`} className={FORM_LABEL_CLASS_NAME}>سعر الشراء (ر.ع)</label>
+            <input id={`${fieldId}-purchase-price`} type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} inputMode="decimal" {...register('purchasePrice')} className={dressFieldClassName} />
+            {errors.purchasePrice && <p className={FORM_ERROR_CLASS_NAME}>{errors.purchasePrice.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-rental-price`} className={labelClassName}>سعر الإيجار (ر.ع)</label>
-            <input id={`${fieldId}-rental-price`} type="number" min="0" step="0.001" inputMode="decimal" readOnly={!isForRent} {...register('rentalPrice')} className={fieldClassName} />
-            {errors.rentalPrice && <p className={errorClassName}>{errors.rentalPrice.message}</p>}
+            <label htmlFor={`${fieldId}-rental-price`} className={FORM_LABEL_CLASS_NAME}>سعر الإيجار (ر.ع)</label>
+            <input id={`${fieldId}-rental-price`} type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} inputMode="decimal" readOnly={!isForRent} {...register('rentalPrice')} className={dressFieldClassName} />
+            {errors.rentalPrice && <p className={FORM_ERROR_CLASS_NAME}>{errors.rentalPrice.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-deposit`} className={labelClassName}>التأمين (ر.ع)</label>
-            <input id={`${fieldId}-deposit`} type="number" min="0" step="0.001" inputMode="decimal" readOnly={!isForRent} {...register('depositAmount')} className={fieldClassName} />
-            {errors.depositAmount && <p className={errorClassName}>{errors.depositAmount.message}</p>}
+            <label htmlFor={`${fieldId}-deposit`} className={FORM_LABEL_CLASS_NAME}>التأمين (ر.ع)</label>
+            <input id={`${fieldId}-deposit`} type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} inputMode="decimal" readOnly={!isForRent} {...register('depositAmount')} className={dressFieldClassName} />
+            {errors.depositAmount && <p className={FORM_ERROR_CLASS_NAME}>{errors.depositAmount.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-sale-price`} className={labelClassName}>سعر البيع (ر.ع)</label>
-            <input id={`${fieldId}-sale-price`} type="number" min="0" step="0.001" inputMode="decimal" readOnly={!isForSale} {...register('salePrice')} className={fieldClassName} />
-            {errors.salePrice && <p className={errorClassName}>{errors.salePrice.message}</p>}
+            <label htmlFor={`${fieldId}-sale-price`} className={FORM_LABEL_CLASS_NAME}>سعر البيع (ر.ع)</label>
+            <input id={`${fieldId}-sale-price`} type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} inputMode="decimal" readOnly={!isForSale} {...register('salePrice')} className={dressFieldClassName} />
+            {errors.salePrice && <p className={FORM_ERROR_CLASS_NAME}>{errors.salePrice.message}</p>}
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${fieldId}-status`} className={labelClassName}>حالة البداية</label>
-            <select id={`${fieldId}-status`} {...register('status')} className={fieldClassName}>
+            <label htmlFor={`${fieldId}-status`} className={FORM_LABEL_CLASS_NAME}>حالة البداية</label>
+            <select id={`${fieldId}-status`} {...register('status')} className={dressFieldClassName}>
               {initialStatuses.map((status) => (
                 <option key={status} value={status}>{statusLabels[status]}</option>
               ))}
             </select>
           </div>
           <div>
-            <label htmlFor={`${fieldId}-notes`} className={labelClassName}>ملاحظات</label>
-            <textarea id={`${fieldId}-notes`} rows={3} maxLength={500} {...register('notes')} className={fieldClassName} placeholder="ملاحظات اختيارية عن الفستان أو التجهيز" />
-            {errors.notes && <p className={errorClassName}>{errors.notes.message}</p>}
+            <label htmlFor={`${fieldId}-notes`} className={FORM_LABEL_CLASS_NAME}>ملاحظات</label>
+            <textarea id={`${fieldId}-notes`} rows={3} maxLength={MAX_NOTES_LENGTH} {...register('notes')} className={dressFieldClassName} placeholder="ملاحظات اختيارية عن الفستان أو التجهيز" />
+            {errors.notes && <p className={FORM_ERROR_CLASS_NAME}>{errors.notes.message}</p>}
           </div>
         </div>
 

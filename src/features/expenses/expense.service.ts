@@ -3,6 +3,7 @@ import { getTodayISO } from '../../shared/utils/date';
 import { recordAudit } from '../audit/audit.service';
 import { getDresses } from '../dresses/dress.service';
 import { assertBusinessDateOpen } from '../integrity/integrity.service';
+import { EXPENSE_CATEGORY_LABELS, EXPENSE_PAYMENT_METHOD_LABELS } from './expense.constants';
 import { expenseMockRecords } from './expense.mock';
 import type {
   ExpenseCategory,
@@ -116,26 +117,9 @@ export function summarizeExpenses(expenses: ExpenseRecord[]): ExpenseSummary {
 }
 
 export function formatExpenseCategoryLabel(category: ExpenseCategory): string {
-  const labels: Record<ExpenseCategory, string> = {
-    laundry: 'غسيل',
-    tailoring: 'تعديل وخياطة',
-    maintenance: 'صيانة',
-    purchase: 'شراء',
-    rent: 'إيجار',
-    salary: 'رواتب',
-    other: 'أخرى',
-  };
-
-  return labels[category];
+  return EXPENSE_CATEGORY_LABELS[category];
 }
 
 export function formatExpensePaymentMethodLabel(method: ExpensePaymentMethod): string {
-  const labels: Record<ExpensePaymentMethod, string> = {
-    cash: 'نقداً',
-    card: 'بطاقة',
-    bank_transfer: 'تحويل بنكي',
-    other: 'أخرى',
-  };
-
-  return labels[method];
+  return EXPENSE_PAYMENT_METHOD_LABELS[method];
 }

@@ -6,13 +6,18 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "lint": "eslint .",
     "test:finance": "node --test tests/finance-settlement.test.mjs",
     "test:daily-closing": "node --test tests/daily-closing.test.mjs",
-    "test:storage": "node tests/build-test-modules.mjs && node --test tests/.tmp/storage-persistence-error.test.js",
-    "test:env": "node tests/build-test-modules.mjs && node --test tests/.tmp/runtime-env.test.js",
-    "test": "npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:env",
+    "test:storage": "node --test tests/storage-persistence-error.test.mjs",
+    "test:desktop": "node --test tests/desktop-database.test.mjs",
+    "test:env": "node --test tests/runtime-env.test.mjs",
+    "test:print": "node --test tests/print-sale-invoice.test.mjs",
+    "test:domain": "node --test tests/domain-constants.test.mjs",
+    "test:bootstrap": "node --test tests/root-bootstrap.test.mjs",
+    "test": "npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:desktop && npm run test:env && npm run test:print && npm run test:domain && npm run test:bootstrap",
     "tauri": "tauri"
   },
   "dependencies": {
