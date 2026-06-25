@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.vite/
+.tauri/
+src-tauri/target/
+graphify-out/cache/
+graphify-out/cost.json
+*.log
