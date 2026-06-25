@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
-import { DEFAULT_RESERVATION_DAYS, MAX_NOTES_LENGTH } from '../../shared/domain/businessRules';
+import { DEFAULT_RESERVATION_DAYS, MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
+import { FORM_ERROR_CLASS_NAME, FORM_FIELD_CLASS_NAME, FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getCustomers } from '../customers/customer.service';
@@ -52,11 +53,6 @@ function getDefaultValues(): ReservationFormValues {
 function getReservableDresses(): Dress[] {
   return getDresses().filter((dress) => dress.isForRent && ['available', 'reserved', 'rented'].includes(dress.status));
 }
-
-const fieldClassName =
-  'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30';
-const labelClassName = 'mb-1.5 block text-sm font-bold text-slate-700';
-const errorClassName = 'mt-1 text-xs font-medium text-rose-700';
 
 export function CreateReservationModal({ open, onClose, onCreated }: CreateReservationModalProps) {
   const fieldId = useId();
@@ -127,8 +123,8 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <label htmlFor={`${fieldId}-customer`} className={labelClassName}>العميلة</label>
-            <select id={`${fieldId}-customer`} {...register('customerId')} className={fieldClassName}>
+            <label htmlFor={`${fieldId}-customer`} className={FORM_LABEL_CLASS_NAME}>العميلة</label>
+            <select id={`${fieldId}-customer`} {...register('customerId')} className={FORM_FIELD_CLASS_NAME}>
               <option value="">اختاري العميلة</option>
               {customers.map((customer) => (
                 <option key={customer.id} value={customer.id} disabled={customer.status === 'blocked'}>
@@ -136,12 +132,12 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
                 </option>
               ))}
             </select>
-            {errors.customerId && <p className={errorClassName}>{errors.customerId.message}</p>}
+            {errors.customerId && <p className={FORM_ERROR_CLASS_NAME}>{errors.customerId.message}</p>}
           </div>
 
           <div>
-            <label htmlFor={`${fieldId}-dress`} className={labelClassName}>الفستان</label>
-            <select id={`${fieldId}-dress`} {...register('dressId')} className={fieldClassName}>
+            <label htmlFor={`${fieldId}-dress`} className={FORM_LABEL_CLASS_NAME}>الفستان</label>
+            <select id={`${fieldId}-dress`} {...register('dressId')} className={FORM_FIELD_CLASS_NAME}>
               <option value="">اختاري الفستان</option>
               {dresses.map((dress) => (
                 <option key={dress.id} value={dress.id}>
@@ -149,7 +145,7 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
                 </option>
               ))}
             </select>
-            {errors.dressId && <p className={errorClassName}>{errors.dressId.message}</p>}
+            {errors.dressId && <p className={FORM_ERROR_CLASS_NAME}>{errors.dressId.message}</p>}
             {dresses.length === 0 && <p className="mt-1 text-xs font-medium text-amber-700">لا توجد فساتين مؤهلة للإيجار حالياً.</p>}
           </div>
         </div>
@@ -174,14 +170,14 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
         <fieldset className="grid gap-4 md:grid-cols-2">
           <legend className="sr-only">فترة الحجز</legend>
           <div>
-            <label htmlFor={`${fieldId}-pickup`} className={labelClassName}>تاريخ الاستلام</label>
-            <input id={`${fieldId}-pickup`} type="date" min={getTodayISO()} {...register('pickupDate')} className={fieldClassName} />
-            {errors.pickupDate && <p className={errorClassName}>{errors.pickupDate.message}</p>}
+            <label htmlFor={`${fieldId}-pickup`} className={FORM_LABEL_CLASS_NAME}>تاريخ الاستلام</label>
+            <input id={`${fieldId}-pickup`} type="date" min={getTodayISO()} {...register('pickupDate')} className={FORM_FIELD_CLASS_NAME} />
+            {errors.pickupDate && <p className={FORM_ERROR_CLASS_NAME}>{errors.pickupDate.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-return`} className={labelClassName}>تاريخ الإرجاع</label>
-            <input id={`${fieldId}-return`} type="date" min={getTodayISO()} {...register('returnDate')} className={fieldClassName} />
-            {errors.returnDate && <p className={errorClassName}>{errors.returnDate.message}</p>}
+            <label htmlFor={`${fieldId}-return`} className={FORM_LABEL_CLASS_NAME}>تاريخ الإرجاع</label>
+            <input id={`${fieldId}-return`} type="date" min={getTodayISO()} {...register('returnDate')} className={FORM_FIELD_CLASS_NAME} />
+            {errors.returnDate && <p className={FORM_ERROR_CLASS_NAME}>{errors.returnDate.message}</p>}
           </div>
         </fieldset>
 
@@ -191,22 +187,22 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
 
         <div className="grid gap-4 md:grid-cols-[220px_1fr]">
           <div>
-            <label htmlFor={`${fieldId}-deposit`} className={labelClassName}>العربون (ر.ع)</label>
+            <label htmlFor={`${fieldId}-deposit`} className={FORM_LABEL_CLASS_NAME}>العربون (ر.ع)</label>
             <input
               id={`${fieldId}-deposit`}
               type="number"
-              min="0"
-              step="0.001"
+              min={MIN_ZERO_AMOUNT}
+              step={MONEY_STEP}
               inputMode="decimal"
               {...register('depositAmount')}
-              className={fieldClassName}
+              className={FORM_FIELD_CLASS_NAME}
             />
-            {errors.depositAmount && <p className={errorClassName}>{errors.depositAmount.message}</p>}
+            {errors.depositAmount && <p className={FORM_ERROR_CLASS_NAME}>{errors.depositAmount.message}</p>}
           </div>
           <div>
-            <label htmlFor={`${fieldId}-notes`} className={labelClassName}>ملاحظات</label>
-            <textarea id={`${fieldId}-notes`} rows={3} maxLength={500} {...register('notes')} className={fieldClassName} placeholder="ملاحظات اختيارية عن التجهيز أو الاستلام" />
-            {errors.notes && <p className={errorClassName}>{errors.notes.message}</p>}
+            <label htmlFor={`${fieldId}-notes`} className={FORM_LABEL_CLASS_NAME}>ملاحظات</label>
+            <textarea id={`${fieldId}-notes`} rows={3} maxLength={MAX_NOTES_LENGTH} {...register('notes')} className={FORM_FIELD_CLASS_NAME} placeholder="ملاحظات اختيارية عن التجهيز أو الاستلام" />
+            {errors.notes && <p className={FORM_ERROR_CLASS_NAME}>{errors.notes.message}</p>}
           </div>
         </div>
 

@@ -2,8 +2,15 @@ import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
+import { MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
+import {
+  AMBER_FOCUS_RING_CLASS_NAME,
+  STACKED_FORM_FIELD_CLASS_NAME,
+  STACKED_FORM_LABEL_CLASS_NAME,
+} from '../../shared/domain/formConstants';
 import { calculateReservationRemainingAmount, calculateReturnSettlement } from '../../shared/utils/financialCalculations.js';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { BASIC_PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from '../payments/payment.constants';
 import { getPayments } from '../payments/payment.service';
 import type { PaymentMethod } from '../payments/payment.types';
 import { getReservations } from '../reservations/reservation.service';
@@ -25,11 +32,6 @@ type Form = {
   nextDressStatus: NextDressStatus;
   notes: string;
 };
-
-const fieldClass =
-  'mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
-const labelClass = 'block text-sm font-bold text-slate-700';
-const focusRing = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2';
 
 function getCurrentDateTimeLocal(): string {
   const date = new Date();
@@ -172,27 +174,27 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
           <button
             type="button"
             onClick={() => updateOperation('delivery')}
-            className={`min-h-11 rounded-2xl px-4 transition ${focusRing} ${form.operation === 'delivery' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+            className={`min-h-11 rounded-2xl px-4 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${form.operation === 'delivery' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
           >
             تسليم فستان للعميلة
           </button>
           <button
             type="button"
             onClick={() => updateOperation('return')}
-            className={`min-h-11 rounded-2xl px-4 transition ${focusRing} ${form.operation === 'return' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+            className={`min-h-11 rounded-2xl px-4 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${form.operation === 'return' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
           >
             استرجاع فستان من العميلة
           </button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
-          <label className={labelClass}>
+          <label className={STACKED_FORM_LABEL_CLASS_NAME}>
             الحجز
             <select
               required
               value={form.reservationNumber}
               onChange={(event) => setForm((current) => ({ ...current, reservationNumber: event.target.value }))}
-              className={fieldClass}
+              className={STACKED_FORM_FIELD_CLASS_NAME}
             >
               <option value="">اختاري الحجز</option>
               {reservations.map((item) => (
@@ -203,7 +205,7 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
             </select>
           </label>
 
-          <label className={labelClass}>
+          <label className={STACKED_FORM_LABEL_CLASS_NAME}>
             التاريخ والوقت
             <input
               required
@@ -211,7 +213,7 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
               max={getCurrentDateTimeLocal()}
               value={form.dateTime}
               onChange={(event) => setForm((current) => ({ ...current, dateTime: event.target.value }))}
-              className={fieldClass}
+              className={STACKED_FORM_FIELD_CLASS_NAME}
             />
           </label>
         </div>
@@ -237,13 +239,13 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
           </div>
         )}
 
-        <label className={labelClass}>
+        <label className={STACKED_FORM_LABEL_CLASS_NAME}>
           حالة الفستان
           <textarea
             rows={2}
             value={form.condition}
             onChange={(event) => setForm((current) => ({ ...current, condition: event.target.value }))}
-            className={fieldClass}
+            className={STACKED_FORM_FIELD_CLASS_NAME}
             placeholder={form.operation === 'delivery' ? 'مثال: تم التسليم بحالة ممتازة مع الشال.' : 'مثال: يحتاج تنظيف بسيط عند الذيل.'}
           />
         </label>
@@ -251,52 +253,53 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
         {form.operation === 'return' && (
           <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="grid gap-4 md:grid-cols-2">
-              <label className={labelClass}>
+              <label className={STACKED_FORM_LABEL_CLASS_NAME}>
                 رسوم التأخير
                 <input
                   type="number"
-                  min="0"
-                  step="0.001"
+                  min={MIN_ZERO_AMOUNT}
+                  step={MONEY_STEP}
                   inputMode="decimal"
                   value={form.lateFee}
                   onChange={(event) => setForm((current) => ({ ...current, lateFee: event.target.value }))}
-                  className={fieldClass}
+                  className={STACKED_FORM_FIELD_CLASS_NAME}
                 />
               </label>
-              <label className={labelClass}>
+              <label className={STACKED_FORM_LABEL_CLASS_NAME}>
                 رسوم الضرر
                 <input
                   type="number"
-                  min="0"
-                  step="0.001"
+                  min={MIN_ZERO_AMOUNT}
+                  step={MONEY_STEP}
                   inputMode="decimal"
                   value={form.damageFee}
                   onChange={(event) => setForm((current) => ({ ...current, damageFee: event.target.value }))}
-                  className={fieldClass}
+                  className={STACKED_FORM_FIELD_CLASS_NAME}
                 />
               </label>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <label className={labelClass}>
+              <label className={STACKED_FORM_LABEL_CLASS_NAME}>
                 وسيلة رد العربون
                 <select
                   value={form.refundMethod}
                   onChange={(event) => setForm((current) => ({ ...current, refundMethod: event.target.value as PaymentMethod }))}
-                  className={fieldClass}
+                  className={STACKED_FORM_FIELD_CLASS_NAME}
                 >
-                  <option value="cash">نقداً</option>
-                  <option value="card">بطاقة</option>
-                  <option value="bank_transfer">تحويل بنكي</option>
-                  <option value="other">أخرى</option>
+                  {PAYMENT_METHODS.map((method) => (
+                    <option key={method} value={method}>
+                      {BASIC_PAYMENT_METHOD_LABELS[method]}
+                    </option>
+                  ))}
                 </select>
               </label>
-              <label className={labelClass}>
+              <label className={STACKED_FORM_LABEL_CLASS_NAME}>
                 حالة الفستان التالية
                 <select
                   value={form.nextDressStatus}
                   onChange={(event) => setForm((current) => ({ ...current, nextDressStatus: event.target.value as NextDressStatus }))}
-                  className={fieldClass}
+                  className={STACKED_FORM_FIELD_CLASS_NAME}
                 >
                   <option value="available">متاح مباشرة</option>
                   <option value="laundry">إلى المغسلة</option>
@@ -329,14 +332,14 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
           </div>
         )}
 
-        <label className={labelClass}>
+        <label className={STACKED_FORM_LABEL_CLASS_NAME}>
           ملاحظات
           <textarea
             rows={3}
-            maxLength={500}
+            maxLength={MAX_NOTES_LENGTH}
             value={form.notes}
             onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))}
-            className={fieldClass}
+            className={STACKED_FORM_FIELD_CLASS_NAME}
             placeholder="ملاحظات داخلية اختيارية عن العملية"
           />
         </label>
@@ -351,14 +354,14 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
           <button
             type="button"
             onClick={close}
-            className={`min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${focusRing}`}
+            className={`min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
           >
             إلغاء
           </button>
           <button
             type="submit"
             disabled={reservations.length === 0}
-            className={`min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`}
+            className={`min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
           >
             حفظ العملية
           </button>

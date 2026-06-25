@@ -2,12 +2,12 @@ import { useMemo, useState } from 'react';
 import { LockKeyhole, RotateCcw } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
+import { MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
+import { STACKED_FORM_FIELD_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { DailyClosingBreakdown } from './DailyClosingBreakdown';
 import { closeDay, formatReportMoney, getDayClosings, reopenDay } from './report.service';
 import type { DayCloseRecord } from './report.types';
-
-const field = 'mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
 
 export function DailyClosingPage() {
   const [closings, setClosings] = useState<DayCloseRecord[]>(() => getDayClosings());
@@ -53,11 +53,11 @@ export function DailyClosingPage() {
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر إكمال عملية إقفال اليومية." />}
       <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="grid gap-4 md:grid-cols-3">
-          <label className="text-sm font-bold text-slate-700">تاريخ اليومية<input required type="date" max={getTodayISO()} value={businessDate} onChange={(event) => setBusinessDate(event.target.value)} className={field} /></label>
-          <label className="text-sm font-bold text-slate-700">رصيد بداية اليوم<input required type="number" min="0" step="0.001" value={openingCash} onChange={(event) => setOpeningCash(event.target.value)} className={field} /></label>
-          <label className="text-sm font-bold text-slate-700">الرصيد النقدي الفعلي<input required type="number" min="0" step="0.001" value={actualCash} onChange={(event) => setActualCash(event.target.value)} className={field} /></label>
+          <label className="text-sm font-bold text-slate-700">تاريخ اليومية<input required type="date" max={getTodayISO()} value={businessDate} onChange={(event) => setBusinessDate(event.target.value)} className={STACKED_FORM_FIELD_CLASS_NAME} /></label>
+          <label className="text-sm font-bold text-slate-700">رصيد بداية اليوم<input required type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} value={openingCash} onChange={(event) => setOpeningCash(event.target.value)} className={STACKED_FORM_FIELD_CLASS_NAME} /></label>
+          <label className="text-sm font-bold text-slate-700">الرصيد النقدي الفعلي<input required type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} value={actualCash} onChange={(event) => setActualCash(event.target.value)} className={STACKED_FORM_FIELD_CLASS_NAME} /></label>
         </div>
-        <label className="mt-4 block text-sm font-bold text-slate-700">ملاحظات<textarea rows={3} maxLength={500} value={notes} onChange={(event) => setNotes(event.target.value)} className={field} /></label>
+        <label className="mt-4 block text-sm font-bold text-slate-700">ملاحظات<textarea rows={3} maxLength={MAX_NOTES_LENGTH} value={notes} onChange={(event) => setNotes(event.target.value)} className={STACKED_FORM_FIELD_CLASS_NAME} /></label>
         <button type="submit" disabled={closedToday} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"><LockKeyhole aria-hidden="true" className="h-4 w-4" />{closedToday ? 'اليومية مقفلة' : 'إقفال اليومية'}</button>
       </form>
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
