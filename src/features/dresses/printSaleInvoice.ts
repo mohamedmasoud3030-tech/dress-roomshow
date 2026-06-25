@@ -1,4 +1,4 @@
-import { formatMoneyOMR } from '../../shared/utils/format';
+import { formatMoneyOMR } from '../../shared/utils/format.js';
 import type { SaleInvoice } from './salesLedger.service';
 
 export class PrintSaleInvoiceError extends Error {
