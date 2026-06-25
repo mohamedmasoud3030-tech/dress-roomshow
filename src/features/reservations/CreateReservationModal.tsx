@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
+import { DEFAULT_RESERVATION_DAYS, MAX_NOTES_LENGTH } from '../../shared/domain/businessRules';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getCustomers } from '../customers/customer.service';
@@ -18,7 +19,7 @@ const reservationSchema = z.object({
   pickupDate: z.string().min(1, 'حددي تاريخ الاستلام.'),
   returnDate: z.string().min(1, 'حددي تاريخ الإرجاع.'),
   depositAmount: z.coerce.number().finite('قيمة العربون غير صالحة.').min(0, 'قيمة العربون لا يمكن أن تكون سالبة.'),
-  notes: z.string().max(500, 'الملاحظات يجب ألا تتجاوز 500 حرف.').optional(),
+  notes: z.string().max(MAX_NOTES_LENGTH, `الملاحظات يجب ألا تتجاوز ${MAX_NOTES_LENGTH} حرف.`).optional(),
 });
 
 type ReservationFormValues = z.infer<typeof reservationSchema>;
@@ -41,7 +42,7 @@ function getDefaultValues(): ReservationFormValues {
     customerId: '',
     dressId: '',
     pickupDate: today,
-    returnDate: addDays(today, 1),
+    returnDate: addDays(today, DEFAULT_RESERVATION_DAYS),
     depositAmount: 0,
     notes: '',
   };

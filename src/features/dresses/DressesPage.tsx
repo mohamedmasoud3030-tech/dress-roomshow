@@ -2,37 +2,16 @@ import { useMemo, useState } from 'react';
 import { Banknote, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
+import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDresses, summarizeDresses } from './dress.service';
 import { SellDressModal } from './SellDressModal';
 import type { SaleRecord } from './sale.service';
-import type { Dress, DressCategory, DressFilters, DressStatus } from './dress.types';
+import type { Dress, DressFilters } from './dress.types';
 
-const statusLabels: Record<DressStatus, string> = {
-  available: 'متاح',
-  reserved: 'محجوز',
-  rented: 'مؤجر',
-  laundry: 'في المغسلة',
-  maintenance: 'تحت التعديل',
-  damaged: 'تالف',
-  sold: 'مباع',
-  inactive: 'غير نشط',
-};
-
-const statusStyles: Record<DressStatus, string> = {
-  available: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-  reserved: 'bg-amber-50 text-amber-700 ring-amber-200',
-  rented: 'bg-violet-50 text-violet-700 ring-violet-200',
-  laundry: 'bg-sky-50 text-sky-700 ring-sky-200',
-  maintenance: 'bg-orange-50 text-orange-700 ring-orange-200',
-  damaged: 'bg-rose-50 text-rose-700 ring-rose-200',
-  sold: 'bg-slate-100 text-slate-700 ring-slate-200',
-  inactive: 'bg-slate-100 text-slate-500 ring-slate-200',
-};
-
-const categories: Array<'all' | DressCategory> = ['all', 'زفاف', 'خطوبة', 'سهرة', 'أطفال', 'أخرى'];
-const statuses: Array<'all' | DressStatus> = ['all', 'available', 'reserved', 'rented', 'laundry', 'maintenance', 'damaged', 'sold', 'inactive'];
+const categories = ['all', ...DRESS_CATEGORIES] as const;
+const statuses = ['all', ...DRESS_STATUS_OPTIONS] as const;
 
 function DressCard({ dress }: { dress: Dress }) {
   return (
@@ -49,8 +28,8 @@ function DressCard({ dress }: { dress: Dress }) {
             <h2 className="mt-1 text-lg font-bold text-slate-950">{dress.name}</h2>
             {dress.description && <p className="mt-1 text-sm leading-6 text-slate-500">{dress.description}</p>}
           </div>
-          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ring-1 ${statusStyles[dress.status]}`}>
-            {statusLabels[dress.status]}
+          <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ring-1 ${DRESS_STATUS_STYLES[dress.status]}`}>
+            {DRESS_STATUS_LABELS[dress.status]}
           </span>
         </div>
 
@@ -190,7 +169,7 @@ export function DressesPage() {
             >
               {statuses.map((status) => (
                 <option key={status} value={status}>
-                  {status === 'all' ? 'كل الحالات' : statusLabels[status]}
+                  {status === 'all' ? 'كل الحالات' : DRESS_STATUS_LABELS[status]}
                 </option>
               ))}
             </select>
