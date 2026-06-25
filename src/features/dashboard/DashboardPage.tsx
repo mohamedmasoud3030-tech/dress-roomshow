@@ -37,7 +37,7 @@ const quickActions = [
 
 function ReservationRow({ reservation }: { reservation: Reservation }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-100 bg-stone-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-xs font-bold text-slate-400">{reservation.reservationNumber}</p>
         <p className="mt-1 font-bold text-slate-950">{reservation.customerName}</p>
@@ -66,11 +66,20 @@ export function DashboardPage() {
 
   return (
     <section className="space-y-6">
-      <PageHeader
-        eyebrow="لوحة التشغيل"
-        title="نظرة سريعة على المحل"
-        description="متابعة المخزون والحجوزات والتحصيلات والتنبيهات المهمة من مكان واحد."
-      />
+      <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 p-5 shadow-xl shadow-slate-200/60 backdrop-blur sm:p-6">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <PageHeader
+            eyebrow="لوحة التشغيل"
+            title="نظرة سريعة على المحل"
+            description="متابعة المخزون والحجوزات والتحصيلات والتنبيهات المهمة من مكان واحد."
+          />
+          <div className="rounded-3xl bg-slate-950 p-4 text-white shadow-lg shadow-slate-950/10 sm:min-w-64">
+            <p className="text-xs font-bold text-amber-300">تاريخ التشغيل</p>
+            <p className="mt-2 text-2xl font-extrabold">{today}</p>
+            <p className="mt-2 text-sm text-slate-300">{reservationsSummary.today} عملية مرتبطة باليوم</p>
+          </div>
+        </div>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard label="إجمالي الفساتين" value={dressesSummary.total} hint={`${dressesSummary.available} متاحة الآن`} tone="positive" />
@@ -84,20 +93,22 @@ export function DashboardPage() {
           <Link
             key={action.to}
             to={action.to}
-            className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            className="group rounded-3xl border border-white bg-white/85 p-5 shadow-sm ring-1 ring-slate-200/70 transition duration-200 hover:-translate-y-1 hover:border-amber-200 hover:shadow-xl hover:shadow-amber-100/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
           >
             <div className="flex items-start justify-between gap-4">
-              <action.icon aria-hidden="true" className="h-6 w-6 text-amber-700" />
+              <span className="rounded-2xl bg-amber-100 p-3 text-amber-800">
+                <action.icon aria-hidden="true" className="h-6 w-6" />
+              </span>
               <ArrowLeft aria-hidden="true" className="h-5 w-5 text-slate-300 transition group-hover:-translate-x-1 group-hover:text-amber-700" />
             </div>
-            <h2 className="mt-4 font-bold text-slate-950">{action.label}</h2>
+            <h2 className="mt-4 font-extrabold text-slate-950">{action.label}</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">{action.description}</p>
           </Link>
         ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article className="rounded-3xl border border-white bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold text-amber-700">{today}</p>
@@ -113,13 +124,13 @@ export function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-stone-50 p-5 text-sm text-slate-500">
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-500">
               لا توجد عمليات تسليم أو استرجاع مسجلة لليوم.
             </div>
           )}
         </article>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <article className="rounded-3xl border border-white bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold text-rose-700">تحتاج متابعة</p>
@@ -135,7 +146,7 @@ export function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="mt-4 rounded-xl border border-dashed border-slate-200 bg-stone-50 p-5 text-sm text-slate-500">
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 text-sm text-slate-500">
               لا توجد حجوزات متأخرة حالياً.
             </div>
           )}
@@ -145,7 +156,7 @@ export function DashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Link
           to="/dresses"
-          className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-950 p-5 text-white shadow-sm transition duration-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          className="flex items-center justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-950 p-5 text-white shadow-lg shadow-slate-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
         >
           <div>
             <p className="text-sm font-bold text-amber-300">المخزون</p>
@@ -156,7 +167,7 @@ export function DashboardPage() {
 
         <Link
           to="/customers"
-          className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:border-amber-300 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          className="flex items-center justify-between gap-4 rounded-3xl border border-white bg-white/90 p-5 shadow-sm ring-1 ring-slate-200/70 transition duration-200 hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
         >
           <div>
             <p className="text-sm font-bold text-amber-700">العملاء</p>

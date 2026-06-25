@@ -19,6 +19,7 @@ export function calculateReturnSettlement(input) {
   const previouslyRefundedAmount = normalizeAmount(input.previouslyRefundedAmount);
   const previouslyRefundedDepositAmount = Math.min(
     normalizeAmount(input.previouslyRefundedDepositAmount),
+    previouslyRefundedAmount,
     depositCollected,
   );
   const lateFee = normalizeAmount(input.lateFee);
