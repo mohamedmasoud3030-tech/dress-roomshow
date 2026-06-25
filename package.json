@@ -11,8 +11,9 @@
     "test:finance": "node --test tests/finance-settlement.test.mjs",
     "test:daily-closing": "node --test tests/daily-closing.test.mjs",
     "test:storage": "node --test tests/storage-persistence-error.test.mjs",
+    "test:desktop": "node --test tests/desktop-database.test.mjs",
     "test:env": "node --test tests/runtime-env.test.mjs",
-    "test": "npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:env",
+    "test": "npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:desktop && npm run test:env",
     "tauri": "tauri"
   },
   "dependencies": {

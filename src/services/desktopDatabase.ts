@@ -17,6 +17,13 @@ type DesktopSyncStatusUpdate =
   | { state: 'browser-fallback'; message: string }
   | { state: 'error'; message: string; attempts: number };
 
+type DesktopInvoke = typeof invoke;
+type DesktopTestGlobal = typeof globalThis & { __dressRoomshowDesktopInvokeForTests?: DesktopInvoke };
+
+function getDesktopInvoke(): DesktopInvoke {
+  return (globalThis as DesktopTestGlobal).__dressRoomshowDesktopInvokeForTests ?? invoke;
+}
+
 let desktopSyncStatus: DesktopSyncStatus = {
   state: 'idle',
   message: 'جاري تجهيز مزامنة سطح المكتب.',
@@ -65,7 +72,7 @@ async function synchronizeDesktopMirror(): Promise<void> {
   const entries = readMirror();
   const serialized = serialize(entries);
   if (serialized === previousSnapshot) return;
-  await invoke('save_desktop_snapshot', { entries });
+  await getDesktopInvoke()('save_desktop_snapshot', { entries });
   failedSyncAttempts = 0;
   previousSnapshot = serialized;
   updateDesktopSyncStatus({ state: 'synced', message: 'تمت مزامنة نسخة سطح المكتب.' });
@@ -74,13 +81,13 @@ async function synchronizeDesktopMirror(): Promise<void> {
 async function bootstrapDesktopDatabase(): Promise<void> {
   try {
     const localEntries = readMirror();
-    const desktopEntries = await invoke<Record<string, string> | null>('load_desktop_snapshot');
+    const desktopEntries = await getDesktopInvoke()<Record<string, string> | null>('load_desktop_snapshot');
     if (desktopEntries && serialize(desktopEntries) !== serialize(localEntries)) {
       applyMirror(desktopEntries);
       window.location.reload();
       return;
     }
-    if (!desktopEntries) await invoke('save_desktop_snapshot', { entries: localEntries });
+    if (!desktopEntries) await getDesktopInvoke()('save_desktop_snapshot', { entries: localEntries });
     previousSnapshot = serialize(readMirror());
     updateDesktopSyncStatus({ state: 'synced', message: 'مزامنة سطح المكتب تعمل.' });
     window.setInterval(() => {
