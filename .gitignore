@@ -8,5 +8,4 @@ dist-ssr
 .env.production
 .vite
 coverage
-tests/.tmp
 src-tauri/target
