@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { addSale, getSaleableDresses, type SalePaymentMethod, type SaleRecord } from './sale.service';
@@ -11,7 +12,7 @@ function defaults(): Form { return { dressCode: '', saleDate: getTodayISO(), cus
 
 export function SellDressModal({ open, onClose, onCreated }: Props) {
   const [form, setForm] = useState<Form>(() => defaults());
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const dresses = useMemo(() => getSaleableDresses(), [open]);
   const selected = dresses.find((dress) => dress.code === form.dressCode);
 
@@ -22,11 +23,11 @@ export function SellDressModal({ open, onClose, onCreated }: Props) {
     try {
       const sale = addSale({ ...form, amount: Number(form.amount), customerPhone: form.customerPhone || undefined });
       onCreated(sale); close();
-    } catch (reason: unknown) { setError(reason instanceof Error ? reason.message : 'تعذر تسجيل البيع.'); }
+    } catch (reason: unknown) { setError(reason); }
   };
 
   return <Modal open={open} onClose={close} title="بيع فستان" className="max-w-2xl"><form onSubmit={submit} className="space-y-4">
-    {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-800">{error}</p>}
+    {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر تسجيل البيع." />}
     <label className="block text-sm font-bold text-slate-700">الفستان<select required value={form.dressCode} onChange={(e)=>setForm({...form,dressCode:e.target.value,amount:dresses.find((dress)=>dress.code===e.target.value)?.salePrice.toString() ?? ''})} className={field}><option value="">اختاري الفستان</option>{dresses.map((dress)=><option key={dress.id} value={dress.code}>{dress.code} — {dress.name}</option>)}</select></label>
     {selected && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">سعر البيع المسجل: <b>{formatMoneyOMR(selected.salePrice)}</b></p>}
     <div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-bold text-slate-700">اسم العميلة<input required value={form.customerName} onChange={(e)=>setForm({...form,customerName:e.target.value})} className={field} /></label><label className="block text-sm font-bold text-slate-700">رقم الهاتف<input value={form.customerPhone} onChange={(e)=>setForm({...form,customerPhone:e.target.value})} className={field} /></label></div>

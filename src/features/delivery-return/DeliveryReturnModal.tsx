@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { calculateReservationRemainingAmount, calculateReturnSettlement } from '../../shared/utils/financialCalculations.js';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getPayments } from '../payments/payment.service';
@@ -104,7 +105,7 @@ function getReturnPreview(reservation: Reservation | undefined, lateFee: number,
 
 export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
   const [form, setForm] = useState<Form>(() => defaults());
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const lateFee = parseAmount(form.lateFee);
   const damageFee = parseAmount(form.damageFee);
   const reservations = useMemo(() => getEligibleReservations(form.operation), [open, form.operation]);
@@ -156,17 +157,15 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
       onCompleted(record);
       close();
     } catch (reason: unknown) {
-      setError(reason instanceof Error ? reason.message : 'تعذر حفظ العملية.');
+      setError(reason);
     }
   };
 
   return (
     <Modal open={open} onClose={close} title="تسجيل تسليم أو استرجاع" className="max-w-3xl">
       <form onSubmit={submit} className="space-y-5" noValidate>
-        {error && (
-          <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-800">
-            {error}
-          </p>
+        {error !== null && (
+          <UserFacingErrorAlert error={error} fallback="تعذر حفظ العملية." />
         )}
 
         <div className="grid gap-3 rounded-3xl bg-slate-950 p-2 text-sm font-bold text-white sm:grid-cols-2">

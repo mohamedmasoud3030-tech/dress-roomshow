@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import { getTodayISO } from '../../shared/utils/date';
 import { calculateReservationRemainingAmount } from '../../shared/utils/financialCalculations.js';
@@ -108,7 +109,7 @@ function getBalanceEffectLabel(effect: PaymentPreview['balanceEffect']): string 
 
 export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalProps) {
   const [form, setForm] = useState<PaymentForm>(() => getDefaultForm());
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
   const amount = parseAmount(form.amount);
   const reservations = useMemo(() => getReservations().filter((item) => isEligible(item, form.type)), [open, form.type]);
   const selected = reservations.find((item) => item.reservationNumber === form.reservationNumber);
@@ -141,17 +142,15 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
       onCreated(payment);
       close();
     } catch (error: unknown) {
-      setSubmitError(error instanceof Error ? error.message : 'تعذر تسجيل الدفعة.');
+      setSubmitError(error);
     }
   };
 
   return (
     <Modal open={open} onClose={close} title="تسجيل حركة مالية" className="max-w-3xl">
       <form onSubmit={submit} className="space-y-5" noValidate>
-        {submitError && (
-          <p role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm font-bold text-rose-800">
-            {submitError}
-          </p>
+        {submitError !== null && (
+          <UserFacingErrorAlert error={submitError} fallback="تعذر تسجيل الدفعة." />
         )}
 
         <div>

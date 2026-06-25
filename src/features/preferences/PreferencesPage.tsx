@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { DatabaseBackup, Download, RotateCcw, Save, Upload } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import {
   CURRENT_STORAGE_SCHEMA_VERSION,
   exportDatabaseBackup,
@@ -23,7 +24,7 @@ function downloadJson(filename: string, value: unknown): void {
 export function PreferencesPage() {
   const [preferences, setPreferences] = useState<AppPreferences>(() => getAppPreferences());
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const importInput = useRef<HTMLInputElement>(null);
 
   const exportBackup = () => {
@@ -45,7 +46,7 @@ export function PreferencesPage() {
       setFeedback('تم استيراد النسخة الاحتياطية بنجاح. أعيدي تحميل الصفحة عند الحاجة لمراجعة جميع الأقسام.');
       setError(null);
     } catch (reason: unknown) {
-      setError(reason instanceof Error ? reason.message : 'تعذر قراءة ملف النسخة الاحتياطية.');
+      setError(reason);
       setFeedback(null);
     } finally {
       if (importInput.current) importInput.current.value = '';
@@ -72,7 +73,7 @@ export function PreferencesPage() {
       setFeedback('تم حفظ إعدادات التشغيل.');
       setError(null);
     } catch (saveError: unknown) {
-      setError(saveError instanceof Error ? saveError.message : 'تعذر حفظ إعدادات التشغيل.');
+      setError(saveError);
     }
   };
 
@@ -80,7 +81,7 @@ export function PreferencesPage() {
     <section className="space-y-6">
       <PageHeader eyebrow="الإعدادات" title="النسخ الاحتياطي وإعدادات التشغيل" description="احفظي نسخة آمنة من بيانات المحل واضبطي قواعد الحجز الأساسية من مكان واحد." />
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
-      {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">{error}</div>}
+      {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر إكمال عملية البيانات." />}
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">

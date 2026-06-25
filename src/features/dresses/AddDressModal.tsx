@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { addDress } from './dress.service';
 import type { Dress } from './dress.types';
 
@@ -91,7 +92,7 @@ function getDefaultValues(): DressFormValues {
 
 export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) {
   const fieldId = useId();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
   const {
     register,
     handleSubmit,
@@ -133,17 +134,15 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
       onCreated(dress);
       closeModal();
     } catch (error: unknown) {
-      setSubmitError(error instanceof Error ? error.message : 'تعذر إضافة الفستان. حاولي مرة أخرى.');
+      setSubmitError(error);
     }
   };
 
   return (
     <Modal open={open} onClose={closeModal} title="إضافة فستان جديد" className="max-w-3xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-        {submitError && (
-          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
-            {submitError}
-          </div>
+        {submitError !== null && (
+          <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة الفستان. حاولي مرة أخرى." />
         )}
 
         <div className="grid gap-4 md:grid-cols-2">
