@@ -183,3 +183,62 @@ test('desktop database emits an error status when save_desktop_snapshot fails af
     cleanupDesktopHarness();
   }
 });
+
+test('desktop database returns to synced status after a failed mirror save succeeds', async () => {
+  const events = [];
+  const calls = [];
+  let shouldFailNextSave = true;
+  const harness = createDesktopHarness(async (command, payload) => {
+    calls.push({ command, payload });
+    if (command === 'load_desktop_snapshot') return {};
+    if (command === 'save_desktop_snapshot' && shouldFailNextSave) {
+      shouldFailNextSave = false;
+      throw new Error('disk full');
+    }
+    return undefined;
+  });
+
+  try {
+    globalThis.window.addEventListener('dress-roomshow:desktop-sync-status', (event) => {
+      events.push(event.detail);
+    });
+
+    const desktopDatabase = await importDesktopDatabase();
+    await waitForAsyncBootstrap();
+    harness.storage.setItem('dress-roomshow:reservations', '[{"id":"reservation-1"}]');
+    harness.intervals[0].callback();
+    await waitForAsyncBootstrap();
+    harness.intervals[0].callback();
+    await waitForAsyncBootstrap();
+    harness.storage.setItem('dress-roomshow:reservations', '[{"id":"reservation-2"}]');
+    harness.intervals[0].callback();
+    await waitForAsyncBootstrap();
+
+    assert.equal(events.length, 4);
+    assert.equal(events[0].state, 'synced');
+    assert.equal(events[1].state, 'error');
+    assert.equal(events[1].attempts, 1);
+    assert.equal(events[2].state, 'synced');
+    assert.equal(events[2].message, 'تمت مزامنة نسخة سطح المكتب.');
+    assert.equal(events[3].state, 'synced');
+    assert.equal(events[3].message, 'تمت مزامنة نسخة سطح المكتب.');
+    assert.deepEqual(calls, [
+      { command: 'load_desktop_snapshot', payload: undefined },
+      {
+        command: 'save_desktop_snapshot',
+        payload: { entries: { 'dress-roomshow:reservations': '[{"id":"reservation-1"}]' } },
+      },
+      {
+        command: 'save_desktop_snapshot',
+        payload: { entries: { 'dress-roomshow:reservations': '[{"id":"reservation-1"}]' } },
+      },
+      {
+        command: 'save_desktop_snapshot',
+        payload: { entries: { 'dress-roomshow:reservations': '[{"id":"reservation-2"}]' } },
+      },
+    ]);
+    assert.deepEqual(desktopDatabase.getDesktopSyncStatus(), events[3]);
+  } finally {
+    cleanupDesktopHarness();
+  }
+});
