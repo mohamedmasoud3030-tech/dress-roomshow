@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { LockKeyhole, RotateCcw } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { getTodayISO } from '../../shared/utils/date';
 import { DailyClosingBreakdown } from './DailyClosingBreakdown';
 import { closeDay, formatReportMoney, getDayClosings, reopenDay } from './report.service';
@@ -15,7 +16,7 @@ export function DailyClosingPage() {
   const [actualCash, setActualCash] = useState('0');
   const [notes, setNotes] = useState('');
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const closedToday = useMemo(() => closings.some((closing) => closing.businessDate === businessDate && closing.status === 'closed'), [closings, businessDate]);
 
   const submit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -26,7 +27,7 @@ export function DailyClosingPage() {
       setFeedback(`تم إقفال يومية ${closing.businessDate}. فرق الخزينة: ${formatReportMoney(closing.difference)}.`);
       setError(null);
     } catch (reason: unknown) {
-      setError(reason instanceof Error ? reason.message : 'تعذر إقفال اليومية.');
+      setError(reason);
       setFeedback(null);
     }
   };
@@ -41,7 +42,7 @@ export function DailyClosingPage() {
       setFeedback(`تمت إعادة فتح يومية ${closing.businessDate} مع الاحتفاظ بالسجل التاريخي.`);
       setError(null);
     } catch (reason: unknown) {
-      setError(reason instanceof Error ? reason.message : 'تعذر إعادة فتح اليومية.');
+      setError(reason);
     }
   };
 
@@ -49,7 +50,7 @@ export function DailyClosingPage() {
     <section className="space-y-6">
       <PageHeader eyebrow="الخزينة" title="إقفال اليومية النقدية" description="راجعي التحصيل والاسترجاعات والمصروفات حسب وسيلة الدفع. إعادة الفتح تحفظ السجل التاريخي ولا تحذفه." />
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
-      {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">{error}</div>}
+      {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر إكمال عملية إقفال اليومية." />}
       <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="grid gap-4 md:grid-cols-3">
           <label className="text-sm font-bold text-slate-700">تاريخ اليومية<input required type="date" max={getTodayISO()} value={businessDate} onChange={(event) => setBusinessDate(event.target.value)} className={field} /></label>

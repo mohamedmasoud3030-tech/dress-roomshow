@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { DEFAULT_RESERVATION_DAYS, MAX_NOTES_LENGTH } from '../../shared/domain/businessRules';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
@@ -59,7 +60,7 @@ const errorClassName = 'mt-1 text-xs font-medium text-rose-700';
 
 export function CreateReservationModal({ open, onClose, onCreated }: CreateReservationModalProps) {
   const fieldId = useId();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [dresses, setDresses] = useState<Dress[]>([]);
   const bufferDays = getReservationBufferDays();
@@ -82,10 +83,14 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
 
   useEffect(() => {
     if (!open) return;
-    setCustomers(getCustomers());
-    setDresses(getReservableDresses());
-    reset(getDefaultValues());
-    setSubmitError(null);
+      try {
+        setCustomers(getCustomers());
+        setDresses(getReservableDresses());
+        reset(getDefaultValues());
+        setSubmitError(null);
+      } catch (error: unknown) {
+        setSubmitError(error);
+      }
   }, [open, reset]);
 
   useEffect(() => {
@@ -107,7 +112,7 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
       onCreated(reservation);
       closeModal();
     } catch (error: unknown) {
-      setSubmitError(error instanceof Error ? error.message : 'تعذر إنشاء الحجز. حاولي مرة أخرى.');
+      setSubmitError(error);
     }
   };
 
@@ -116,10 +121,8 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
   return (
     <Modal open={open} onClose={closeModal} title="إنشاء حجز جديد" className="max-w-2xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
-        {submitError && (
-          <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-800">
-            {submitError}
-          </div>
+        {submitError !== null && (
+          <UserFacingErrorAlert error={submitError} fallback="تعذر إنشاء الحجز. حاولي مرة أخرى." />
         )}
 
         <div className="grid gap-4 md:grid-cols-2">

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
+import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { getTodayISO } from '../../shared/utils/date';
 import { getDresses } from '../dresses/dress.service';
 import { addExpense } from './expense.service';
@@ -12,7 +13,7 @@ function defaults(): Form { return { expenseDate: getTodayISO(), title: '', cate
 
 export function AddExpenseModal({ open, onClose, onCreated }: Props) {
   const [form, setForm] = useState<Form>(() => defaults());
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const dresses = useMemo(() => getDresses(), [open]);
   useEffect(() => { if (open) { setForm(defaults()); setError(null); } }, [open]);
   const close = () => { setForm(defaults()); setError(null); onClose(); };
@@ -24,11 +25,11 @@ export function AddExpenseModal({ open, onClose, onCreated }: Props) {
       onCreated(expense);
       close();
     } catch (reason: unknown) {
-      setError(reason instanceof Error ? reason.message : 'تعذر تسجيل المصروف.');
+      setError(reason);
     }
   };
   return <Modal open={open} onClose={close} title="تسجيل مصروف جديد" className="max-w-2xl"><form onSubmit={submit} className="space-y-4">
-    {error && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-800">{error}</p>}
+    {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر تسجيل المصروف." />}
     <label className="block text-sm font-bold text-slate-700">العنوان<input required value={form.title} onChange={(e)=>setForm({...form,title:e.target.value})} className={field} /></label>
     <div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-bold text-slate-700">الفئة<select value={form.category} onChange={(e)=>setForm({...form,category:e.target.value as ExpenseCategory})} className={field}><option value="laundry">غسيل</option><option value="tailoring">تعديل وخياطة</option><option value="maintenance">صيانة</option><option value="purchase">شراء</option><option value="rent">إيجار</option><option value="salary">رواتب</option><option value="other">أخرى</option></select></label><label className="block text-sm font-bold text-slate-700">القيمة (ر.ع)<input required type="number" min="0.001" step="0.001" value={form.amount} onChange={(e)=>setForm({...form,amount:e.target.value})} className={field} /></label></div>
     <div className="grid gap-4 md:grid-cols-2"><label className="block text-sm font-bold text-slate-700">تاريخ المصروف<input required type="date" max={getTodayISO()} value={form.expenseDate} onChange={(e)=>setForm({...form,expenseDate:e.target.value})} className={field} /></label><label className="block text-sm font-bold text-slate-700">وسيلة الدفع<select value={form.paymentMethod} onChange={(e)=>setForm({...form,paymentMethod:e.target.value as ExpensePaymentMethod})} className={field}><option value="cash">نقداً</option><option value="card">بطاقة</option><option value="bank_transfer">تحويل بنكي</option><option value="other">أخرى</option></select></label></div>
