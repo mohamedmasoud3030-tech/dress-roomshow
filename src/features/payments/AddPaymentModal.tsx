@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal } from '../../components/shared/Modal';
+import { MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import { getTodayISO } from '../../shared/utils/date';
 import { calculateReservationRemainingAmount } from '../../shared/utils/financialCalculations.js';
 import { formatMoneyOMR } from '../../shared/utils/format';
@@ -227,9 +228,9 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
             <input
               required
               type="number"
-              min="0.001"
+              min={MIN_MONEY_AMOUNT}
               max={maximum}
-              step="0.001"
+              step={MONEY_STEP}
               inputMode="decimal"
               value={form.amount}
               onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))}

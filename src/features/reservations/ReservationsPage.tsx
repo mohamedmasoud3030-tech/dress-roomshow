@@ -3,28 +3,11 @@ import { CalendarCheck, CircleAlert, Plus, Search, XCircle } from 'lucide-react'
 import { useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
+import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_STYLES } from '../../shared/domain/reservationConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { CreateReservationModal } from './CreateReservationModal';
 import { cancelReservation, filterReservations, getReservations, summarizeReservations } from './reservation.service';
-import type { Reservation, ReservationFilters, ReservationStatus } from './reservation.types';
-
-const statusLabels: Record<ReservationStatus, string> = {
-  pending: 'بانتظار التأكيد',
-  confirmed: 'مؤكد',
-  delivered: 'تم التسليم',
-  returned: 'تم الإرجاع',
-  overdue: 'متأخر',
-  cancelled: 'ملغي',
-};
-
-const statusStyles: Record<ReservationStatus, string> = {
-  pending: 'bg-amber-50 text-amber-800 ring-amber-200',
-  confirmed: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
-  delivered: 'bg-sky-50 text-sky-800 ring-sky-200',
-  returned: 'bg-slate-100 text-slate-700 ring-slate-200',
-  overdue: 'bg-rose-50 text-rose-800 ring-rose-200',
-  cancelled: 'bg-slate-100 text-slate-500 ring-slate-200',
-};
+import type { Reservation, ReservationFilters } from './reservation.types';
 
 function ReservationCard({ reservation, onCancel }: { reservation: Reservation; onCancel: (id: string) => void }) {
   const canCancel = ['pending', 'confirmed'].includes(reservation.status) && reservation.paidAmount === 0;
@@ -38,8 +21,8 @@ function ReservationCard({ reservation, onCancel }: { reservation: Reservation; 
           <p className="mt-1 text-sm text-slate-600">{reservation.customerPhone}</p>
           <p className="mt-2 text-sm font-medium text-slate-700">{reservation.dressCode} — {reservation.dressName}</p>
         </div>
-        <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ring-1 ${statusStyles[reservation.status]}`}>
-          {statusLabels[reservation.status]}
+        <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ring-1 ${RESERVATION_STATUS_STYLES[reservation.status]}`}>
+          {RESERVATION_STATUS_LABELS[reservation.status]}
         </span>
       </div>
 
@@ -81,7 +64,7 @@ export function ReservationsPage() {
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><SummaryCard label="إجمالي الحجوزات" value={summary.total} /><SummaryCard label="الحجوزات النشطة" value={summary.active} tone="positive" /><SummaryCard label="عمليات اليوم" value={summary.today} hint="استلام أو إرجاع" /><SummaryCard label="متأخرة" value={summary.overdue} tone={summary.overdue > 0 ? 'danger' : 'default'} /></div>
     <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">
       <label className="relative block"><span className="sr-only">البحث في الحجوزات</span><Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input type="search" value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder="ابحثي برقم الحجز أو العميلة أو الفستان" className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30" /></label>
-      <label><span className="sr-only">حالة الحجز</span><select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))} className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"><option value="all">كل الحالات</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label><span className="sr-only">حالة الحجز</span><select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))} className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"><option value="all">كل الحالات</option>{Object.entries(RESERVATION_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
       <label><span className="sr-only">توقيت الحجز</span><select value={filters.timing} onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))} className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"><option value="all">كل المواعيد</option><option value="today">اليوم</option><option value="upcoming">القادمة</option><option value="overdue">المتأخرة</option></select></label>
     </div></div>
     {filteredReservations.length > 0 ? <div className="grid gap-4 xl:grid-cols-2">{filteredReservations.map((reservation) => <ReservationCard key={reservation.id} reservation={reservation} onCancel={handleCancel} />)}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">{reservations.length === 0 ? <><CalendarCheck aria-hidden="true" className="mx-auto h-10 w-10 text-amber-700" /><p className="mt-4 text-lg font-bold text-slate-950">لا توجد حجوزات حتى الآن</p><p className="mt-2 text-sm text-slate-500">ابدئي بإنشاء أول حجز وربطه بعميلة وفستان وفترة واضحة.</p><button type="button" onClick={openCreateModal} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white"><Plus aria-hidden="true" className="h-4 w-4" />إنشاء أول حجز</button></> : <><CircleAlert aria-hidden="true" className="mx-auto h-10 w-10 text-amber-700" /><p className="mt-4 text-lg font-bold text-slate-950">لا توجد حجوزات مطابقة</p><p className="mt-2 text-sm text-slate-500">غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p></>}</div>}

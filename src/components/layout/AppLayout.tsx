@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   BarChart3,
   CalendarDays,
@@ -13,6 +14,11 @@ import {
   WalletCards,
 } from 'lucide-react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
+import {
+  DESKTOP_SYNC_STATUS_EVENT,
+  getDesktopSyncStatus,
+  type DesktopSyncStatus,
+} from '../../services/desktopDatabase';
 
 const navigation = [
   { to: '/', label: 'لوحة التحكم', icon: LayoutDashboard },
@@ -32,6 +38,18 @@ const focusRing =
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2';
 
 export function AppLayout() {
+  const [desktopSyncStatus, setDesktopSyncStatus] = useState<DesktopSyncStatus>(() => getDesktopSyncStatus());
+
+  useEffect(() => {
+    const updateStatus = (event: Event) => {
+      setDesktopSyncStatus((event as CustomEvent<DesktopSyncStatus>).detail);
+    };
+    window.addEventListener(DESKTOP_SYNC_STATUS_EVENT, updateStatus);
+    return () => window.removeEventListener(DESKTOP_SYNC_STATUS_EVENT, updateStatus);
+  }, []);
+
+  const showDesktopSyncWarning = desktopSyncStatus.state === 'error';
+
   return (
     <div className="min-h-screen overflow-hidden bg-slate-50 text-slate-950" dir="rtl">
       <a
@@ -97,6 +115,11 @@ export function AppLayout() {
         </header>
 
         <div className="relative mx-auto max-w-7xl p-4 sm:p-6">
+          {showDesktopSyncWarning && (
+            <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
+              {desktopSyncStatus.message}
+            </div>
+          )}
           <Outlet />
         </div>
       </main>
