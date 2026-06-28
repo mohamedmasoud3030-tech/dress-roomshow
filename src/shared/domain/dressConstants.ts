@@ -1,4 +1,4 @@
-import type { DressCategory, DressStatus } from '../../features/dresses/dress.types';
+import type { DressCategory, DressStatus, InventoryItemType } from '../../features/dresses/dress.types';
 
 export const DRESS_STATUS_LABELS = {
   available: 'متاح',
@@ -22,7 +22,18 @@ export const DRESS_STATUS_STYLES = {
   inactive: 'bg-slate-100 text-slate-500 ring-slate-200',
 } satisfies Record<DressStatus, string>;
 
-export const DRESS_CATEGORIES: DressCategory[] = ['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'أخرى'];
+export const INVENTORY_ITEM_TYPE_LABELS = {
+  dress: 'فستان',
+  accessory: 'إكسسوار',
+  bag: 'حقيبة',
+  shoe: 'حذاء',
+  veil: 'طرحة / شال',
+  other: 'عنصر آخر',
+} satisfies Record<InventoryItemType, string>;
+
+export const INVENTORY_ITEM_TYPE_OPTIONS: InventoryItemType[] = ['dress', 'accessory', 'bag', 'shoe', 'veil', 'other'];
+
+export const DRESS_CATEGORIES: DressCategory[] = ['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'إكسسوارات', 'حقائب', 'أحذية', 'طرح وشالات', 'أخرى'];
 export const DRESS_STATUS_OPTIONS: DressStatus[] = [
   'available',
   'reserved',

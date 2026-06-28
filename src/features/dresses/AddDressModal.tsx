@@ -10,6 +10,7 @@ import { addDress } from './dress.service';
 import type { Dress } from './dress.types';
 import { ImageUpload } from './ImageUpload';
 import { generateDressBarcodeValue } from './barcode.utils';
+import { INVENTORY_ITEM_TYPE_LABELS, INVENTORY_ITEM_TYPE_OPTIONS } from '../../shared/domain/dressConstants';
 
 const initialStatuses = ['available', 'laundry', 'maintenance', 'damaged', 'inactive'] as const;
 
@@ -17,7 +18,8 @@ const dressSchema = z
   .object({
     name: z.string().trim().min(2, 'اكتبي اسم الفستان بشكل واضح.').max(100, 'الاسم طويل جداً.'),
     description: z.string().trim().max(300, 'الوصف يجب ألا يتجاوز 300 حرف.').optional(),
-    category: z.enum(['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'أخرى']),
+    itemType: z.enum(['dress', 'accessory', 'bag', 'shoe', 'veil', 'other']),
+    category: z.enum(['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'إكسسوارات', 'حقائب', 'أحذية', 'طرح وشالات', 'أخرى']),
     color: z.string().trim().min(1, 'لون الفستان مطلوب.').max(50, 'اسم اللون طويل جداً.'),
     size: z.string().trim().min(1, 'مقاس الفستان مطلوب.').max(30, 'المقاس طويل جداً.'),
     purchasePrice: z.coerce.number().finite('سعر الشراء غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الشراء لا يمكن أن يكون سالباً.'),
@@ -77,6 +79,7 @@ function getDefaultValues(): DressFormValues {
   return {
     name: '',
     description: '',
+    itemType: 'dress',
     category: 'سهرة',
     color: '',
     size: '',
@@ -143,18 +146,26 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
   };
 
   return (
-    <Modal open={open} onClose={closeModal} title="إضافة فستان جديد" className="max-w-3xl">
+    <Modal open={open} onClose={closeModal} title="إضافة عنصر مخزون جديد" className="max-w-3xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <ImageUpload images={images} onChange={setImages} maxImages={5} />
         {submitError !== null && (
           <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة الفستان. حاولي مرة أخرى." />
         )}
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-3">
           <div>
-            <label htmlFor={`${fieldId}-name`} className={FORM_LABEL_CLASS_NAME}>اسم الفستان</label>
-            <input id={`${fieldId}-name`} {...register('name')} className={dressFieldClassName} placeholder="مثال: فستان سهرة كحلي مطرز" />
+            <label htmlFor={`${fieldId}-name`} className={FORM_LABEL_CLASS_NAME}>اسم العنصر</label>
+            <input id={`${fieldId}-name`} {...register('name')} className={dressFieldClassName} placeholder="مثال: فستان سهرة كحلي مطرز أو حقيبة سهرة فضية" />
             {errors.name && <p className={FORM_ERROR_CLASS_NAME}>{errors.name.message}</p>}
+          </div>
+          <div>
+            <label htmlFor={`${fieldId}-item-type`} className={FORM_LABEL_CLASS_NAME}>نوع العنصر</label>
+            <select id={`${fieldId}-item-type`} {...register('itemType')} className={dressFieldClassName}>
+              {INVENTORY_ITEM_TYPE_OPTIONS.map((itemType) => (
+                <option key={itemType} value={itemType}>{INVENTORY_ITEM_TYPE_LABELS[itemType]}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label htmlFor={`${fieldId}-category`} className={FORM_LABEL_CLASS_NAME}>الفئة</label>
@@ -163,6 +174,10 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
               <option value="خطوبة">خطوبة</option>
               <option value="سهرة">سهرة</option>
               <option value="أطفال">أطفال</option>
+              <option value="إكسسوارات">إكسسوارات</option>
+              <option value="حقائب">حقائب</option>
+              <option value="أحذية">أحذية</option>
+              <option value="طرح وشالات">طرح وشالات</option>
               <option value="أخرى">أخرى</option>
             </select>
           </div>

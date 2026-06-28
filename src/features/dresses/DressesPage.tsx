@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
-import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES } from '../../shared/domain/dressConstants';
+import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDressByCode, getDresses, summarizeDresses } from './dress.service';
@@ -42,6 +42,7 @@ function DressCard({ dress }: { dress: Dress }) {
           <div>
             <p className="text-xs font-semibold text-slate-400" dir="ltr">{dress.code}</p>
             <h2 className="mt-1 text-lg font-bold text-slate-950">{dress.name}</h2>
+            <p className="mt-1 text-xs font-bold text-violet-700">{INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress']}</p>
             {dress.description && <p className="mt-1 text-sm leading-6 text-slate-500">{dress.description}</p>}
           </div>
           <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ring-1 ${DRESS_STATUS_STYLES[dress.status]}`}>

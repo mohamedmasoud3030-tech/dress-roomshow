@@ -42,7 +42,7 @@ export type LandingShowroomProfile = {
 
 export const landingShowroomProfile: LandingShowroomProfile = {
   brandName: 'LENA للفساتين',
-  shortTagline: 'معرض فساتين وإكسسوارات للمناسبات',
+  shortTagline: 'معرض فساتين وحقائب وإكسسوارات للمناسبات',
   heroTitle: 'اختاري إطلالتك من المعرض قبل الزيارة',
   heroDescription:
     'صفحة عرض مخصصة للعميلة تساعدها على تصفح الفساتين والملحقات المتاحة، مقارنة خيارات الإيجار والبيع، ثم الانتقال مباشرة إلى حجز موعد التجربة داخل المعرض.',

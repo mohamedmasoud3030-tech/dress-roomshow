@@ -29,6 +29,7 @@ export function addDress(input: Omit<Dress, 'id' | 'code' | 'timesRented'>): Dre
   
   const newDress: Dress = {
     ...input,
+    itemType: input.itemType ?? 'dress',
     id: `dress-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     code: `D${String(dresses.length + 1).padStart(3, '0')}`,
     timesRented: 0,

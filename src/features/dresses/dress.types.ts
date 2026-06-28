@@ -8,13 +8,16 @@ export type DressStatus =
   | 'sold'
   | 'inactive';
 
-export type DressCategory = 'زفاف' | 'خطوبة' | 'سهرة' | 'أطفال' | 'أخرى';
+export type InventoryItemType = 'dress' | 'accessory' | 'bag' | 'shoe' | 'veil' | 'other';
+
+export type DressCategory = 'زفاف' | 'خطوبة' | 'سهرة' | 'أطفال' | 'إكسسوارات' | 'حقائب' | 'أحذية' | 'طرح وشالات' | 'أخرى';
 
 export type Dress = {
   id: string;
   code: string;
   name: string;
   description: string;
+  itemType?: InventoryItemType;
   category: DressCategory;
   color: string;
   size: string;
