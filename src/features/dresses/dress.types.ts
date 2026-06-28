@@ -39,6 +39,7 @@ export type AddDressInput = Omit<Dress, 'id' | 'code' | 'timesRented'>;
 export type DressFilters = {
   search: string;
   status: 'all' | DressStatus;
+  itemType: 'all' | InventoryItemType;
   category: 'all' | DressCategory;
   usage: 'all' | 'rent' | 'sale';
 };

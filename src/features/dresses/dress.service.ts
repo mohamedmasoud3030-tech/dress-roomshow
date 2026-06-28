@@ -74,6 +74,10 @@ export function filterDresses(filters?: Partial<DressFilters>): Dress[] {
     dresses = dresses.filter((dress) => dress.status === filters.status);
   }
 
+  if (filters?.itemType && filters.itemType !== 'all') {
+    dresses = dresses.filter((dress) => (dress.itemType ?? 'dress') === filters.itemType);
+  }
+
   if (filters?.category && filters.category !== 'all') {
     dresses = dresses.filter((dress) => dress.category === filters.category);
   }

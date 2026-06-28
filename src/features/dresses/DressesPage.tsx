@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
-import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
+import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS, INVENTORY_ITEM_TYPE_OPTIONS } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDressByCode, getDresses, summarizeDresses } from './dress.service';
@@ -13,6 +13,7 @@ import type { Dress, DressFilters } from './dress.types';
 
 const categories = ['all', ...DRESS_CATEGORIES] as const;
 const statuses = ['all', ...DRESS_STATUS_OPTIONS] as const;
+const itemTypes = ['all', ...INVENTORY_ITEM_TYPE_OPTIONS] as const;
 const BarcodeScanner = lazy(async () => {
   const module = await import('./BarcodeScanner');
   return { default: module.BarcodeScanner };
@@ -98,7 +99,7 @@ function DressCard({ dress }: { dress: Dress }) {
 
 export function DressesPage() {
   const [dresses, setDresses] = useState<Dress[]>(() => getDresses());
-  const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
+  const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', itemType: 'all', category: 'all', usage: 'all' });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -142,8 +143,8 @@ export function DressesPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <PageHeader
           eyebrow="المخزون"
-          title="الفساتين"
-          description="إدارة فساتين المحل وحالاتها وأسعار البيع والإيجار والتأمين من سجل واحد واضح."
+          title="المخزون"
+          description="إدارة الفساتين والحقائب والإكسسوارات وباقي عناصر المعرض من سجل واحد واضح."
         />
         <div className="flex flex-wrap gap-3">
           <button
@@ -178,7 +179,7 @@ export function DressesPage() {
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
           >
             <Plus aria-hidden="true" className="h-5 w-5" />
-            إضافة فستان
+            إضافة عنصر مخزون
           </button>
         </div>
       </div>
@@ -197,7 +198,7 @@ export function DressesPage() {
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px]">
+        <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px_180px]">
           <label className="relative block">
             <span className="sr-only">البحث في الفساتين</span>
             <Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -226,7 +227,22 @@ export function DressesPage() {
           </label>
 
           <label>
-            <span className="sr-only">فئة الفستان</span>
+            <span className="sr-only">نوع العنصر</span>
+            <select
+              value={filters.itemType}
+              onChange={(event) => setFilters((current) => ({ ...current, itemType: event.target.value as DressFilters['itemType'] }))}
+              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+            >
+              {itemTypes.map((itemType) => (
+                <option key={itemType} value={itemType}>
+                  {itemType === 'all' ? 'كل الأنواع' : INVENTORY_ITEM_TYPE_LABELS[itemType as Exclude<typeof itemType, 'all'>]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            <span className="sr-only">فئة العنصر</span>
             <select
               value={filters.category}
               onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value as DressFilters['category'] }))}
