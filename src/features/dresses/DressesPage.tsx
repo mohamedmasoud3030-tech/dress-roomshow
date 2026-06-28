@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Banknote, Plus, Search, Shirt } from 'lucide-react';
+import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
-import { filterDresses, getDresses, summarizeDresses } from './dress.service';
+import { BarcodeScanner } from './BarcodeScanner';
+import { filterDresses, getDressByCode, getDresses, summarizeDresses } from './dress.service';
 import { SellDressModal } from './SellDressModal';
 import type { SaleRecord } from './sale.service';
 import type { Dress, DressFilters } from './dress.types';
@@ -95,6 +96,8 @@ export function DressesPage() {
   const [filters, setFilters] = useState<DressFilters>({ search: '', status: 'all', category: 'all', usage: 'all' });
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  const [highlightedDressCode, setHighlightedDressCode] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const filteredDresses = useMemo(() => filterDresses(filters), [dresses, filters]);
@@ -107,7 +110,26 @@ export function DressesPage() {
 
   const handleSold = (sale: SaleRecord) => {
     setDresses(getDresses());
+    setHighlightedDressCode(sale.dressCode);
     setFeedback(`تم تسجيل البيع ${sale.saleNumber} للفستان ${sale.dressCode}.`);
+  };
+
+  const handleBarcodeScan = (barcode: string) => {
+    const normalizedBarcode = barcode.trim();
+    const matchedDress = dresses.find((dress) => dress.barcode === normalizedBarcode)
+      ?? getDressByCode(normalizedBarcode);
+
+    setShowScanner(false);
+
+    if (!matchedDress) {
+      setHighlightedDressCode(null);
+      setFeedback(`لم يتم العثور على فستان مرتبط بالباركود ${normalizedBarcode}.`);
+      return;
+    }
+
+    setHighlightedDressCode(matchedDress.code);
+    setFilters((current) => ({ ...current, search: matchedDress.code }));
+    setFeedback(`تم العثور على الفستان ${matchedDress.name} (${matchedDress.code}).`);
   };
 
   return (
@@ -119,6 +141,18 @@ export function DressesPage() {
           description="إدارة فساتين المحل وحالاتها وأسعار البيع والإيجار والتأمين من سجل واحد واضح."
         />
         <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setFeedback(null);
+              setHighlightedDressCode(null);
+              setShowScanner(true);
+            }}
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          >
+            <Barcode aria-hidden="true" className="h-5 w-5" />
+            مسح باركود
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -219,7 +253,12 @@ export function DressesPage() {
       {filteredDresses.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
           {filteredDresses.map((dress) => (
-            <DressCard key={dress.id} dress={dress} />
+            <div
+              key={dress.id}
+              className={highlightedDressCode === dress.code ? 'rounded-3xl ring-2 ring-amber-400 ring-offset-4 ring-offset-slate-50' : ''}
+            >
+              <DressCard dress={dress} />
+            </div>
           ))}
         </div>
       ) : (
@@ -227,6 +266,13 @@ export function DressesPage() {
           <p className="text-lg font-semibold text-slate-900">لا توجد فساتين مطابقة</p>
           <p className="mt-2 text-sm text-slate-500">غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
         </div>
+      )}
+
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setShowScanner(false)}
+        />
       )}
 
       <AddDressModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
