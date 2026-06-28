@@ -1,11 +1,10 @@
-import { useMemo, useState } from 'react';
+import { Suspense, lazy, useMemo, useState } from 'react';
 import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
-import { BarcodeScanner } from './BarcodeScanner';
 import { filterDresses, getDressByCode, getDresses, summarizeDresses } from './dress.service';
 import { SellDressModal } from './SellDressModal';
 import type { SaleRecord } from './sale.service';
@@ -13,6 +12,10 @@ import type { Dress, DressFilters } from './dress.types';
 
 const categories = ['all', ...DRESS_CATEGORIES] as const;
 const statuses = ['all', ...DRESS_STATUS_OPTIONS] as const;
+const BarcodeScanner = lazy(async () => {
+  const module = await import('./BarcodeScanner');
+  return { default: module.BarcodeScanner };
+});
 
 function DressCard({ dress }: { dress: Dress }) {
   const primaryImage = dress.images[0];
@@ -269,10 +272,21 @@ export function DressesPage() {
       )}
 
       {showScanner && (
-        <BarcodeScanner
-          onScan={handleBarcodeScan}
-          onClose={() => setShowScanner(false)}
-        />
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+              <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl">
+                <p className="text-lg font-bold text-slate-900">جاري تحميل الماسح…</p>
+                <p className="mt-2 text-sm text-slate-500">انتظري لحظة حتى يتم تجهيز الكاميرا.</p>
+              </div>
+            </div>
+          }
+        >
+          <BarcodeScanner
+            onScan={handleBarcodeScan}
+            onClose={() => setShowScanner(false)}
+          />
+        </Suspense>
       )}
 
       <AddDressModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
