@@ -34,6 +34,7 @@ This keeps the initial application bundle smaller and loads the scanning library
 
 ## UX fallback
 If camera startup fails or camera permission is denied, the user can still continue using manual barcode input.
+The manual flow now uses an inline input inside the scanner modal instead of a browser `prompt()`, which improves usability and keeps the flow consistent with the rest of the app UI.
 
 ## Runtime validation note
 Static checks and production builds are passing, but barcode scanning still should be validated on a real device camera for final operational confidence.
