@@ -7,25 +7,43 @@ type ImageUploadProps = {
   maxImages?: number;
 };
 
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result;
+      if (typeof result === 'string') {
+        resolve(result);
+        return;
+      }
+      reject(new Error('تعذر قراءة الصورة المرفوعة.'));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error('تعذر قراءة الصورة المرفوعة.'));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
 
-  const handleFiles = useCallback((files: FileList | null) => {
+  const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files) return;
-    
-    const remainingSlots = maxImages - images.length;
-    const filesToProcess = Array.from(files).slice(0, remainingSlots);
 
-    filesToProcess.forEach(file => {
-      if (!file.type.startsWith('image/')) return;
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        onChange([...images, result]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const remainingSlots = maxImages - images.length;
+    if (remainingSlots <= 0) return;
+
+    const filesToProcess = Array.from(files)
+      .filter((file) => file.type.startsWith('image/'))
+      .slice(0, remainingSlots);
+
+    if (filesToProcess.length === 0) return;
+
+    try {
+      const uploadedImages = await Promise.all(filesToProcess.map(readFileAsDataUrl));
+      onChange([...images, ...uploadedImages]);
+    } catch (error) {
+      console.error('Image upload error:', error);
+    }
   }, [images, onChange, maxImages]);
 
   const handleDrag = useCallback((e: React.DragEvent) => {

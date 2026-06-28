@@ -1,17 +1,20 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Clock } from 'lucide-react';
 import { AddAppointmentModal } from './AddAppointmentModal';
 import { getTodaysAppointments } from './appointment.service';
+import type { Appointment } from './appointment.types';
 
 export function AppointmentsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
 
-  const todayAppointments = getTodaysAppointments();
+  useEffect(() => {
+    setTodayAppointments(getTodaysAppointments());
+  }, []);
 
-  const handleAppointmentCreated = () => {
+  const handleAppointmentCreated = (appointment: Appointment) => {
+    setTodayAppointments((current) => [...current, appointment]);
     setShowAddModal(false);
-    // In a real app, you'd refresh the list here
-    window.location.reload();
   };
 
   return (

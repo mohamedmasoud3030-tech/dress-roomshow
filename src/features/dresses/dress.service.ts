@@ -60,22 +60,31 @@ export function updateDressStatus(code: string, status: Dress['status']): Dress 
 
 export function filterDresses(filters?: Partial<DressFilters>): Dress[] {
   let dresses = getDresses();
-  
+
   if (filters?.search) {
-    dresses = dresses.filter(d => 
-      d.name.includes(filters.search!) || 
-      d.code.includes(filters.search!)
+    const normalizedSearch = filters.search.trim().toLowerCase();
+    dresses = dresses.filter((dress) =>
+      [dress.name, dress.code, dress.color, dress.size]
+        .some((value) => value.toLowerCase().includes(normalizedSearch)),
     );
   }
-  
+
   if (filters?.status && filters.status !== 'all') {
-    dresses = dresses.filter(d => d.status === filters.status);
+    dresses = dresses.filter((dress) => dress.status === filters.status);
   }
-  
+
   if (filters?.category && filters.category !== 'all') {
-    dresses = dresses.filter(d => d.category === filters.category);
+    dresses = dresses.filter((dress) => dress.category === filters.category);
   }
-  
+
+  if (filters?.usage === 'rent') {
+    dresses = dresses.filter((dress) => dress.isForRent);
+  }
+
+  if (filters?.usage === 'sale') {
+    dresses = dresses.filter((dress) => dress.isForSale);
+  }
+
   return dresses;
 }
 

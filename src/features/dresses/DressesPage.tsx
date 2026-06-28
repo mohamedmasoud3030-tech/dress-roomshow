@@ -14,13 +14,24 @@ const categories = ['all', ...DRESS_CATEGORIES] as const;
 const statuses = ['all', ...DRESS_STATUS_OPTIONS] as const;
 
 function DressCard({ dress }: { dress: Dress }) {
+  const primaryImage = dress.images[0];
+
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
-      <div className="flex h-48 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
-        <div className="rounded-full bg-white/80 p-6 shadow-sm ring-1 ring-slate-200">
-          <Shirt aria-hidden="true" className="h-12 w-12 text-violet-700" />
+      {primaryImage ? (
+        <img
+          src={primaryImage}
+          alt={dress.name}
+          className="h-48 w-full object-cover"
+          loading="lazy"
+        />
+      ) : (
+        <div className="flex h-48 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
+          <div className="rounded-full bg-white/80 p-6 shadow-sm ring-1 ring-slate-200">
+            <Shirt aria-hidden="true" className="h-12 w-12 text-violet-700" />
+          </div>
         </div>
-      </div>
+      )}
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>

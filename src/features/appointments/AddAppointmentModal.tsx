@@ -37,7 +37,7 @@ export function AddAppointmentModal({ open, onClose, onCreated }: AddAppointment
 
       onCreated(appointment);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       setSubmitError(error instanceof Error ? error : new Error('حدث خطأ غير متوقع'));
     }
   };
