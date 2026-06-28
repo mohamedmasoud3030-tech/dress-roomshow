@@ -179,12 +179,19 @@
 
 ### ملاحظات أداء جديدة
 - بعد دمج مكتبة المسح أصبح bundle الإنتاجي أكبر بشكل ملحوظ
-- ظهر تحذير Vite بأن chunk رئيسي تجاوز 500 kB بعد minification
-- هذا ليس build blocker حالياً، لكنه يستحق معالجة في خطوة لاحقة عبر lazy loading أو code splitting
+- تم علاج ذلك لاحقاً عبر فصل `BarcodeScanner` إلى lazy-loaded chunk مستقل
+- أصبح تحميل مكتبة المسح يتم فقط عند الضغط على زر `مسح باركود`
+- النتيجة: انخفاض حجم الـ main bundle بشكل واضح وتحسين تحميل الواجهة الأساسية
+
+### تم تنفيذ دفعة خامسة
+1. تم فصل `BarcodeScanner` باستخدام `React.lazy` و `Suspense`
+2. تمت إضافة شاشة تحميل بسيطة أثناء تجهيز الماسح
+3. تم تقليل حجم الـ initial bundle ونقل كود المسح إلى chunk منفصل
+4. تم الحفاظ على نجاح `typecheck`, `lint`, `build`, و`tests`
 
 ### الدفعة القادمة المقترحة
 1. تحسين `BarcodeGenerator` من ناحية طباعة الملصق وإدارة `Blob URL`
-2. فصل `BarcodeScanner` lazy-loaded لتقليل حجم الـ bundle الرئيسي
+2. استبدال `prompt()` في الإدخال اليدوي بواجهة Modal/Field داخلية أفضل
 3. وضع حدود/تحذيرات لحجم الصور المخزنة في localStorage
 4. عمل dependency upgrade branch آمن
 
