@@ -86,8 +86,8 @@ export function DressesPage() {
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const filteredDresses = useMemo(() => filterDresses(dresses, filters), [dresses, filters]);
-  const summary = useMemo(() => summarizeDresses(dresses), [dresses]);
+  const filteredDresses = useMemo(() => filterDresses(filters), [dresses, filters]);
+  const summary = useMemo(() => summarizeDresses(), [dresses]);
 
   const handleCreated = (dress: Dress) => {
     setDresses((current) => [dress, ...current]);

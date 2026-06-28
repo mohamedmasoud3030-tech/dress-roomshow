@@ -25,10 +25,13 @@ export type Dress = {
   status: DressStatus;
   isForRent: boolean;
   isForSale: boolean;
-  mainImageUrl?: string;
+  images: string[];
+  barcode: string;
   timesRented: number;
   notes?: string;
 };
+
+export type AddDressInput = Omit<Dress, 'id' | 'code' | 'timesRented'>;
 
 export type DressFilters = {
   search: string;

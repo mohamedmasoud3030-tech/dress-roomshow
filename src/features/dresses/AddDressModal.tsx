@@ -8,6 +8,7 @@ import { MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/doma
 import { FORM_ERROR_CLASS_NAME, FORM_FIELD_CLASS_NAME, FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
 import { addDress } from './dress.service';
 import type { Dress } from './dress.types';
+import { ImageUpload } from './ImageUpload';
 
 const initialStatuses = ['available', 'laundry', 'maintenance', 'damaged', 'inactive'] as const;
 
@@ -92,6 +93,7 @@ function getDefaultValues(): DressFormValues {
 export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) {
   const fieldId = useId();
   const [submitError, setSubmitError] = useState<unknown>(null);
+  const [images, setImages] = useState<string[]>([]);
   const {
     register,
     handleSubmit,
@@ -123,6 +125,8 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
 
     try {
       const dress = addDress({
+        images: images,
+        barcode: `DRESS-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
         ...values,
         description: values.description || '',
         rentalPrice: values.isForRent ? values.rentalPrice : 0,
@@ -140,6 +144,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
   return (
     <Modal open={open} onClose={closeModal} title="إضافة فستان جديد" className="max-w-3xl">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <ImageUpload images={images} onChange={setImages} maxImages={5} />
         {submitError !== null && (
           <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة الفستان. حاولي مرة أخرى." />
         )}
