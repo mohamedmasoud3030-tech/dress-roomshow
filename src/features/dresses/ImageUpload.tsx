@@ -1,5 +1,8 @@
-import { useCallback, useState } from 'react';
-import { X, ImagePlus } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
+import { ImagePlus, X } from 'lucide-react';
+
+const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+const LOCAL_STORAGE_WARNING_BYTES = 2.5 * 1024 * 1024;
 
 type ImageUploadProps = {
   images: string[];
@@ -23,65 +26,118 @@ function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  if (bytes >= 1024) {
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+
+  return `${bytes} B`;
+}
+
+function estimateStoredImageBytes(images: string[]): number {
+  return images.reduce((total, image) => total + image.length, 0);
+}
+
 export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const estimatedStoredBytes = useMemo(() => estimateStoredImageBytes(images), [images]);
+  const shouldShowStorageWarning = estimatedStoredBytes >= LOCAL_STORAGE_WARNING_BYTES;
 
   const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files) return;
 
+    setUploadError(null);
+
     const remainingSlots = maxImages - images.length;
-    if (remainingSlots <= 0) return;
+    if (remainingSlots <= 0) {
+      setUploadError(`تم الوصول إلى الحد الأقصى لعدد الصور (${maxImages}).`);
+      return;
+    }
 
-    const filesToProcess = Array.from(files)
-      .filter((file) => file.type.startsWith('image/'))
-      .slice(0, remainingSlots);
+    const imageFiles = Array.from(files).filter((file) => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) {
+      setUploadError('يمكن رفع ملفات الصور فقط.');
+      return;
+    }
 
-    if (filesToProcess.length === 0) return;
+    const oversizedFile = imageFiles.find((file) => file.size > MAX_IMAGE_SIZE_BYTES);
+    if (oversizedFile) {
+      setUploadError(`الصورة ${oversizedFile.name} أكبر من الحد المسموح (${formatBytes(MAX_IMAGE_SIZE_BYTES)} لكل صورة).`);
+      return;
+    }
+
+    const filesToProcess = imageFiles.slice(0, remainingSlots);
 
     try {
       const uploadedImages = await Promise.all(filesToProcess.map(readFileAsDataUrl));
       onChange([...images, ...uploadedImages]);
     } catch (error) {
       console.error('Image upload error:', error);
+      setUploadError('تعذر رفع الصور المختارة. حاولي مرة أخرى.');
     }
-  }, [images, onChange, maxImages]);
+  }, [images, maxImages, onChange]);
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+  const handleDrag = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.type === 'dragenter' || event.type === 'dragover') {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (event.type === 'dragleave') {
       setDragActive(false);
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     setDragActive(false);
-    handleFiles(e.dataTransfer.files);
+    void handleFiles(event.dataTransfer.files);
   }, [handleFiles]);
 
   const removeImage = (index: number) => {
-    const newImages = [...images];
-    newImages.splice(index, 1);
-    onChange(newImages);
+    const nextImages = [...images];
+    nextImages.splice(index, 1);
+    onChange(nextImages);
+
+    if (uploadError) {
+      setUploadError(null);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-bold text-slate-700">
-        صور الفستان (حتى {maxImages} صور)
-      </label>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <label className="block text-sm font-bold text-slate-700">
+          صور الفستان (حتى {maxImages} صور)
+        </label>
+        <p className="text-xs text-slate-500">
+          الحجم التقديري المخزن حالياً: {formatBytes(estimatedStoredBytes)}
+        </p>
+      </div>
 
-      {/* Image Preview */}
+      {uploadError && (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+          {uploadError}
+        </div>
+      )}
+
+      {shouldShowStorageWarning && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+          الصور الحالية كبيرة نسبيًا للتخزين داخل المتصفح. إذا ظهرت مشاكل حفظ لاحقًا، قللي عدد الصور أو استخدمي صورًا أصغر حجمًا.
+        </div>
+      )}
+
       {images.length > 0 && (
         <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
           {images.map((img, index) => (
             <div key={index} className="group relative aspect-square overflow-hidden rounded-lg border border-slate-200">
-              <img 
-                src={img} 
+              <img
+                src={img}
                 alt={`صورة ${index + 1}`}
                 className="h-full w-full object-cover"
               />
@@ -97,7 +153,6 @@ export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProp
         </div>
       )}
 
-      {/* Upload Area */}
       {images.length < maxImages && (
         <div
           onDragEnter={handleDrag}
@@ -105,8 +160,8 @@ export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProp
           onDragOver={handleDrag}
           onDrop={handleDrop}
           className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 transition-colors ${
-            dragActive 
-              ? 'border-amber-500 bg-amber-50' 
+            dragActive
+              ? 'border-amber-500 bg-amber-50'
               : 'border-slate-300 hover:border-slate-400'
           }`}
         >
@@ -114,17 +169,20 @@ export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProp
             type="file"
             accept="image/*"
             multiple
-            onChange={(e) => handleFiles(e.target.files)}
+            onChange={(event) => {
+              void handleFiles(event.target.files);
+              event.currentTarget.value = '';
+            }}
             className="hidden"
             id="image-upload"
           />
-          <label htmlFor="image-upload" className="cursor-pointer">
-            <ImagePlus size={40} className="mb-2 text-slate-400" />
+          <label htmlFor="image-upload" className="cursor-pointer text-center">
+            <ImagePlus size={40} className="mx-auto mb-2 text-slate-400" />
             <p className="text-sm text-slate-600">
               اضغطي هنا أو اسحبي الصور لرفعها
             </p>
             <p className="mt-1 text-xs text-slate-400">
-              (JPG, PNG - حتى 5 ميجابايت لكل صورة)
+              (JPG, PNG - حتى {formatBytes(MAX_IMAGE_SIZE_BYTES)} لكل صورة)
             </p>
           </label>
         </div>
