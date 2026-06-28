@@ -6,6 +6,7 @@ import { AppointmentsPage } from '../features/appointments/AppointmentsPage';
 import { CustomersPage } from '../features/customers/CustomersPage';
 import { DashboardWithClosingAlertPage } from '../features/dashboard/DashboardWithClosingAlertPage';
 import { DeliveryReturnPage } from '../features/delivery-return/DeliveryReturnPage';
+import { DressDetailsPage } from '../features/dresses/DressDetailsPage';
 import { DressesPage } from '../features/dresses/DressesPage';
 import { ExpensesPage } from '../features/expenses/ExpensesPage';
 import { PaymentsPage } from '../features/payments/PaymentsPage';
@@ -22,6 +23,7 @@ export function App() {
       <Route element={<AppLayout />}>
         <Route index element={<DashboardWithClosingAlertPage />} />
         <Route path="dresses" element={<DressesPage />} />
+        <Route path="dresses/:code" element={<DressDetailsPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="reservations" element={<ReservationsPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />

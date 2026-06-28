@@ -9,6 +9,7 @@ import { FORM_ERROR_CLASS_NAME, FORM_FIELD_CLASS_NAME, FORM_LABEL_CLASS_NAME } f
 import { addDress } from './dress.service';
 import type { Dress } from './dress.types';
 import { ImageUpload } from './ImageUpload';
+import { generateDressBarcodeValue } from './barcode.utils';
 
 const initialStatuses = ['available', 'laundry', 'maintenance', 'damaged', 'inactive'] as const;
 
@@ -126,7 +127,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
     try {
       const dress = addDress({
         images: images,
-        barcode: `DRESS-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+        barcode: generateDressBarcodeValue(),
         ...values,
         description: values.description || '',
         rentalPrice: values.isForRent ? values.rentalPrice : 0,

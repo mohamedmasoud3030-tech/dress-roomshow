@@ -1,4 +1,5 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
@@ -256,12 +257,13 @@ export function DressesPage() {
       {filteredDresses.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
           {filteredDresses.map((dress) => (
-            <div
+            <Link
               key={dress.id}
-              className={highlightedDressCode === dress.code ? 'rounded-3xl ring-2 ring-amber-400 ring-offset-4 ring-offset-slate-50' : ''}
+              to={`/dresses/${dress.code}`}
+              className={highlightedDressCode === dress.code ? 'block rounded-3xl ring-2 ring-amber-400 ring-offset-4 ring-offset-slate-50' : 'block'}
             >
               <DressCard dress={dress} />
-            </div>
+            </Link>
           ))}
         </div>
       ) : (

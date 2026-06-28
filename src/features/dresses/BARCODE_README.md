@@ -38,3 +38,9 @@ The manual flow now uses an inline input inside the scanner modal instead of a b
 
 ## Runtime validation note
 Static checks and production builds are passing, but barcode scanning still should be validated on a real device camera for final operational confidence.
+
+## Operational notes
+- A dedicated dress details route is now available to review each dress barcode more clearly.
+- That details page exposes barcode printing and a runtime readiness note for camera support.
+- Camera support checks are indicative only; final confirmation still requires a real device test.
+- Current ZXing installation also showed a Node compatibility warning during install, so the project should preferably be validated in an environment aligned with the scanner library requirements.
