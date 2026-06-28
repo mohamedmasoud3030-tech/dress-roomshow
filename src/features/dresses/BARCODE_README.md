@@ -8,7 +8,7 @@ The barcode system currently supports:
 4. Jumping directly to the matched dress inside the inventory page
 
 ## Components
-- `BarcodeGenerator.tsx`: Generates and prints barcodes
+- `BarcodeGenerator.tsx`: Generates barcodes and opens a print-friendly label window without relying on temporary Blob URLs
 - `BarcodeScanner.tsx`: Scans supported barcode formats using the device camera
 - `DressesPage.tsx`: Loads the scanner on demand and applies the scan result to inventory search/highlighting
 
