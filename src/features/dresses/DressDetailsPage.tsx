@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
-import { DRESS_STATUS_LABELS, DRESS_STATUS_STYLES } from '../../shared/domain/dressConstants';
+import { DRESS_STATUS_LABELS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { BarcodeGenerator } from './BarcodeGenerator';
 import { getBarcodeEngineEnvironmentNote, getBarcodeRuntimeSupportStatus } from './barcode.utils';
@@ -16,16 +16,16 @@ export function DressDetailsPage() {
     return (
       <section className="space-y-4">
         <PageHeader
-          eyebrow="تفاصيل الفستان"
-          title="الفستان غير موجود"
-          description="تعذر العثور على الفستان المطلوب. ربما تم حذفه أو أن الرابط غير صحيح."
+          eyebrow="تفاصيل عنصر المخزون"
+          title="العنصر غير موجود"
+          description="تعذر العثور على العنصر المطلوب. ربما تم حذفه أو أن الرابط غير صحيح."
         />
         <Link
           to="/dresses"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
         >
           <ArrowRight className="h-4 w-4" />
-          العودة إلى الفساتين
+          العودة إلى المخزون
         </Link>
       </section>
     );
@@ -39,21 +39,22 @@ export function DressDetailsPage() {
     <section className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <PageHeader
-          eyebrow="تفاصيل الفستان"
+          eyebrow="تفاصيل عنصر المخزون"
           title={dress.name}
-          description="مراجعة بيانات الفستان والباركود وحالة الجاهزية للطباعة والمسح."
+          description="مراجعة بيانات العنصر والباركود وحالة الجاهزية للطباعة والمسح."
         />
         <Link
           to="/dresses"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100"
         >
           <ArrowRight className="h-4 w-4" />
-          العودة إلى الفساتين
+          العودة إلى المخزون
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label="كود الفستان" value={dress.code} />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <SummaryCard label="كود العنصر" value={dress.code} />
+        <SummaryCard label="نوع العنصر" value={INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress']} />
         <SummaryCard label="الباركود" value={dress.barcode} />
         <SummaryCard label="سعر البيع" value={dress.isForSale ? formatMoneyOMR(dress.salePrice) : 'غير متاح'} tone={dress.isForSale ? 'positive' : 'default'} />
         <SummaryCard label="سعر الإيجار" value={dress.isForRent ? formatMoneyOMR(dress.rentalPrice) : 'غير متاح'} tone={dress.isForRent ? 'positive' : 'default'} />
@@ -65,7 +66,7 @@ export function DressDetailsPage() {
             <img src={primaryImage} alt={dress.name} className="h-80 w-full rounded-2xl object-cover" />
           ) : (
             <div className="flex h-80 items-center justify-center rounded-2xl bg-stone-100 text-slate-400">
-              لا توجد صورة رئيسية لهذا الفستان
+              لا توجد صورة رئيسية لهذا العنصر
             </div>
           )}
 

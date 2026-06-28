@@ -111,6 +111,9 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
 
   const isForRent = watch('isForRent');
   const isForSale = watch('isForSale');
+  const itemType = watch('itemType');
+  const supportsSize = itemType === 'dress' || itemType === 'shoe' || itemType === 'veil';
+  const supportsDeposit = itemType === 'dress';
 
   useEffect(() => {
     if (!open) return;
@@ -186,12 +189,12 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
             <label htmlFor={`${fieldId}-color`} className={FORM_LABEL_CLASS_NAME}>اللون</label>
-            <input id={`${fieldId}-color`} {...register('color')} className={dressFieldClassName} placeholder="مثال: كحلي" />
+            <input id={`${fieldId}-color`} {...register('color')} className={dressFieldClassName} placeholder="مثال: كحلي أو فضي" />
             {errors.color && <p className={FORM_ERROR_CLASS_NAME}>{errors.color.message}</p>}
           </div>
           <div>
             <label htmlFor={`${fieldId}-size`} className={FORM_LABEL_CLASS_NAME}>المقاس</label>
-            <input id={`${fieldId}-size`} dir="ltr" {...register('size')} className={dressFieldClassName} placeholder="مثال: M أو 42" />
+            <input id={`${fieldId}-size`} dir="ltr" {...register('size')} readOnly={!supportsSize} className={dressFieldClassName} placeholder={supportsSize ? 'مثال: M أو 42 أو One Size' : 'غير مطلوب غالباً لهذا النوع'} />
             {errors.size && <p className={FORM_ERROR_CLASS_NAME}>{errors.size.message}</p>}
           </div>
         </div>
@@ -230,7 +233,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
           </div>
           <div>
             <label htmlFor={`${fieldId}-deposit`} className={FORM_LABEL_CLASS_NAME}>التأمين (ر.ع)</label>
-            <input id={`${fieldId}-deposit`} type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} inputMode="decimal" readOnly={!isForRent} {...register('depositAmount')} className={dressFieldClassName} />
+            <input id={`${fieldId}-deposit`} type="number" min={MIN_ZERO_AMOUNT} step={MONEY_STEP} inputMode="decimal" readOnly={!isForRent || !supportsDeposit} {...register('depositAmount')} className={dressFieldClassName} />
             {errors.depositAmount && <p className={FORM_ERROR_CLASS_NAME}>{errors.depositAmount.message}</p>}
           </div>
           <div>
