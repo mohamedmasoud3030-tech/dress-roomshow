@@ -10,6 +10,7 @@ import {
 } from '../../services/localDatabase';
 import { recordAudit } from '../audit/audit.service';
 import { getAppPreferences, saveAppPreferences, type AppPreferences } from './preferences.service';
+import { ShowroomProfileEditor } from './ShowroomProfileEditor';
 
 function downloadJson(filename: string, value: unknown): void {
   const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json;charset=utf-8' });
@@ -102,10 +103,12 @@ export function PreferencesPage() {
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <label className="text-sm font-bold text-slate-700">اسم المعرض<input value={preferences.showroomName} onChange={(event) => setPreferences((current) => ({ ...current, showroomName: event.target.value }))} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3" /></label>
           <label className="text-sm font-bold text-slate-700">أيام التجهيز قبل وبعد الحجز<input type="number" min="0" max="14" value={preferences.reservationBufferDays} onChange={(event) => setPreferences((current) => ({ ...current, reservationBufferDays: Number(event.target.value) }))} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3" /></label>
-          <label className="text-sm font-bold text-slate-700">حد الفستان الراكد بالأيام<input type="number" min="1" max="3650" value={preferences.dormantDressDays} onChange={(event) => setPreferences((current) => ({ ...current, dormantDressDays: Number(event.target.value) }))} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3" /></label>
+          <label className="text-sm font-bold text-slate-700">حد العنصر الراكد بالأيام<input type="number" min="1" max="3650" value={preferences.dormantDressDays} onChange={(event) => setPreferences((current) => ({ ...current, dormantDressDays: Number(event.target.value) }))} className="mt-2 h-11 w-full rounded-xl border border-slate-300 px-3" /></label>
         </div>
         <button type="button" onClick={savePreferences} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"><Save aria-hidden="true" className="h-4 w-4" />حفظ الإعدادات</button>
       </article>
+
+      <ShowroomProfileEditor />
     </section>
   );
 }

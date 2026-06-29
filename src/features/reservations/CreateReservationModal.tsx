@@ -17,7 +17,7 @@ import type { Reservation } from './reservation.types';
 
 const reservationSchema = z.object({
   customerId: z.string().min(1, 'اختاري العميلة.'),
-  dressId: z.string().min(1, 'اختاري الفستان.'),
+  dressId: z.string().min(1, 'اختاري العنصر.'),
   pickupDate: z.string().min(1, 'حددي تاريخ الاستلام.'),
   returnDate: z.string().min(1, 'حددي تاريخ الإرجاع.'),
   depositAmount: z.coerce.number().finite('قيمة العربون غير صالحة.').min(0, 'قيمة العربون لا يمكن أن تكون سالبة.'),
@@ -136,9 +136,9 @@ export function CreateReservationModal({ open, onClose, onCreated }: CreateReser
           </div>
 
           <div>
-            <label htmlFor={`${fieldId}-dress`} className={FORM_LABEL_CLASS_NAME}>الفستان</label>
+            <label htmlFor={`${fieldId}-dress`} className={FORM_LABEL_CLASS_NAME}>العنصر</label>
             <select id={`${fieldId}-dress`} {...register('dressId')} className={FORM_FIELD_CLASS_NAME}>
-              <option value="">اختاري الفستان</option>
+              <option value="">اختاري العنصر</option>
               {dresses.map((dress) => (
                 <option key={dress.id} value={dress.id}>
                   {dress.code} — {dress.name} — {formatMoneyOMR(dress.rentalPrice)}

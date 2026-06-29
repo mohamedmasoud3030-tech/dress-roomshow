@@ -24,8 +24,8 @@ export function assertBusinessDateOpen(businessDate: string): void {
 export function getDressArchiveBlockers(dressCode: string, status: DressStatus): string[] {
   const blockers: string[] = [];
 
-  if (status === 'rented') blockers.push('الفستان مؤجر حالياً ولم يتم استرجاعه بعد.');
-  if (status === 'sold') blockers.push('الفستان مسجل كمباع ولا يمكن إيقافه من المخزون.');
+  if (status === 'rented') blockers.push('العنصر مؤجر حالياً ولم يتم استرجاعه بعد.');
+  if (status === 'sold') blockers.push('العنصر مسجل كمباع ولا يمكن إيقافه من المخزون.');
 
   const today = getTodayISO();
   const relatedReservation = getStoredReservations().find(
@@ -35,7 +35,7 @@ export function getDressArchiveBlockers(dressCode: string, status: DressStatus):
   );
 
   if (relatedReservation) {
-    blockers.push(`يوجد حجز نشط أو قادم مرتبط بالفستان: ${relatedReservation.reservationNumber}.`);
+    blockers.push(`يوجد حجز نشط أو قادم مرتبط بالعنصر: ${relatedReservation.reservationNumber}.`);
   }
 
   return blockers;

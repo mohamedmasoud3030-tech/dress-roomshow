@@ -6,7 +6,7 @@ type ImageGalleryProps = {
   alt?: string;
 };
 
-export function ImageGallery({ images, alt = 'صورة الفستان' }: ImageGalleryProps) {
+export function ImageGallery({ images, alt = 'صورة العنصر' }: ImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showZoom, setShowZoom] = useState(false);
 

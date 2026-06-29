@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { getDresses } from '../../features/dresses/dress.service';
 import type { Dress } from '../../features/dresses/dress.types';
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
-import { landingShowroomProfile } from './landingContent';
+import { getShowroomProfile } from '../../features/preferences/showroomProfile.service';
+import type { LandingShowroomProfile } from './landingContent';
 import { LandingAboutServices } from './components/LandingAboutServices';
 import { LandingCategories } from './components/LandingCategories';
 import { LandingContact } from './components/LandingContact';
@@ -23,6 +24,7 @@ export function LandingPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InventoryCategoryFilter>('all');
   const [usageFilter, setUsageFilter] = useState<LandingUsageFilter>('all');
+  const profile: LandingShowroomProfile = getShowroomProfile();
 
   useEffect(() => {
     const availableDresses = getDresses().filter((dress) => dress.status === 'available');
@@ -50,17 +52,17 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-slate-900" dir="rtl">
-      <LandingHeader profile={landingShowroomProfile} />
+      <LandingHeader profile={profile} />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <LandingHero
-          profile={landingShowroomProfile}
+          profile={profile}
           total={dresses.length}
           rentableCount={rentableCount}
           saleCount={saleCount}
         />
         <LandingValueProps />
-        <LandingCategories profile={landingShowroomProfile} />
+        <LandingCategories profile={profile} />
         <LandingInventory
           dresses={filteredDresses}
           loading={loading}
@@ -72,13 +74,13 @@ export function LandingPage() {
           onUsageChange={setUsageFilter}
           inventoryCategories={inventoryCategories}
         />
-        <LandingAboutServices profile={landingShowroomProfile} />
-        <LandingSteps profile={landingShowroomProfile} />
-        <LandingFaq profile={landingShowroomProfile} />
-        <LandingContact profile={landingShowroomProfile} />
+        <LandingAboutServices profile={profile} />
+        <LandingSteps profile={profile} />
+        <LandingFaq profile={profile} />
+        <LandingContact profile={profile} />
       </main>
 
-      <LandingFooter profile={landingShowroomProfile} />
+      <LandingFooter profile={profile} />
     </div>
   );
 }

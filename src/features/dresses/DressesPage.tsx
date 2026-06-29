@@ -111,7 +111,7 @@ export function DressesPage() {
 
   const handleCreated = (dress: Dress) => {
     setDresses((current) => [dress, ...current]);
-    setFeedback(`تمت إضافة الفستان ${dress.code} بنجاح.`);
+    setFeedback(`تمت إضافة العنصر ${dress.code} بنجاح.`);
   };
 
   const handleSold = (sale: SaleRecord) => {
@@ -129,13 +129,13 @@ export function DressesPage() {
 
     if (!matchedDress) {
       setHighlightedDressCode(null);
-      setFeedback(`لم يتم العثور على فستان مرتبط بالباركود ${normalizedBarcode}.`);
+      setFeedback(`لم يتم العثور على عنصر مرتبط بالباركود ${normalizedBarcode}.`);
       return;
     }
 
     setHighlightedDressCode(matchedDress.code);
     setFilters((current) => ({ ...current, search: matchedDress.code }));
-    setFeedback(`تم العثور على الفستان ${matchedDress.name} (${matchedDress.code}).`);
+    setFeedback(`تم العثور على العنصر ${matchedDress.name} (${matchedDress.code}).`);
   };
 
   return (
@@ -168,7 +168,7 @@ export function DressesPage() {
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
           >
             <Banknote aria-hidden="true" className="h-5 w-5" />
-            بيع فستان
+            بيع عنصر
           </button>
           <button
             type="button"
@@ -191,7 +191,7 @@ export function DressesPage() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label="إجمالي الفساتين" value={summary.total} />
+        <SummaryCard label="إجمالي المخزون" value={summary.total} />
         <SummaryCard label="متاحة الآن" value={summary.available} tone="positive" />
         <SummaryCard label="مؤجرة حالياً" value={summary.rented} />
         <SummaryCard label="مغسلة أو تعديل" value={summary.inService} tone={summary.inService > 0 ? 'warning' : 'default'} />
@@ -200,7 +200,7 @@ export function DressesPage() {
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_180px_180px]">
           <label className="relative block">
-            <span className="sr-only">البحث في الفساتين</span>
+            <span className="sr-only">البحث في المخزون</span>
             <Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
@@ -212,7 +212,7 @@ export function DressesPage() {
           </label>
 
           <label>
-            <span className="sr-only">حالة الفستان</span>
+            <span className="sr-only">حالة العنصر</span>
             <select
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as DressFilters['status'] }))}
@@ -257,7 +257,7 @@ export function DressesPage() {
           </label>
 
           <label>
-            <span className="sr-only">نوع استخدام الفستان</span>
+            <span className="sr-only">نوع الاستخدام</span>
             <select
               value={filters.usage}
               onChange={(event) => setFilters((current) => ({ ...current, usage: event.target.value as DressFilters['usage'] }))}
@@ -285,7 +285,7 @@ export function DressesPage() {
         </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-          <p className="text-lg font-semibold text-slate-900">لا توجد فساتين مطابقة</p>
+          <p className="text-lg font-semibold text-slate-900">لا توجد عناصر مطابقة</p>
           <p className="mt-2 text-sm text-slate-500">غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.</p>
         </div>
       )}

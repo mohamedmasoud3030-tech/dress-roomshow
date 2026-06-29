@@ -206,7 +206,7 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
               <p className="mt-1 font-extrabold text-slate-950">{selected.customerName}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-amber-800">الفستان</p>
+              <p className="text-xs font-bold text-amber-800">العنصر</p>
               <p className="mt-1 font-extrabold text-slate-950">{selected.dressCode}</p>
             </div>
             <div>

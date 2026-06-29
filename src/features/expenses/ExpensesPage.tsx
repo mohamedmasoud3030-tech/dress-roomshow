@@ -80,7 +80,7 @@ export function ExpensesPage() {
         <input
           value={filters.search}
           onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
-          placeholder="بحث برقم المصروف أو العنوان أو الفستان أو الملاحظات"
+          placeholder="بحث برقم المصروف أو العنوان أو العنصر أو الملاحظات"
           className="rounded-xl border border-slate-300 px-3 py-2 text-sm focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
         />
         <select
@@ -128,7 +128,7 @@ export function ExpensesPage() {
                   <h2 className="mt-1 text-lg font-semibold text-slate-950">{expense.title}</h2>
                   {expense.relatedDressCode ? (
                     <p className="text-sm text-slate-600">
-                      الفستان: {expense.relatedDressCode}
+                      العنصر: {expense.relatedDressCode}
                       {expense.relatedDressName ? ` / ${expense.relatedDressName}` : ''}
                     </p>
                   ) : (

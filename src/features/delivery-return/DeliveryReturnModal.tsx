@@ -225,7 +225,7 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
               <p className="mt-1 font-extrabold text-slate-950">{selectedReservation.customerName}</p>
             </div>
             <div>
-              <p className="text-xs font-bold text-amber-800">الفستان</p>
+              <p className="text-xs font-bold text-amber-800">العنصر</p>
               <p className="mt-1 font-extrabold text-slate-950">{selectedReservation.dressCode}</p>
             </div>
             <div>
@@ -240,7 +240,7 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
         )}
 
         <label className={STACKED_FORM_LABEL_CLASS_NAME}>
-          حالة الفستان
+          حالة العنصر
           <textarea
             rows={2}
             value={form.condition}
@@ -295,7 +295,7 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
                 </select>
               </label>
               <label className={STACKED_FORM_LABEL_CLASS_NAME}>
-                حالة الفستان التالية
+                حالة العنصر التالية
                 <select
                   value={form.nextDressStatus}
                   onChange={(event) => setForm((current) => ({ ...current, nextDressStatus: event.target.value as NextDressStatus }))}

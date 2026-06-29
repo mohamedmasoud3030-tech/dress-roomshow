@@ -42,7 +42,7 @@ export function saveAppPreferences(input: AppPreferences): AppPreferences {
     throw new Error('أيام الفاصل الزمني للحجز يجب أن تكون رقماً بين 0 و 14.');
   }
   if (!Number.isInteger(input.dormantDressDays) || input.dormantDressDays < 1 || input.dormantDressDays > 3650) {
-    throw new Error('أيام اعتبار الفستان خاملاً يجب أن تكون رقماً موجباً.');
+    throw new Error('أيام اعتبار العنصر خاملاً يجب أن تكون رقماً موجباً.');
   }
 
   writeCollection(COLLECTION, [normalized]);

@@ -35,14 +35,14 @@ export function createReservation(input: CreateReservationInput): Reservation {
   const customer = getCustomers().find((item) => item.id === input.customerId); const dress = getDresses().find((item) => item.id === input.dressId); const today = getTodayISO();
   if (!customer) throw new Error('العميلة المحددة غير موجودة.');
   if (customer.status === 'blocked') throw new Error('لا يمكن إنشاء حجز لعميلة محظورة قبل تسوية حالتها.');
-  if (!dress) throw new Error('الفستان المحدد غير موجود.');
-  if (!dress.isForRent || !reservableDressStatuses.has(dress.status)) throw new Error('الفستان غير مؤهل للإيجار حالياً.');
+  if (!dress) throw new Error('العنصر المحدد غير موجود.');
+  if (!dress.isForRent || !reservableDressStatuses.has(dress.status)) throw new Error('العنصر غير مؤهل للإيجار حالياً.');
   if (!input.pickupDate || !input.returnDate) throw new Error('حددي تاريخ الاستلام والإرجاع.');
   if (input.pickupDate < today) throw new Error('تاريخ الاستلام لا يمكن أن يكون في الماضي.');
   if (input.returnDate <= input.pickupDate) throw new Error('تاريخ الإرجاع يجب أن يكون بعد تاريخ الاستلام.');
   if (!Number.isFinite(input.depositAmount) || input.depositAmount < 0) throw new Error('قيمة العربون غير صالحة.');
   const reservations = getReservations();
-  if (hasReservationOverlap({ dressCode: dress.code, pickupDate: input.pickupDate, returnDate: input.returnDate }, reservations)) throw new Error('الفستان غير متاح خلال هذه الفترة أو أيام التجهيز قبلها أو بعدها.');
+  if (hasReservationOverlap({ dressCode: dress.code, pickupDate: input.pickupDate, returnDate: input.returnDate }, reservations)) throw new Error('العنصر غير متاح خلال هذه الفترة أو أيام التجهيز قبلها أو بعدها.');
   const totalAmount = dress.rentalPrice + input.depositAmount;
   const reservation: Reservation = { id: generateId(), reservationNumber: generateNumber('RSV'), customerName: customer.name, customerPhone: customer.phone, dressCode: dress.code, dressName: dress.name, pickupDate: input.pickupDate, returnDate: input.returnDate, status: 'confirmed', rentalPrice: dress.rentalPrice, depositAmount: input.depositAmount, totalAmount, paidAmount: 0, remainingAmount: totalAmount, assessedFeesAmount: 0, refundedAmount: 0, settledDepositAmount: 0, retainedDepositAmount: 0, notes: input.notes?.trim() || undefined };
   writeCollection(COLLECTION, [reservation, ...reservations]);

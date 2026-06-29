@@ -39,7 +39,7 @@ export function addExpense(input: AddExpenseInput): ExpenseRecord {
   if (!input.expenseDate) throw new Error('تاريخ المصروف مطلوب.');
   if (input.expenseDate > getTodayISO()) throw new Error('تاريخ المصروف لا يمكن أن يكون في المستقبل.');
   if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('قيمة المصروف يجب أن تكون أكبر من صفر.');
-  if (input.relatedDressCode && !relatedDress) throw new Error('الفستان المحدد غير موجود.');
+  if (input.relatedDressCode && !relatedDress) throw new Error('العنصر المحدد غير موجود.');
   assertBusinessDateOpen(input.expenseDate);
 
   const expense: ExpenseRecord = {

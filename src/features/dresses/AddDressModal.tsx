@@ -16,12 +16,12 @@ const initialStatuses = ['available', 'laundry', 'maintenance', 'damaged', 'inac
 
 const dressSchema = z
   .object({
-    name: z.string().trim().min(2, 'اكتبي اسم الفستان بشكل واضح.').max(100, 'الاسم طويل جداً.'),
+    name: z.string().trim().min(2, 'اكتبي اسم العنصر بشكل واضح.').max(100, 'الاسم طويل جداً.'),
     description: z.string().trim().max(300, 'الوصف يجب ألا يتجاوز 300 حرف.').optional(),
     itemType: z.enum(['dress', 'accessory', 'bag', 'shoe', 'veil', 'other']),
     category: z.enum(['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'إكسسوارات', 'حقائب', 'أحذية', 'طرح وشالات', 'أخرى']),
-    color: z.string().trim().min(1, 'لون الفستان مطلوب.').max(50, 'اسم اللون طويل جداً.'),
-    size: z.string().trim().min(1, 'مقاس الفستان مطلوب.').max(30, 'المقاس طويل جداً.'),
+    color: z.string().trim().min(1, 'لون العنصر مطلوب.').max(50, 'اسم اللون طويل جداً.'),
+    size: z.string().trim().min(1, 'المقاس مطلوب.').max(30, 'المقاس طويل جداً.'),
     purchasePrice: z.coerce.number().finite('سعر الشراء غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الشراء لا يمكن أن يكون سالباً.'),
     rentalPrice: z.coerce.number().finite('سعر الإيجار غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الإيجار لا يمكن أن يكون سالباً.'),
     salePrice: z.coerce.number().finite('سعر البيع غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر البيع لا يمكن أن يكون سالباً.'),
@@ -36,7 +36,7 @@ const dressSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['isForRent'],
-        message: 'حددي أن الفستان للبيع أو للإيجار على الأقل.',
+        message: 'حددي أن العنصر للبيع أو للإيجار على الأقل.',
       });
     }
 
@@ -153,7 +153,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <ImageUpload images={images} onChange={setImages} maxImages={5} />
         {submitError !== null && (
-          <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة الفستان. حاولي مرة أخرى." />
+          <UserFacingErrorAlert error={submitError} fallback="تعذر إضافة العنصر. حاولي مرة أخرى." />
         )}
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -254,7 +254,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
           </div>
           <div>
             <label htmlFor={`${fieldId}-notes`} className={FORM_LABEL_CLASS_NAME}>ملاحظات</label>
-            <textarea id={`${fieldId}-notes`} rows={3} maxLength={MAX_NOTES_LENGTH} {...register('notes')} className={dressFieldClassName} placeholder="ملاحظات اختيارية عن الفستان أو التجهيز" />
+            <textarea id={`${fieldId}-notes`} rows={3} maxLength={MAX_NOTES_LENGTH} {...register('notes')} className={dressFieldClassName} placeholder="ملاحظات اختيارية عن العنصر أو التجهيز" />
             {errors.notes && <p className={FORM_ERROR_CLASS_NAME}>{errors.notes.message}</p>}
           </div>
         </div>
@@ -272,7 +272,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
             disabled={isSubmitting}
             className="min-h-11 cursor-pointer rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition duration-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 active:scale-95"
           >
-            {isSubmitting ? 'جارٍ الحفظ...' : 'إضافة الفستان'}
+            {isSubmitting ? 'جارٍ الحفظ...' : 'إضافة العنصر'}
           </button>
         </div>
       </form>

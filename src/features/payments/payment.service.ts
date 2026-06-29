@@ -235,7 +235,7 @@ export function recordReturnSettlement(input: RecordReturnSettlementInput): Retu
           direction: 'settlement',
           amount: input.lateFee,
           source: 'return',
-          notes: 'إثبات رسوم التأخير عند استرجاع الفستان.',
+          notes: 'إثبات رسوم التأخير عند استرجاع العنصر.',
         })
       : null,
     input.damageFee > 0
@@ -246,7 +246,7 @@ export function recordReturnSettlement(input: RecordReturnSettlementInput): Retu
           direction: 'settlement',
           amount: input.damageFee,
           source: 'return',
-          notes: 'إثبات رسوم الضرر عند استرجاع الفستان.',
+          notes: 'إثبات رسوم الضرر عند استرجاع العنصر.',
         })
       : null,
     settledDepositAmount > 0
@@ -257,7 +257,7 @@ export function recordReturnSettlement(input: RecordReturnSettlementInput): Retu
           direction: 'settlement',
           amount: settledDepositAmount,
           source: 'return',
-          notes: 'إغلاق وتسوية العربون عند استرجاع الفستان.',
+          notes: 'إغلاق وتسوية العربون عند استرجاع العنصر.',
         })
       : null,
     retainedDepositAmount > 0

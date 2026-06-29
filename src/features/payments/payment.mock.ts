@@ -74,7 +74,7 @@ export const paymentMockRecords: PaymentRecord[] = [
     direction: 'refund',
     amount: 100,
     reservationTotal: 260,
-    notes: 'استرجاع العربون بعد إعادة الفستان بحالة ممتازة.',
+    notes: 'استرجاع العربون بعد إعادة العنصر بحالة ممتازة.',
   },
   {
     id: 'pay-6',

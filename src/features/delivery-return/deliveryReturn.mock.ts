@@ -83,6 +83,6 @@ export const deliveryReturnMockRecords: DeliveryReturnRecord[] = [
     lateFee: 0,
     damageFee: 35,
     depositRefundAmount: 95,
-    notes: 'تحويل الفستان للصيانة قبل الإتاحة للحجز القادم.',
+    notes: 'تحويل العنصر للصيانة قبل الإتاحة للحجز القادم.',
   },
 ];

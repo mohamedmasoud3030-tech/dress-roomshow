@@ -17,6 +17,7 @@ export const REGISTERED_COLLECTIONS = [
   'audit-log',
   'daily-closings',
   'preferences',
+  'showroom-profile',
 ] as const;
 
 export type DatabaseMetadata = {

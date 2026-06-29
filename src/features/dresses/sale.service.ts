@@ -53,7 +53,7 @@ export function addSale(input: AddSaleInput): SaleRecord {
   const dress = getSaleableDresses().find((item) => item.code === input.dressCode);
   const customerName = input.customerName.trim();
 
-  if (!dress) throw new Error('الفستان غير متاح للبيع حالياً.');
+  if (!dress) throw new Error('العنصر غير متاح للبيع حالياً.');
   if (!customerName) throw new Error('اسم العميلة مطلوب.');
   if (!input.saleDate) throw new Error('تاريخ البيع مطلوب.');
   if (input.saleDate > getTodayISO()) throw new Error('تاريخ البيع لا يمكن أن يكون في المستقبل.');
