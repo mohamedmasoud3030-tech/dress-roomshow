@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
@@ -137,6 +137,13 @@ export function DressesPage() {
     setFilters((current) => ({ ...current, search: matchedDress.code }));
     setFeedback(`تم العثور على العنصر ${matchedDress.name} (${matchedDress.code}).`);
   };
+
+  // Auto-dismiss feedback after 5 seconds
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => setFeedback(null), 5000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
 
   return (
     <section className="space-y-6">
