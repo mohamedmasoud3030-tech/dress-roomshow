@@ -21,7 +21,7 @@ export function DressDetailsPage() {
           description="تعذر العثور على العنصر المطلوب. ربما تم حذفه أو أن الرابط غير صحيح."
         />
         <Link
-          to="/dresses"
+          to="/inventory"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
         >
           <ArrowRight className="h-4 w-4" />
@@ -44,7 +44,7 @@ export function DressDetailsPage() {
           description="مراجعة بيانات العنصر والباركود وحالة الجاهزية للطباعة والمسح."
         />
         <Link
-          to="/dresses"
+          to="/inventory"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100"
         >
           <ArrowRight className="h-4 w-4" />

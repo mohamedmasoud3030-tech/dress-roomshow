@@ -276,7 +276,7 @@ export function DressesPage() {
           {filteredDresses.map((dress) => (
             <Link
               key={dress.id}
-              to={`/dresses/${dress.code}`}
+              to={`/inventory/${dress.code}`}
               className={highlightedDressCode === dress.code ? 'block rounded-3xl ring-2 ring-amber-400 ring-offset-4 ring-offset-slate-50' : 'block'}
             >
               <DressCard dress={dress} />

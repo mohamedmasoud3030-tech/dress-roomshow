@@ -24,7 +24,7 @@ import {
 
 const navigation = [
   { to: '/', label: 'لوحة التحكم', icon: LayoutDashboard },
-  { to: '/dresses', label: 'الفساتين', icon: Shirt },
+  { to: '/inventory', label: 'المخزون', icon: Shirt },
   { to: '/customers', label: 'العملاء', icon: UsersRound },
   { to: '/reservations', label: 'الحجوزات', icon: CalendarDays },
   { to: '/appointments', label: 'المواعيد', icon: Clock3 },

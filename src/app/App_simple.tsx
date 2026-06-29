@@ -10,7 +10,7 @@ export function App() {
       <Routes>
         <Route index element={<LandingPage />} />
         <Route path="/dashboard" element={<DashboardWithClosingAlertPage />} />
-        <Route path="/dresses" element={<DressesPage />} />
+        <Route path="/inventory" element={<DressesPage />} />
         <Route path="/appointments" element={<AppointmentsPage />} />
       </Routes>
     </BrowserRouter>

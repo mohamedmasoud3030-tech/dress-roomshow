@@ -27,9 +27,9 @@ export function App() {
       <Route path="/landing" element={<LandingPage />} />
       <Route element={<AppLayout />}>
         <Route index element={<DashboardWithClosingAlertPage />} />
-        <Route path="dresses" element={<DressesPage />} />
+        <Route path="inventory" element={<DressesPage />} />
         <Route
-          path="dresses/:code"
+          path="inventory/:code"
           element={
             <Suspense
               fallback={
