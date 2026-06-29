@@ -1,16 +1,26 @@
-import { Link, useParams } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowRight, Trash2 } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_STATUS_LABELS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { BarcodeGenerator } from './BarcodeGenerator';
 import { getBarcodeEngineEnvironmentNote, getBarcodeRuntimeSupportStatus } from './barcode.utils';
-import { getDresses } from './dress.service';
+import { deleteDress, getDresses } from './dress.service';
 
 export function DressDetailsPage() {
   const { code = '' } = useParams();
+  const navigate = useNavigate();
   const dress = getDresses().find((item) => item.code === code);
+
+  const handleDelete = () => {
+    if (!dress) return;
+    if (!window.confirm(`هل تريدين حذف العنصر "${dress.name}" (${dress.code}) نهائياً؟`)) return;
+    const deleted = deleteDress(dress.code);
+    if (deleted) {
+      navigate('/inventory', { replace: true });
+    }
+  };
 
   if (!dress) {
     return (
@@ -43,13 +53,23 @@ export function DressDetailsPage() {
           title={dress.name}
           description="مراجعة بيانات العنصر والباركود وحالة الجاهزية للطباعة والمسح."
         />
-        <Link
-          to="/inventory"
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100"
-        >
-          <ArrowRight className="h-4 w-4" />
-          العودة إلى المخزون
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/inventory"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100"
+          >
+            <ArrowRight className="h-4 w-4" />
+            العودة إلى المخزون
+          </Link>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50"
+          >
+            <Trash2 className="h-4 w-4" />
+            حذف العنصر
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
