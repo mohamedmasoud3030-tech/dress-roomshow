@@ -40,4 +40,16 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          'vendor-zxing': ['@zxing/browser', '@zxing/library'],
+          'vendor-lucide': ['lucide-react'],
+        },
+      },
+    },
+  },
 });
