@@ -6,6 +6,7 @@ import {
   Clock3,
   LayoutDashboard,
   LockKeyhole,
+  Menu,
   PackageCheck,
   Plus,
   ReceiptText,
@@ -43,6 +44,7 @@ const focusRing =
 export function AppLayout() {
   const location = useLocation();
   const [desktopSyncStatus, setDesktopSyncStatus] = useState<DesktopSyncStatus>(() => getDesktopSyncStatus());
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const updateStatus = (event: Event) => {
@@ -69,10 +71,10 @@ export function AppLayout() {
             <img src="/favicon.svg" alt="" aria-hidden="true" className="h-12 w-12 rounded-2xl bg-amber-300/10 shadow-lg" />
             <div>
               <p className="text-2xl font-extrabold tracking-[0.22em] text-amber-300">LENA</p>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Dress Operations</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Inventory Operations</p>
             </div>
           </div>
-          <h1 className="mt-5 text-2xl font-extrabold">لوحة إدارة الفساتين</h1>
+          <h1 className="mt-5 text-2xl font-extrabold">لوحة إدارة المخزون</h1>
           <p className="mt-2 text-xs leading-6 text-slate-400">مركز واحد للمخزون والحجوزات والتحصيل اليومي.</p>
         </div>
 
@@ -134,24 +136,66 @@ export function AppLayout() {
         aria-label="التنقل الرئيسي للموبايل"
         className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden"
       >
-        <div className="flex overflow-x-auto px-2 py-2">
-          {navigation.map((item) => (
+        <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          {navigation.slice(0, 4).map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === '/'}
               className={({ isActive }) =>
-                `flex min-h-14 min-w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 py-1 text-[11px] font-bold transition duration-200 ${focusRing} ${
+                `flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[11px] font-bold transition duration-200 ${focusRing} ${
                   isActive ? 'bg-amber-100 text-amber-900' : 'text-slate-500 hover:bg-stone-100 hover:text-slate-950'
                 }`
               }
             >
               <item.icon aria-hidden="true" className="h-5 w-5" />
-              <span className="whitespace-nowrap">{item.label}</span>
+              <span className="truncate">{item.label}</span>
             </NavLink>
           ))}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[11px] font-bold text-slate-500 transition hover:bg-stone-100 hover:text-slate-950"
+          >
+            <Menu aria-hidden="true" className="h-5 w-5" />
+            <span>المزيد</span>
+          </button>
         </div>
       </nav>
+
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            type="button"
+            aria-label="إغلاق القائمة"
+            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <nav
+            aria-label="القائمة الكاملة"
+            className="absolute inset-x-4 bottom-20 max-h-[70vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl"
+          >
+            <div className="grid grid-cols-3 gap-3">
+              {navigation.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === '/'}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center gap-2 rounded-xl p-3 text-xs font-bold transition ${focusRing} ${
+                      isActive ? 'bg-amber-100 text-amber-900' : 'text-slate-600 hover:bg-stone-100'
+                    }`
+                  }
+                >
+                  <item.icon aria-hidden="true" className="h-6 w-6" />
+                  <span>{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          </nav>
+        </div>
+      )}
     </div>
   );
 }
