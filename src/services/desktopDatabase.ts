@@ -1,5 +1,3 @@
-import { invoke } from '@tauri-apps/api/core';
-
 const PREFIX = 'dress-roomshow:';
 export const DESKTOP_SYNC_STATUS_EVENT = 'dress-roomshow:desktop-sync-status';
 let previousSnapshot = '';
@@ -17,11 +15,32 @@ type DesktopSyncStatusUpdate =
   | { state: 'browser-fallback'; message: string }
   | { state: 'error'; message: string; attempts: number };
 
-type DesktopInvoke = typeof invoke;
+type DesktopInvoke = (cmd: string, args?: Record<string, unknown>) => Promise<unknown>;
 type DesktopTestGlobal = typeof globalThis & { __dressRoomshowDesktopInvokeForTests?: DesktopInvoke };
 
-function getDesktopInvoke(): DesktopInvoke {
-  return (globalThis as DesktopTestGlobal).__dressRoomshowDesktopInvokeForTests ?? invoke;
+async function loadTauriInvoke(): Promise<DesktopInvoke | null> {
+  try {
+    const tauriApi = await import('@tauri-apps/api/core');
+    return tauriApi.invoke as DesktopInvoke;
+  } catch {
+    return null;
+  }
+}
+
+let cachedInvoke: DesktopInvoke | null | undefined = undefined;
+
+async function getDesktopInvoke(): Promise<DesktopInvoke> {
+  if (cachedInvoke !== undefined) {
+    return cachedInvoke ?? (() => Promise.reject(new Error('Tauri غير متاح.')));
+  }
+  const testInvoke = (globalThis as DesktopTestGlobal).__dressRoomshowDesktopInvokeForTests;
+  if (testInvoke) {
+    cachedInvoke = testInvoke;
+    return testInvoke;
+  }
+  const loaded = await loadTauriInvoke();
+  cachedInvoke = loaded;
+  return loaded ?? (() => Promise.reject(new Error('Tauri غير متاح.')));
 }
 
 let desktopSyncStatus: DesktopSyncStatus = {
@@ -72,7 +91,8 @@ async function synchronizeDesktopMirror(): Promise<void> {
   const entries = readMirror();
   const serialized = serialize(entries);
   if (serialized === previousSnapshot) return;
-  await getDesktopInvoke()('save_desktop_snapshot', { entries });
+  const invoke = await getDesktopInvoke();
+  await invoke('save_desktop_snapshot', { entries });
   failedSyncAttempts = 0;
   previousSnapshot = serialized;
   updateDesktopSyncStatus({ state: 'synced', message: 'تمت مزامنة نسخة سطح المكتب.' });
@@ -80,14 +100,15 @@ async function synchronizeDesktopMirror(): Promise<void> {
 
 async function bootstrapDesktopDatabase(): Promise<void> {
   try {
+    const invoke = await getDesktopInvoke();
     const localEntries = readMirror();
-    const desktopEntries = await getDesktopInvoke()<Record<string, string> | null>('load_desktop_snapshot');
+    const desktopEntries = await invoke('load_desktop_snapshot') as Record<string, string> | null;
     if (desktopEntries && serialize(desktopEntries) !== serialize(localEntries)) {
       applyMirror(desktopEntries);
       window.location.reload();
       return;
     }
-    if (!desktopEntries) await getDesktopInvoke()('save_desktop_snapshot', { entries: localEntries });
+    if (!desktopEntries) await invoke('save_desktop_snapshot', { entries: localEntries } as Record<string, unknown>);
     previousSnapshot = serialize(readMirror());
     updateDesktopSyncStatus({ state: 'synced', message: 'مزامنة سطح المكتب تعمل.' });
     window.setInterval(() => {
