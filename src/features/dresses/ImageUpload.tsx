@@ -113,7 +113,7 @@ export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProp
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="block text-sm font-bold text-slate-700">
-          صور الفستان (حتى {maxImages} صور)
+          صور العنصر (حتى {maxImages} صور)
         </label>
         <p className="text-xs text-slate-500">
           الحجم التقديري المخزن حالياً: {formatBytes(estimatedStoredBytes)}

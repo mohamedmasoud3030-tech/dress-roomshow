@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { DatabaseBackup, Download, RotateCcw, Save, Upload } from 'lucide-react';
+import { DatabaseBackup, Download, HardDrive, RotateCcw, Save, Upload } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import {
@@ -8,6 +8,8 @@ import {
   importDatabaseBackup,
   resetDatabase,
 } from '../../services/localDatabase';
+import { migrateImagesToIndexedDB } from '../../services/imageMigration.service';
+import { isIndexedDBAvailable } from '../../services/imageStorage.service';
 import { recordAudit } from '../audit/audit.service';
 import { getAppPreferences, saveAppPreferences, type AppPreferences } from './preferences.service';
 import { ShowroomProfileEditor } from './ShowroomProfileEditor';
@@ -78,6 +80,22 @@ export function PreferencesPage() {
     }
   };
 
+  const migrateImages = async () => {
+    try {
+      const result = await migrateImagesToIndexedDB();
+      if (result.skipped) {
+        setFeedback('الصور مهاجرة مسبقاً أو IndexedDB غير متاح.');
+      } else {
+        recordAudit({ action: 'migrate-images', entityType: 'storage', entityId: new Date().toISOString(), summary: `تم ترحيل ${result.migrated} صورة إلى IndexedDB.` });
+        setFeedback(`تم ترحيل ${result.migrated} صورة إلى IndexedDB بنجاح.`);
+      }
+      setError(null);
+    } catch (migrateError: unknown) {
+      setError(migrateError);
+      setFeedback(null);
+    }
+  };
+
   return (
     <section className="space-y-6">
       <PageHeader eyebrow="الإعدادات" title="النسخ الاحتياطي وإعدادات التشغيل" description="احفظي نسخة آمنة من بيانات المحل واضبطي قواعد الحجز الأساسية من مكان واحد." />
@@ -95,6 +113,23 @@ export function PreferencesPage() {
           <button type="button" onClick={() => importInput.current?.click()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-stone-100"><Upload aria-hidden="true" className="h-4 w-4" />استيراد نسخة JSON</button>
           <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void importBackup(event.target.files?.[0])} />
           <button type="button" onClick={resetAllData} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 px-4 py-2 text-sm font-bold text-rose-700 hover:bg-rose-50"><RotateCcw aria-hidden="true" className="h-4 w-4" />تصفير جميع البيانات</button>
+        </div>
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <HardDrive aria-hidden="true" className="h-6 w-6 text-violet-700" />
+          <div><h2 className="text-lg font-bold">تخزين الصور</h2><p className="mt-1 text-sm text-slate-500">نقل الصور من localStorage إلى IndexedDB لتوفير مساحة أكبر.</p></div>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-slate-600">IndexedDB يوفر سعة تخزين أكبر بكثير من localStorage، مما يمنع مشاكل الحفظ عند كثرة الصور. اضغطي الزر لترحيل الصور الحالية.</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button type="button" onClick={() => void migrateImages()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+            <HardDrive aria-hidden="true" className="h-4 w-4" />
+            ترحيل الصور إلى IndexedDB
+          </button>
+          {!isIndexedDBAvailable() && (
+            <p className="self-center text-xs font-bold text-amber-700">IndexedDB غير متاح في هذا المتصفح.</p>
+          )}
         </div>
       </article>
 

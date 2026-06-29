@@ -6,7 +6,7 @@ import type { AuditActionType, AuditEntityType, AuditLogFilters } from './audit.
 
 const entityLabels: Record<AuditEntityType, string> = {
   customer: 'عميلة',
-  dress: 'فستان',
+  dress: 'عنصر مخزون',
   reservation: 'حجز',
   payment: 'حركة مالية',
   expense: 'مصروف',
@@ -15,6 +15,7 @@ const entityLabels: Record<AuditEntityType, string> = {
   'daily-closing': 'يومية نقدية',
   backup: 'نسخة احتياطية',
   database: 'قاعدة البيانات',
+  storage: 'تخزين',
 };
 
 const actionLabels: Record<AuditActionType, string> = {
@@ -31,6 +32,7 @@ const actionLabels: Record<AuditActionType, string> = {
   'reopen-day': 'إعادة فتح يومية',
   'import-backup': 'استيراد نسخة',
   'reset-data': 'تصفير البيانات',
+  'migrate-images': 'ترحيل الصور',
 };
 
 const field = 'min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';

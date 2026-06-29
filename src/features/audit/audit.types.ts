@@ -8,7 +8,8 @@ export type AuditEntityType =
   | 'delivery-return'
   | 'daily-closing'
   | 'backup'
-  | 'database';
+  | 'database'
+  | 'storage';
 
 export type AuditActionType =
   | 'create'
@@ -23,7 +24,8 @@ export type AuditActionType =
   | 'close-day'
   | 'reopen-day'
   | 'import-backup'
-  | 'reset-data';
+  | 'reset-data'
+  | 'migrate-images';
 
 export type AuditLogEntry = {
   id: string;
