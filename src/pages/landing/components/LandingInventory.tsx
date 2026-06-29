@@ -21,9 +21,9 @@ function InventoryCard({ dress }: { dress: Dress }) {
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
       {primaryImage ? (
-        <img src={primaryImage} alt={dress.name} className="h-72 w-full object-cover" loading="lazy" />
+        <img src={primaryImage} alt={dress.name} className="h-48 sm:h-64 md:h-72 w-full object-cover" loading="lazy" />
       ) : (
-        <div className="flex h-72 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
+        <div className="flex h-48 sm:h-64 md:h-72 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
           <p className="text-sm font-medium text-slate-500">لا توجد صورة متاحة حالياً</p>
         </div>
       )}

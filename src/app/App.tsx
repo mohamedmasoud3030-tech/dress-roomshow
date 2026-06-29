@@ -2,6 +2,7 @@ import '../services/desktopDatabase';
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
+import { NotFoundPage } from '../components/shared/NotFoundPage';
 import { AuditLogPage } from '../features/audit/AuditLogPage';
 import { AppointmentsPage } from '../features/appointments/AppointmentsPage';
 import { CustomersPage } from '../features/customers/CustomersPage';
@@ -53,7 +54,7 @@ export function App() {
         <Route path="audit-log" element={<AuditLogPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="preferences" element={<PreferencesPage />} />
-        <Route path="*" element={<DashboardWithClosingAlertPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

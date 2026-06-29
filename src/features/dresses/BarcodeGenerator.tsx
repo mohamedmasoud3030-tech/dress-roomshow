@@ -4,9 +4,11 @@ import JsBarcode from 'jsbarcode';
 type BarcodeGeneratorProps = {
   value: string;
   onClick?: () => void;
+  itemName?: string;
+  itemCode?: string;
 };
 
-export function BarcodeGenerator({ value, onClick }: BarcodeGeneratorProps) {
+export function BarcodeGenerator({ value, onClick, itemName, itemCode }: BarcodeGeneratorProps) {
   const barcodeRef = useRef<SVGSVGElement>(null);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
@@ -38,6 +40,8 @@ export function BarcodeGenerator({ value, onClick }: BarcodeGeneratorProps) {
     if (!barcodeRef.current) return;
 
     const svgMarkup = new XMLSerializer().serializeToString(barcodeRef.current);
+    const nameLabel = itemName ? `    <p class="item-name">${itemName}</p>\n` : '';
+    const codeLabel = itemCode ? `    <p class="item-code">${itemCode}</p>\n` : '';
     const printMarkup = `<!doctype html>
 <html lang="ar" dir="rtl">
   <head>
@@ -65,6 +69,18 @@ export function BarcodeGenerator({ value, onClick }: BarcodeGeneratorProps) {
         font-weight: 700;
         color: #0f172a;
       }
+      .item-name {
+        margin: 8px 0 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #334155;
+      }
+      .item-code {
+        margin: 4px 0 12px;
+        font-size: 12px;
+        color: #64748b;
+        direction: ltr;
+      }
       svg {
         max-width: 100%;
         height: auto;
@@ -88,7 +104,7 @@ export function BarcodeGenerator({ value, onClick }: BarcodeGeneratorProps) {
   <body>
     <section class="label">
       <p class="title">ملصق الباركود</p>
-      ${svgMarkup}
+${nameLabel}${codeLabel}      ${svgMarkup}
       <p class="value">${value}</p>
     </section>
     <script>

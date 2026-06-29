@@ -28,13 +28,13 @@ function DressCard({ dress }: { dress: Dress }) {
         <img
           src={primaryImage}
           alt={dress.name}
-          className="h-48 w-full object-cover"
+          className="h-40 sm:h-48 w-full object-cover"
           loading="lazy"
         />
       ) : (
-        <div className="flex h-48 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
-          <div className="rounded-full bg-white/80 p-6 shadow-sm ring-1 ring-slate-200">
-            <Shirt aria-hidden="true" className="h-12 w-12 text-violet-700" />
+        <div className="flex h-40 sm:h-48 items-center justify-center bg-gradient-to-br from-violet-100 via-white to-amber-50">
+          <div className="rounded-full bg-white/80 p-5 sm:p-6 shadow-sm ring-1 ring-slate-200">
+            <Shirt aria-hidden="true" className="h-10 w-10 sm:h-12 sm:w-12 text-violet-700" />
           </div>
         </div>
       )}

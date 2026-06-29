@@ -135,7 +135,7 @@ export function DressDetailsPage() {
         </div>
 
         <div className="space-y-4">
-          <BarcodeGenerator value={dress.barcode} />
+          <BarcodeGenerator value={dress.barcode} itemName={dress.name} itemCode={dress.code} />
 
           <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="text-sm font-bold text-slate-900">جاهزية المسح على الجهاز</h2>
