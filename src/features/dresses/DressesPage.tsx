@@ -117,7 +117,7 @@ export function DressesPage() {
   const handleSold = (sale: SaleRecord) => {
     setDresses(getDresses());
     setHighlightedDressCode(sale.dressCode);
-    setFeedback(`تم تسجيل البيع ${sale.saleNumber} للفستان ${sale.dressCode}.`);
+    setFeedback(`تم تسجيل البيع ${sale.saleNumber} للعنصر ${sale.dressCode}.`);
   };
 
   const handleBarcodeScan = (barcode: string) => {
