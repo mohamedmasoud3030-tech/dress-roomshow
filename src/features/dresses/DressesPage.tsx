@@ -1,12 +1,12 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Banknote, Barcode, Plus, Search, Shirt } from 'lucide-react';
+import { Banknote, Barcode, Loader2, Plus, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS, INVENTORY_ITEM_TYPE_OPTIONS } from '../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { AddDressModal } from './AddDressModal';
-import { filterDresses, getDressByCode, getDresses, summarizeDresses } from './dress.service';
+import { filterDresses, getDressByCode, getDresses, getDressesAsync, summarizeDresses } from './dress.service';
 import { SellDressModal } from './SellDressModal';
 import type { SaleRecord } from './sale.service';
 import type { Dress, DressFilters } from './dress.types';
@@ -105,6 +105,18 @@ export function DressesPage() {
   const [showScanner, setShowScanner] = useState(false);
   const [highlightedDressCode, setHighlightedDressCode] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    getDressesAsync().then((data) => {
+      if (!cancelled) {
+        setDresses(data);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredDresses = useMemo(() => filterDresses(filters), [dresses, filters]);
   const summary = useMemo(() => summarizeDresses(), [dresses]);
@@ -278,7 +290,12 @@ export function DressesPage() {
         </div>
       </div>
 
-      {filteredDresses.length > 0 ? (
+      {loading ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 shadow-sm">
+          <Loader2 aria-hidden="true" className="h-8 w-8 animate-spin text-amber-600" />
+          <p className="mt-3 text-sm font-bold text-slate-500">جاري تحميل المخزون…</p>
+        </div>
+      ) : filteredDresses.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
           {filteredDresses.map((dress) => (
             <Link

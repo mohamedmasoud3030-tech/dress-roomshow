@@ -19,6 +19,11 @@ export function getDresses(): Dress[] {
   return getDressesFromStorage();
 }
 
+export function getDressesAsync(): Promise<Dress[]> {
+  // Returns a promise for future IndexedDB compatibility
+  return Promise.resolve(getDressesFromStorage());
+}
+
 export function getDressByCode(code: string): Dress | undefined {
   const dresses = getDressesFromStorage();
   return dresses.find(d => d.code === code);
