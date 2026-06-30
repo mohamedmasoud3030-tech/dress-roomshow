@@ -10,15 +10,42 @@ type ModalProps = {
   className?: string;
 };
 
+let scrollY = 0;
+
+function lockBodyScroll(): void {
+  scrollY = window.scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.overflow = 'hidden';
+}
+
+function unlockBodyScroll(): void {
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.overflow = '';
+  window.scrollTo(0, scrollY);
+}
+
 export function Modal({ open, onClose, title, children, className }: ModalProps) {
   const titleId = useId();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const previouslyOpen = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      if (previouslyOpen.current) {
+        unlockBodyScroll();
+        previouslyOpen.current = false;
+      }
+      return;
+    }
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    previouslyOpen.current = true;
+    lockBodyScroll();
     closeButtonRef.current?.focus();
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -27,7 +54,6 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
 
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open, onClose]);
