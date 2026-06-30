@@ -3,6 +3,7 @@ import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import { STACKED_FORM_FIELD_CLASS_NAME, STACKED_FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
+import { INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { BASIC_PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from '../payments/payment.constants';
@@ -30,8 +31,8 @@ export function SellDressModal({ open, onClose, onCreated }: Props) {
 
   return <Modal open={open} onClose={close} title="بيع عنصر" className="max-w-2xl"><form onSubmit={submit} className="space-y-4">
     {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر تسجيل البيع." />}
-    <label className={STACKED_FORM_LABEL_CLASS_NAME}>العنصر<select required value={form.dressCode} onChange={(e)=>setForm({...form,dressCode:e.target.value,amount:dresses.find((dress)=>dress.code===e.target.value)?.salePrice.toString() ?? ''})} className={STACKED_FORM_FIELD_CLASS_NAME}><option value="">اختاري العنصر</option>{dresses.map((dress)=><option key={dress.id} value={dress.code}>{dress.code} — {dress.name}</option>)}</select></label>
-    {selected && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">سعر البيع المسجل: <b>{formatMoneyOMR(selected.salePrice)}</b></p>}
+    <label className={STACKED_FORM_LABEL_CLASS_NAME}>العنصر<select required value={form.dressCode} onChange={(e)=>setForm({...form,dressCode:e.target.value,amount:dresses.find((dress)=>dress.code===e.target.value)?.salePrice.toString() ?? ''})} className={STACKED_FORM_FIELD_CLASS_NAME}><option value="">اختاري العنصر</option>{dresses.map((dress)=><option key={dress.id} value={dress.code}>{INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress']} — {dress.code} — {dress.name}</option>)}</select></label>
+    {selected && <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><p>سعر البيع المسجل: <b>{formatMoneyOMR(selected.salePrice)}</b></p><p className="mt-1">النوع: <b>{INVENTORY_ITEM_TYPE_LABELS[selected.itemType ?? 'dress']}</b> • الفئة: <b>{selected.category}</b></p></div>}
     <div className="grid gap-4 md:grid-cols-2"><label className={STACKED_FORM_LABEL_CLASS_NAME}>اسم العميلة<input required value={form.customerName} onChange={(e)=>setForm({...form,customerName:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label><label className={STACKED_FORM_LABEL_CLASS_NAME}>رقم الهاتف<input value={form.customerPhone} onChange={(e)=>setForm({...form,customerPhone:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label></div>
     <div className="grid gap-4 md:grid-cols-2"><label className={STACKED_FORM_LABEL_CLASS_NAME}>قيمة البيع<input required type="number" min={MIN_MONEY_AMOUNT} step={MONEY_STEP} value={form.amount} onChange={(e)=>setForm({...form,amount:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label><label className={STACKED_FORM_LABEL_CLASS_NAME}>تاريخ البيع<input required type="date" max={getTodayISO()} value={form.saleDate} onChange={(e)=>setForm({...form,saleDate:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label></div>
     <label className={STACKED_FORM_LABEL_CLASS_NAME}>وسيلة الدفع<select value={form.paymentMethod} onChange={(e)=>setForm({...form,paymentMethod:e.target.value as SalePaymentMethod})} className={STACKED_FORM_FIELD_CLASS_NAME}>{PAYMENT_METHODS.map((method) => <option key={method} value={method}>{BASIC_PAYMENT_METHOD_LABELS[method]}</option>)}</select></label>
