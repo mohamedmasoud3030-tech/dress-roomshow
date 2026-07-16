@@ -1,3 +1,4 @@
+import { getBrowserLocalStorage, type StoragePort } from '@platform/storage';
 import { createStoragePersistenceError } from './storagePersistenceError.ts';
 
 const STORAGE_PREFIX = 'dress-roomshow';
@@ -38,14 +39,8 @@ const memoryCollections = new Map<string, unknown[]>();
 let memoryMetadata: DatabaseMetadata | null = null;
 let fallbackCounter = 0;
 
-function getStorage(): Storage | null {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    return window.localStorage ?? null;
-  } catch {
-    return null;
-  }
+function getStorage(): StoragePort | null {
+  return getBrowserLocalStorage();
 }
 
 function cloneValue<T>(value: T): T {
