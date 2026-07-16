@@ -21,6 +21,7 @@ import {
   runInTransactionAsync,
   writeCollection,
   migrateLegacyInventoryStorage,
+  migrateLegacyAppointmentStorage,
 } from '../src/engines/persistence/index.ts';
 
 test('persistence engine exposes canonical collection registry and metadata', () => {
@@ -214,6 +215,55 @@ test('migrateLegacyInventoryStorage migrates lena_dresses exactly once without d
     // Second run should return false and keep exact same items
     assert.equal(migrateLegacyInventoryStorage(), false);
     assert.equal(readCollection('dresses').length, 3);
+  } finally {
+    delete globalThis.window;
+  }
+});
+
+test('migrateLegacyAppointmentStorage migrates lena_appointments exactly once without duplication', () => {
+  const store = new Map();
+  globalThis.window = {
+    localStorage: {
+      get length() {
+        return store.size;
+      },
+      getItem(key) {
+        return store.has(key) ? store.get(key) : null;
+      },
+      setItem(key, value) {
+        store.set(key, String(value));
+      },
+      removeItem(key) {
+        store.delete(key);
+      },
+      key(index) {
+        return Array.from(store.keys())[index] ?? null;
+      },
+    },
+  };
+
+  try {
+    writeCollection('appointments', [{ id: 'apt-existing', clientName: 'Existing Client' }]);
+    store.set('lena_appointments', JSON.stringify([
+      { id: 'apt-existing', clientName: 'Duplicate Client (should skip)' },
+      { id: 'apt-legacy-1', clientName: 'Legacy Client 1' },
+      { id: 'apt-legacy-2', clientName: 'Legacy Client 2' },
+    ]));
+
+    const migrated = migrateLegacyAppointmentStorage();
+    assert.equal(migrated, true);
+    assert.equal(store.has('lena_appointments'), false);
+
+    const canonicalItems = readCollection('appointments');
+    assert.equal(canonicalItems.length, 3);
+    assert.deepEqual(canonicalItems, [
+      { id: 'apt-existing', clientName: 'Existing Client' },
+      { id: 'apt-legacy-1', clientName: 'Legacy Client 1' },
+      { id: 'apt-legacy-2', clientName: 'Legacy Client 2' },
+    ]);
+
+    assert.equal(migrateLegacyAppointmentStorage(), false);
+    assert.equal(readCollection('appointments').length, 3);
   } finally {
     delete globalThis.window;
   }
