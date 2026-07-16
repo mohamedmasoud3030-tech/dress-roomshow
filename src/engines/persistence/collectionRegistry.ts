@@ -21,8 +21,10 @@ export const REGISTERED_COLLECTIONS = [
 
 export type CollectionName = typeof REGISTERED_COLLECTIONS[number];
 
+const REGISTERED_COLLECTIONS_SET = new Set<string>(REGISTERED_COLLECTIONS);
+
 export function isRegisteredCollection(collection: string): collection is CollectionName {
-  return (REGISTERED_COLLECTIONS as readonly string[]).includes(collection);
+  return REGISTERED_COLLECTIONS_SET.has(collection);
 }
 
 export function getCollectionKey(collection: string): string {
@@ -33,20 +35,22 @@ export function listCollectionNames(storage?: StoragePort | null, memoryKeys?: I
   const names = new Set<string>(REGISTERED_COLLECTIONS);
 
   if (storage) {
-    for (let index = 0; index < storage.length; index += 1) {
+    const length = storage.length;
+    for (let index = 0; index < length; index += 1) {
       const key = storage.key(index);
-      if (!key || !key.startsWith(`${STORAGE_PREFIX}:`) || key === METADATA_KEY) continue;
-      names.add(key.slice(STORAGE_PREFIX.length + 1));
-    }
-  }
-
-  if (memoryKeys) {
-    for (const key of memoryKeys) {
-      if (key.startsWith(`${STORAGE_PREFIX}:`)) {
+      if (key?.startsWith(`${STORAGE_PREFIX}:`) && key !== METADATA_KEY) {
         names.add(key.slice(STORAGE_PREFIX.length + 1));
       }
     }
   }
 
-  return [...names].sort();
+  if (memoryKeys) {
+    for (const key of memoryKeys) {
+      if (key.startsWith(`${STORAGE_PREFIX}:`) && key !== METADATA_KEY) {
+        names.add(key.slice(STORAGE_PREFIX.length + 1));
+      }
+    }
+  }
+
+  return Array.from(names).sort();
 }

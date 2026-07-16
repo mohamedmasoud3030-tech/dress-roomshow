@@ -204,9 +204,12 @@ export function clearStoredApplicationData(): void {
   const storage = getStorage();
   if (storage) {
     const keysToRemove: string[] = [];
-    for (let index = 0; index < storage.length; index += 1) {
+    const length = storage.length;
+    for (let index = 0; index < length; index += 1) {
       const key = storage.key(index);
-      if (key?.startsWith(`${STORAGE_PREFIX}:`)) keysToRemove.push(key);
+      if (key?.startsWith(`${STORAGE_PREFIX}:`)) {
+        keysToRemove.push(key);
+      }
     }
     keysToRemove.forEach((key) => storage.removeItem(key));
   }
