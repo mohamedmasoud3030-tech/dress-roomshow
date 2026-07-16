@@ -98,6 +98,54 @@ export async function getAllImageDataUrls(dressId: string): Promise<string[]> {
   return images.map((img) => img.dataUrl);
 }
 
+export async function getAllImages(): Promise<StoredImage[]> {
+  if (!isIndexedDBAvailable()) return [];
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result as StoredImage[]);
+    request.onerror = () => reject(request.error ?? new Error('تعذر قراءة جميع الصور.'));
+    tx.oncomplete = () => db.close();
+  });
+}
+
+export async function clearAllImages(): Promise<void> {
+  if (!isIndexedDBAvailable()) return;
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error ?? new Error('تعذر مسح الصور.'));
+    tx.oncomplete = () => db.close();
+  });
+}
+
+export async function restoreImages(images: StoredImage[]): Promise<void> {
+  if (!isIndexedDBAvailable()) return;
+  await clearAllImages();
+  if (images.length === 0) return;
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    for (const img of images) {
+      store.put(img);
+    }
+    tx.oncomplete = () => {
+      db.close();
+      resolve();
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error ?? new Error('تعذر استعادة الصور.'));
+    };
+  });
+}
+
 export async function getImageCount(): Promise<number> {
   const db = await openDB();
   return new Promise((resolve, reject) => {

@@ -102,22 +102,24 @@ Do not start these before Phase 0.5A is merged. Shell/router work may proceed on
   - Evidence: [PR #88](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/88), merge `0ac2e983c8942f951e2cdf984db08552198c0599`.
 - [x] **1.07:** Migrated `lena_appointments` exactly once into canonical appointment storage without duplication.
   - Evidence: [PR #89](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/89), merge `6107b93b134dfd2ed97d437b7ea658d385830df3`.
-- [ ] **IN PROGRESS — 1.08:** Preserve temporary legacy service exports until all callers migrate.
-  - Evidence: PR #90 (in progress), converted all concrete services inside `src/services/` into pure compatibility re-export delegates over `@platform` and `@engines`.
-- [ ] **NEXT — 1.09:** Add migration markers, retry behavior, and exact rollback on failure.
+- [x] **1.08:** Preserved temporary legacy service exports cleanly until all callers migrate.
+  - Evidence: [PR #90](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/90), merge `dffa1c2f34d176c3f70dd6c80477c486d4e089a6`.
+- [x] **1.09:** Added migration markers, retry behavior, and exact rollback on failure.
+  - Evidence: [PR #91](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/91), merge `d0030ef0632b72dfa7b8baab2a0c510772735f22`.
 
 ### Backup, images, and recovery
 
-- [ ] **PENDING — 1.10:** Version the backup schema and include IndexedDB image blobs.
-- [ ] **PENDING — 1.11:** Make export/import asynchronous where image access requires it.
-- [ ] **PENDING — 1.12:** Validate the full backup before mutation.
-- [ ] **PENDING — 1.13:** Restore the exact prior collections and images after any forced import failure.
-- [ ] **PENDING — 1.14:** Keep valid legacy collection-only backups importable.
-- [ ] **PENDING — 1.15:** Verify browser reset, restore, and Tauri relaunch with inventory, appointments, invoices, returns, audit, and images.
+- [ ] **IN PROGRESS — 1.10:** Version the backup schema and include IndexedDB image blobs.
+  - Evidence: PR #92 (in progress), introduced `exportDatabaseBackupAsync` / `importDatabaseBackupAsync` with versioned schema (`CURRENT_BACKUP_SCHEMA_VERSION = 2`) and exact image rollback.
+- [ ] **IN PROGRESS — 1.11:** Make export/import asynchronous where image access requires it.
+- [ ] **IN PROGRESS — 1.12:** Validate the full backup before mutation.
+- [ ] **IN PROGRESS — 1.13:** Restore the exact prior collections and images after any forced import failure.
+- [ ] **IN PROGRESS — 1.14:** Keep valid legacy collection-only backups importable.
+- [ ] **IN PROGRESS — 1.15:** Verify browser reset, restore, and Tauri relaunch with inventory, appointments, invoices, returns, audit, and images.
 
 ### Identity and production startup
 
-- [ ] **PENDING — 1.16:** Remove automatic mock fallback data from production startup.
+- [ ] **NEXT — 1.16:** Remove automatic mock fallback data from production startup.
 - [ ] **PENDING — 1.17:** Add explicit confirmed demo-data loading and reversible reset.
 - [ ] **PENDING — 1.18:** Add immutable customer and inventory references while preserving display snapshots.
 - [ ] **PENDING — 1.19:** Replace length-based inventory codes with a monotonic collision-safe allocator.
@@ -188,4 +190,6 @@ Never merge PR #62 wholesale.
 | Phase 1.05 transaction & snapshot primitives | PR #87 / `71b4bc9bc71df50453ec46e1cc48c81f717b8036` | Build + Verify | Snapshot creation/restoration & atomic compensated transaction rollback | Complete |
 | Phase 1.06 migrate legacy inventory storage | PR #88 / `0ac2e983c8942f951e2cdf984db08552198c0599` | Build + Verify | Migrate lena_dresses exactly once into canonical inventory storage without duplication | Complete |
 | Phase 1.07 migrate legacy appointment storage | PR #89 / `6107b93b134dfd2ed97d437b7ea658d385830df3` | Build + Verify | Migrate lena_appointments exactly once into canonical appointment storage without duplication | Complete |
-| Phase 1.08 preserve legacy service delegates | PR #90 (in progress) | Build + Verify | Convert all concrete services in `src/services/` into pure compatibility re-export delegates | In Progress |
+| Phase 1.08 preserve legacy service delegates | PR #90 / `dffa1c2f34d176c3f70dd6c80477c486d4e089a6` | Build + Verify | Convert all concrete services in `src/services/` into pure compatibility re-export delegates | Complete |
+| Phase 1.09 migration markers & retry rollback | PR #91 / `d0030ef0632b72dfa7b8baab2a0c510772735f22` | Build + Verify | Add migration markers, retry behavior, and exact rollback on failure | Complete |
+| Phase 1.10-1.15 versioned backup schema & images | PR #92 (in progress) | Build + Verify | Versioned backup schema, async export/import, full validation, and exact image rollback | In Progress |

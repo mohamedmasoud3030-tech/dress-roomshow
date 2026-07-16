@@ -1,5 +1,6 @@
 import {
   exportDatabaseBackup,
+  exportDatabaseBackupAsync,
   writeCollection,
   clearStoredApplicationData,
   type LocalDatabaseBackup,
@@ -7,6 +8,7 @@ import {
 } from './persistenceEngine';
 import { METADATA_KEY } from './collectionRegistry';
 import { getBrowserLocalStorage, type StoragePort } from '@platform/storage';
+import { restoreImages } from '@platform/images';
 
 export type PersistenceSnapshot = LocalDatabaseBackup;
 
@@ -33,6 +35,10 @@ export function createDatabaseSnapshot(): PersistenceSnapshot {
   return exportDatabaseBackup();
 }
 
+export async function createDatabaseSnapshotAsync(): Promise<PersistenceSnapshot> {
+  return await exportDatabaseBackupAsync();
+}
+
 export function restoreDatabaseSnapshot(snapshot: PersistenceSnapshot): void {
   const clonedSnapshot = cloneValue(snapshot);
   clearStoredApplicationData();
@@ -40,6 +46,22 @@ export function restoreDatabaseSnapshot(snapshot: PersistenceSnapshot): void {
   Object.entries(clonedSnapshot.collections).forEach(([collection, items]) => {
     writeCollection(collection, items);
   });
+}
+
+export async function restoreDatabaseSnapshotAsync(snapshot: PersistenceSnapshot): Promise<void> {
+  const clonedSnapshot = cloneValue(snapshot);
+  clearStoredApplicationData();
+  restoreMetadataDirectly(clonedSnapshot.metadata);
+  Object.entries(clonedSnapshot.collections).forEach(([collection, items]) => {
+    writeCollection(collection, items);
+  });
+  if (clonedSnapshot.imageBlobs && Array.isArray(clonedSnapshot.imageBlobs)) {
+    try {
+      await restoreImages(clonedSnapshot.imageBlobs);
+    } catch {
+      // Best effort image restore on rollback
+    }
+  }
 }
 
 export function runInTransaction<T>(operation: () => T): T {
@@ -57,12 +79,12 @@ export function runInTransaction<T>(operation: () => T): T {
 }
 
 export async function runInTransactionAsync<T>(operation: () => Promise<T>): Promise<T> {
-  const snapshot = createDatabaseSnapshot();
+  const snapshot = await createDatabaseSnapshotAsync();
   try {
     return await operation();
   } catch (error) {
     try {
-      restoreDatabaseSnapshot(snapshot);
+      await restoreDatabaseSnapshotAsync(snapshot);
     } catch {
       // If restore itself fails, the original write failure is re-thrown as primary cause.
     }
@@ -81,8 +103,24 @@ export function runCompensatedOperation<T>(
     try {
       compensate(error, snapshot);
     } catch {
-      // Fallback to full snapshot restoration if compensation throws.
       restoreDatabaseSnapshot(snapshot);
+    }
+    throw error;
+  }
+}
+
+export async function runCompensatedOperationAsync<T>(
+  execute: () => Promise<T>,
+  compensate: (error: unknown, snapshot: PersistenceSnapshot) => Promise<void> | void,
+): Promise<T> {
+  const snapshot = await createDatabaseSnapshotAsync();
+  try {
+    return await execute();
+  } catch (error) {
+    try {
+      await compensate(error, snapshot);
+    } catch {
+      await restoreDatabaseSnapshotAsync(snapshot);
     }
     throw error;
   }

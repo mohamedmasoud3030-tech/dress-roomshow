@@ -14,6 +14,9 @@ import {
 } from './collectionRegistry';
 import { migrateLegacyInventoryStorage } from './inventoryMigration';
 import { migrateLegacyAppointmentStorage } from './appointmentMigration';
+import { getAllImages, restoreImages, clearAllImages, type StoredImage } from '@platform/images';
+
+export const CURRENT_BACKUP_SCHEMA_VERSION = 2;
 
 export type DatabaseMetadata = {
   applicationId: typeof DATABASE_APPLICATION_ID;
@@ -24,9 +27,11 @@ export type DatabaseMetadata = {
 export type LocalDatabaseBackup = {
   applicationId: typeof DATABASE_APPLICATION_ID;
   schemaVersion: number;
+  backupVersion?: number;
   exportedAt: string;
   metadata: DatabaseMetadata;
   collections: Record<string, unknown[]>;
+  imageBlobs?: StoredImage[];
 };
 
 const memoryCollections = new Map<string, unknown[]>();
@@ -187,13 +192,24 @@ export function exportDatabaseBackup(): LocalDatabaseBackup {
     return {
       applicationId: DATABASE_APPLICATION_ID,
       schemaVersion: CURRENT_STORAGE_SCHEMA_VERSION,
+      backupVersion: CURRENT_BACKUP_SCHEMA_VERSION,
       exportedAt: new Date().toISOString(),
       metadata,
       collections,
+      imageBlobs: [],
     };
   } finally {
     isTakingSnapshot = false;
   }
+}
+
+export async function exportDatabaseBackupAsync(): Promise<LocalDatabaseBackup> {
+  const backup = exportDatabaseBackup();
+  const images = await getAllImages();
+  return {
+    ...backup,
+    imageBlobs: cloneItems(images),
+  };
 }
 
 function validateBackup(value: unknown): LocalDatabaseBackup {
@@ -203,8 +219,14 @@ function validateBackup(value: unknown): LocalDatabaseBackup {
   if (Number(value.schemaVersion) > CURRENT_STORAGE_SCHEMA_VERSION) {
     throw new Error('النسخة الاحتياطية أُنشئت بواسطة إصدار أحدث من التطبيق.');
   }
+  if (value.backupVersion !== undefined && (!Number.isInteger(value.backupVersion) || Number(value.backupVersion) < 0 || Number(value.backupVersion) > CURRENT_BACKUP_SCHEMA_VERSION)) {
+    throw new Error('إصدار مخطط النسخة الاحتياطية غير صالح.');
+  }
   if (typeof value.exportedAt !== 'string') throw new Error('تاريخ تصدير النسخة الاحتياطية غير صالح.');
   if (!isRecord(value.collections)) throw new Error('بيانات النسخة الاحتياطية غير مكتملة.');
+  if (value.imageBlobs !== undefined && !Array.isArray(value.imageBlobs)) {
+    throw new Error('بيانات صور النسخة الاحتياطية غير صالحة.');
+  }
 
   const collections = Object.entries(value.collections).reduce<Record<string, unknown[]>>((result, [collection, items]) => {
     if (!collection.trim() || !Array.isArray(items)) throw new Error('يوجد قسم بيانات غير صالح داخل النسخة الاحتياطية.');
@@ -215,9 +237,11 @@ function validateBackup(value: unknown): LocalDatabaseBackup {
   return {
     applicationId: DATABASE_APPLICATION_ID,
     schemaVersion: Number(value.schemaVersion),
+    backupVersion: value.backupVersion !== undefined ? Number(value.backupVersion) : 1,
     exportedAt: value.exportedAt,
     metadata: createMetadata(Number(value.schemaVersion)),
     collections,
+    imageBlobs: Array.isArray(value.imageBlobs) ? cloneItems(value.imageBlobs as StoredImage[]) : undefined,
   };
 }
 
@@ -257,10 +281,43 @@ export function importDatabaseBackup(value: unknown): LocalDatabaseBackup {
   }
 }
 
+export async function importDatabaseBackupAsync(value: unknown): Promise<LocalDatabaseBackup> {
+  const backup = validateBackup(value);
+  const previousBackup = await exportDatabaseBackupAsync();
+
+  try {
+    clearStoredApplicationData();
+    saveMetadata(createMetadata(backup.schemaVersion));
+    Object.entries(backup.collections).forEach(([collection, items]) => writeCollection(collection, items));
+    if (backup.imageBlobs && Array.isArray(backup.imageBlobs)) {
+      await restoreImages(backup.imageBlobs);
+    }
+    initializeLocalDatabase();
+    return await exportDatabaseBackupAsync();
+  } catch (error) {
+    clearStoredApplicationData();
+    saveMetadata(previousBackup.metadata);
+    Object.entries(previousBackup.collections).forEach(([collection, items]) => writeCollection(collection, items));
+    if (previousBackup.imageBlobs && Array.isArray(previousBackup.imageBlobs)) {
+      try {
+        await restoreImages(previousBackup.imageBlobs);
+      } catch {
+        // Best effort image restore on fatal failure
+      }
+    }
+    throw error;
+  }
+}
+
 export function resetDatabase(): void {
   clearStoredApplicationData();
   saveMetadata(createMetadata());
   REGISTERED_COLLECTIONS.forEach((collection) => writeCollection(collection, []));
+}
+
+export async function resetDatabaseAsync(): Promise<void> {
+  resetDatabase();
+  await clearAllImages();
 }
 
 export function generateId(): string {
