@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test:architecture": "tsx --test tests/architecture/architecture-boundaries.test.mjs",
+    "test:persistence-engine": "tsx --test tests/persistence-engine.test.mjs",
     "test:shell": "tsx --test tests/app-shell.test.mjs",
     "test:router": "tsx --test tests/app-router.test.mjs",
     "test:platform-storage": "tsx --test tests/platform-storage.test.mjs",
@@ -22,7 +23,7 @@
     "test:print": "tsx --test tests/print-sale-invoice.test.mjs",
     "test:domain": "tsx --test tests/domain-constants.test.mjs",
     "test:bootstrap": "tsx --test tests/root-bootstrap.test.mjs",
-    "test": "npm run test:architecture && npm run test:shell && npm run test:router && npm run test:platform-storage && npm run test:platform-desktop && npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:desktop && npm run test:env && npm run test:print && npm run test:domain && npm run test:bootstrap",
+    "test": "npm run test:architecture && npm run test:persistence-engine && npm run test:shell && npm run test:router && npm run test:platform-storage && npm run test:platform-desktop && npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:desktop && npm run test:env && npm run test:print && npm run test:domain && npm run test:bootstrap",
     "tauri": "tauri"
   },
   "dependencies": {
