@@ -33,35 +33,38 @@ Every agent entering the repository must:
 
 ### Phase 0.5A — Architecture guardrails
 
-Active PR: [#80](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/80)  
-Active branch: `agent/phase-0-5a-architecture-guardrails`
+Completed by [PR #80](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/80).  
+Merge SHA: `3cf83a47fe87520414e5327251567267ea06f72f`
 
-- [ ] **IN PROGRESS — 0.5A-01:** Add `@app`, `@modules`, `@engines`, `@platform`, and `@shared` aliases to TypeScript.
-  - Acceptance: exact mappings exist in `tsconfig.json`.
-- [ ] **IN PROGRESS — 0.5A-02:** Add the same aliases to Vite.
-  - Acceptance: development and production resolution use the same target roots.
-- [ ] **IN PROGRESS — 0.5A-03:** Add an automated architecture test.
-  - Acceptance: target roots reject forbidden dependency directions, private cross-module imports, direct runtime/storage access outside `platform`, and imports back into legacy roots.
-- [ ] **IN PROGRESS — 0.5A-04:** Add the architecture test to the default `npm test` gate.
-- [ ] **IN PROGRESS — 0.5A-05:** Record the verified mixed-responsibility baseline in `ARCHITECTURE_BASELINE.md`.
-- [ ] **IN PROGRESS — 0.5A-06:** Add this checklist to the mandatory agent reading order and README.
-- [ ] **PENDING — 0.5A-07:** Pass `npm ci`, `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build` on the final PR head.
-- [ ] **PENDING — 0.5A-08:** Merge PR #80 and record its merge SHA and final CI evidence here.
+- [x] **0.5A-01:** Added `@app`, `@modules`, `@engines`, `@platform`, and `@shared` aliases to TypeScript.
+  - Evidence: exact mappings exist in `tsconfig.json`.
+- [x] **0.5A-02:** Added the same aliases to Vite.
+  - Evidence: development and production resolution use the same target roots.
+- [x] **0.5A-03:** Added an automated architecture test.
+  - Evidence: guarded target roots reject forbidden dependency directions, private cross-module imports, direct runtime/storage access outside `platform`, and imports back into legacy roots.
+- [x] **0.5A-04:** Added the architecture test to the default `npm test` gate.
+- [x] **0.5A-05:** Recorded the verified mixed-responsibility baseline in `ARCHITECTURE_BASELINE.md`.
+- [x] **0.5A-06:** Added this checklist to the mandatory agent reading order and README.
+- [x] **0.5A-07:** Final PR head passed Build #181 and Verify #149, including tests, TypeScript, lint, build, and Tauri environment gate.
+- [x] **0.5A-08:** Squash-merged PR #80 as `3cf83a47fe87520414e5327251567267ea06f72f`.
 
-**Exit:** future target-architecture code cannot silently introduce reversed dependencies or direct platform access, and every agent has one visible next task.
+**Exit met:** future target-architecture code cannot silently introduce reversed dependencies or direct platform access, and every agent has one visible next task.
 
 ### Phase 0.5B — App shell decomposition
 
-- [ ] **IN PROGRESS — 0.5B-01:** Add route/shell characterization coverage before moving `AppLayout` responsibilities.
-- [ ] **IN PROGRESS — 0.5B-02:** Move navigation configuration to `src/app/shell/navigation.ts` without changing labels, paths, or ordering.
-- [ ] **IN PROGRESS — 0.5B-03:** Extract `useDesktopPersistenceStatus`.
-- [ ] **IN PROGRESS — 0.5B-04:** Extract `AppHeader`.
-- [ ] **IN PROGRESS — 0.5B-05:** Extract `DesktopNavigation`.
-- [ ] **IN PROGRESS — 0.5B-06:** Extract `MobileNavigation` and `MobileMoreMenu`.
-- [ ] **IN PROGRESS — 0.5B-07:** Replace legacy layout composition with `AppShell`; keep `src/components/layout/AppLayout.tsx` as a compatibility export.
-- [ ] **PENDING — 0.5B-08:** Verify final CI, unchanged route rendering, mobile-menu close behavior, persistence warning, RTL/focus contracts, and merge PR #80.
+Completed by [PR #80](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/80).
 
-**Exit:** the app shell composes bounded pieces and contains no showroom business rules.
+- [x] **0.5B-01:** Added route/shell characterization coverage before completing the layout migration.
+- [x] **0.5B-02:** Moved navigation configuration to `src/app/shell/navigation.ts` without changing labels, paths, or ordering.
+- [x] **0.5B-03:** Extracted `useDesktopPersistenceStatus`.
+- [x] **0.5B-04:** Extracted `AppHeader`.
+- [x] **0.5B-05:** Extracted `DesktopNavigation`.
+- [x] **0.5B-06:** Extracted `MobileNavigation` and `MobileMoreMenu`.
+- [x] **0.5B-07:** Replaced legacy layout composition with `AppShell`; `src/components/layout/AppLayout.tsx` remains a compatibility export.
+- [x] **0.5B-08:** Characterization tests and final CI verified unchanged route composition, navigation order, outlet/error boundary, persistence warning contract, mobile-menu close behavior, and retained RTL/focus classes.
+  - Manual phone/tablet/desktop browser evidence remains explicitly tracked in Phase 4 and was not claimed by this refactor PR.
+
+**Exit met:** the app shell composes bounded pieces and contains no showroom business rules.
 
 ### Phase 0.5C — Router ownership
 
@@ -161,4 +164,4 @@ Never merge PR #62 wholesale.
 | Focused agent skills | PR #78 | Build + Verify | Documentation only | Complete |
 | Target architecture contract | PR #79 / `befefeaaeb842f70d8ddcf7b065e49b882bbe76d` | Build #160 + Verify #128 | Documentation only | Complete |
 | Mobile summary cards 2×2 | PR #81 / `9ca10a65d7bf11d18ae121b4ad067bfaee30d2dd` | Build #165 + Verify #133 | Five summary grids; no business logic changed | Complete |
-| Phase 0.5A guardrails + 0.5B app shell | PR #80 | Final Build + Verify pending | Characterization coverage; visual styling intentionally unchanged | In progress |
+| Phase 0.5A guardrails + 0.5B app shell | PR #80 / `3cf83a47fe87520414e5327251567267ea06f72f` | Build #181 + Verify #149 | Characterization coverage; visual styling intentionally unchanged; device matrix remains Phase 4 | Complete |
