@@ -13,6 +13,7 @@
     "test:shell": "tsx --test tests/app-shell.test.mjs",
     "test:router": "tsx --test tests/app-router.test.mjs",
     "test:platform-storage": "tsx --test tests/platform-storage.test.mjs",
+    "test:platform-desktop": "tsx --test tests/platform-desktop-boundary.test.mjs",
     "test:finance": "tsx --test tests/finance-settlement.test.mjs",
     "test:daily-closing": "tsx --test tests/daily-closing.test.mjs",
     "test:storage": "tsx --test tests/storage-persistence-error.test.mjs",
@@ -21,7 +22,7 @@
     "test:print": "tsx --test tests/print-sale-invoice.test.mjs",
     "test:domain": "tsx --test tests/domain-constants.test.mjs",
     "test:bootstrap": "tsx --test tests/root-bootstrap.test.mjs",
-    "test": "npm run test:architecture && npm run test:shell && npm run test:router && npm run test:platform-storage && npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:desktop && npm run test:env && npm run test:print && npm run test:domain && npm run test:bootstrap",
+    "test": "npm run test:architecture && npm run test:shell && npm run test:router && npm run test:platform-storage && npm run test:platform-desktop && npm run test:finance && npm run test:daily-closing && npm run test:storage && npm run test:desktop && npm run test:env && npm run test:print && npm run test:domain && npm run test:bootstrap",
     "tauri": "tauri"
   },
   "dependencies": {

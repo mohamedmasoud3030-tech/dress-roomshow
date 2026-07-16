@@ -3,7 +3,7 @@ import {
   DESKTOP_SYNC_STATUS_EVENT,
   getDesktopSyncStatus,
   type DesktopSyncStatus,
-} from '../../services/desktopDatabase';
+} from '@platform/desktop';
 
 export function useDesktopPersistenceStatus(): DesktopSyncStatus {
   const [status, setStatus] = useState<DesktopSyncStatus>(() => getDesktopSyncStatus());

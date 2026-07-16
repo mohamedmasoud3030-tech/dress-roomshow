@@ -70,7 +70,7 @@ function cleanupDesktopHarness() {
 
 async function importDesktopDatabase() {
   importCounter += 1;
-  return import(`../src/services/desktopDatabase.ts?test=${importCounter}`);
+  return import(`../src/platform/desktop/DesktopDatabase.ts?test=${importCounter}`);
 }
 
 async function waitForAsyncBootstrap() {
