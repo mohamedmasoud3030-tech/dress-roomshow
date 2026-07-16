@@ -10,7 +10,7 @@ This is not another roadmap. It records the current mixed-responsibility files a
 
 | Current path | Current mixed responsibilities | Target owner(s) | Required migration evidence |
 | --- | --- | --- | --- |
-| `src/app/App.tsx` | Imports route pages directly and owns route loading composition | `app/router` and module public page exports | Route smoke test; unchanged route URLs and lazy-loading behavior |
+| `src/app/router/*` | Router ownership is separated from bootstrap; `routePages.ts` is a temporary compatibility facade over current top-level legacy page exports until modules expose public `index.ts` entry points | `app/router` plus future module public page exports | Router characterization test; unchanged URLs, lazy inventory details, landing route, shell boundary, and 404 behavior |
 | `src/app/shell/*` | App shell is now split into `AppShell`, header, desktop/mobile navigation, mobile more menu, navigation config, and desktop persistence hook; legacy `src/components/layout/AppLayout.tsx` is a compatibility export only | `app/shell` | PR #80; shell characterization test; unchanged route URLs, labels, ordering, outlet boundary, mobile close behavior, and sync warning |
 | `src/services/localDatabase.ts` | Collection registry, schema metadata, migrations, localStorage access, backup/import/reset, ID/number generation | `engines/persistence`, `platform/storage`, later `platform/images` | Legacy-data migration, backup/restore, rollback, reset and relaunch tests |
 | `src/services/desktopDatabase.ts` | Tauri detection, desktop snapshot/mirror, events and browser fallback | `platform/desktop` and `platform/runtime` | Browser fallback plus compatible Tauri persistence/relaunch evidence |
