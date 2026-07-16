@@ -68,9 +68,15 @@ Completed by [PR #80](https://github.com/mohamedmasoud3030-tech/dress-roomshow/p
 
 ### Phase 0.5C — Router ownership
 
-- [ ] **NEXT — 0.5C-01:** Extract route configuration and route loading fallback under `src/app/router` while preserving every current URL and 404 behavior.
-- [ ] **PENDING — 0.5C-02:** Keep module pages reachable through public entry points; do not migrate module internals in this PR.
-- [ ] **PENDING — 0.5C-03:** Verify lazy inventory details, landing page, shell routes, and 404 behavior.
+Completed by [PR #82](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/82).  
+Merge SHA: `fd4ca7f333fcad59a7b79a3dbbf6fa49236c8fb3`
+
+- [x] **0.5C-01:** Extracted route composition, lazy page registry, and loading fallback under `src/app/router` while preserving every current URL and 404 behavior.
+- [x] **0.5C-02:** Kept current top-level page exports behind `routePages.ts` as a temporary compatibility facade; module internals were not migrated in this PR.
+- [x] **0.5C-03:** Router characterization verified lazy inventory details, landing page, shell routes, route ordering, loading copy, and 404 behavior.
+  - Evidence: Build #184 and Verify #152 passed on the final PR head.
+
+**Exit met:** `src/app/App.tsx` is now bootstrap-only and route ownership is isolated under `src/app/router`.
 
 ## Phase 1 queue — Data identity, safety, and unified persistence
 
@@ -78,7 +84,7 @@ Do not start these before Phase 0.5A is merged. Shell/router work may proceed on
 
 ### Persistence/platform foundation
 
-- [ ] **PENDING — 1.01:** Introduce concrete `platform/storage` ports and adapters without changing saved data.
+- [ ] **NEXT — 1.01:** Introduce concrete `platform/storage` ports and adapters without changing saved data.
 - [ ] **PENDING — 1.02:** Move Tauri/runtime access to `platform/desktop` and `platform/runtime` with compatibility delegates.
 - [ ] **PENDING — 1.03:** Introduce the persistence engine and canonical operational collection registry.
 - [ ] **PENDING — 1.04:** Register appointments, sales invoices, sale returns, service tasks, audit, preferences, images, and every UI-created entity.
@@ -165,3 +171,4 @@ Never merge PR #62 wholesale.
 | Target architecture contract | PR #79 / `befefeaaeb842f70d8ddcf7b065e49b882bbe76d` | Build #160 + Verify #128 | Documentation only | Complete |
 | Mobile summary cards 2×2 | PR #81 / `9ca10a65d7bf11d18ae121b4ad067bfaee30d2dd` | Build #165 + Verify #133 | Five summary grids; no business logic changed | Complete |
 | Phase 0.5A guardrails + 0.5B app shell | PR #80 / `3cf83a47fe87520414e5327251567267ea06f72f` | Build #181 + Verify #149 | Characterization coverage; visual styling intentionally unchanged; device matrix remains Phase 4 | Complete |
+| Phase 0.5C router ownership | PR #82 / `fd4ca7f333fcad59a7b79a3dbbf6fa49236c8fb3` | Build #184 + Verify #152 | Static router characterization; no visual or business behavior changed | Complete |
