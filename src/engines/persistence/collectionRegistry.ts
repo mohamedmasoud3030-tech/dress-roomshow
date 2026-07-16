@@ -9,14 +9,20 @@ export const REGISTERED_COLLECTIONS = [
   'customers',
   'dresses',
   'reservations',
+  'appointments',
   'payments',
   'expenses',
   'delivery-return',
   'sales',
+  'sales-invoices',
+  'sale-returns',
+  'service-tasks',
   'audit-log',
+  'audit',
   'daily-closings',
   'preferences',
   'showroom-profile',
+  'images',
 ] as const;
 
 export type CollectionName = typeof REGISTERED_COLLECTIONS[number];
