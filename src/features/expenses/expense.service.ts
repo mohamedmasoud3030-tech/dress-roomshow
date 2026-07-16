@@ -4,7 +4,6 @@ import { recordAudit } from '../audit/audit.service';
 import { getDresses } from '../dresses/dress.service';
 import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { EXPENSE_CATEGORY_LABELS, EXPENSE_PAYMENT_METHOD_LABELS } from './expense.constants';
-import { expenseMockRecords } from './expense.mock';
 import type {
   ExpenseCategory,
   ExpenseFilters,
@@ -26,7 +25,7 @@ type AddExpenseInput = {
 };
 
 export function getExpenses(): ExpenseRecord[] {
-  return readCollection(COLLECTION, expenseMockRecords);
+  return readCollection<ExpenseRecord>(COLLECTION, []);
 }
 
 export function addExpense(input: AddExpenseInput): ExpenseRecord {

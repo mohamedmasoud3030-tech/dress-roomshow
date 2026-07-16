@@ -1,7 +1,6 @@
 import { readCollection, writeCollection } from '../../services/localDatabase';
 import { getReservations } from '../reservations/reservation.service';
 import type { Reservation } from '../reservations/reservation.types';
-import { deliveryReturnMockRecords } from './deliveryReturn.mock';
 import type {
   DeliveryReturnFilters,
   DeliveryReturnRecord,
@@ -36,7 +35,7 @@ function createProjectedRecord(reservation: Reservation): DeliveryReturnRecord {
 }
 
 function getStoredRecords(): DeliveryReturnRecord[] {
-  return readCollection(COLLECTION, deliveryReturnMockRecords);
+  return readCollection<DeliveryReturnRecord>(COLLECTION, []);
 }
 
 export function getDeliveryReturnRecords(): DeliveryReturnRecord[] {

@@ -2,14 +2,13 @@ import { readCollection } from '../../services/localDatabase';
 import { isActiveDayClosing } from '../../shared/utils/dailyClosingCalculations.js';
 import { getTodayISO } from '../../shared/utils/date';
 import type { DressStatus } from '../dresses/dress.types';
-import { mockReservations } from '../reservations/reservation.mock';
 import type { Reservation } from '../reservations/reservation.types';
 import type { DayCloseRecord } from '../reports/report.types';
 
 const activeReservationStatuses = new Set<Reservation['status']>(['pending', 'confirmed', 'delivered', 'overdue']);
 
 function getStoredReservations(): Reservation[] {
-  return readCollection<Reservation>('reservations', mockReservations);
+  return readCollection<Reservation>('reservations', []);
 }
 
 export function assertBusinessDateOpen(businessDate: string): void {

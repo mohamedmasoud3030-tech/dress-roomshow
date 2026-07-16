@@ -6,7 +6,6 @@ import { assertBusinessDateOpen } from '../integrity/integrity.service';
 import { getReservations, recordReservationPayment, settleReservationReturn } from '../reservations/reservation.service';
 import type { Reservation } from '../reservations/reservation.types';
 import { PAYMENT_DIRECTION_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_TYPE_LABELS } from './payment.constants';
-import { paymentMockRecords } from './payment.mock';
 import type {
   ManualPaymentType,
   PaymentDirection,
@@ -44,7 +43,7 @@ export type ReturnSettlement = {
 };
 
 export function getPayments(): PaymentRecord[] {
-  return readCollection(COLLECTION, paymentMockRecords);
+  return readCollection<PaymentRecord>(COLLECTION, []);
 }
 
 export function filterPayments(payments: PaymentRecord[], filters: PaymentFilters): PaymentRecord[] {
