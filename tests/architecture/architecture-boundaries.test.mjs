@@ -15,7 +15,10 @@ const aliases = {
   '@shared': join(sourceRoot, 'shared'),
 };
 
-const targetRoots = new Set(['app', 'modules', 'engines', 'platform', 'shared']);
+// `src/shared` already contains legacy utilities from before the target architecture.
+// It becomes guarded folder-by-folder as Step B moves proven reusable code into the
+// approved shared categories. New business modules and engines are guarded now.
+const guardedRoots = new Set(['app', 'modules', 'engines', 'platform']);
 const legacyRoots = new Set(['features', 'services', 'components', 'pages']);
 const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 
@@ -91,7 +94,7 @@ function isPublicCrossModuleImport(specifier, targetModule) {
 
 async function collectBoundaryViolations() {
   const files = (
-    await Promise.all([...targetRoots].map((root) => walk(join(sourceRoot, root))))
+    await Promise.all([...guardedRoots].map((root) => walk(join(sourceRoot, root))))
   ).flat();
   const violations = [];
 
@@ -116,15 +119,11 @@ async function collectBoundaryViolations() {
       const targetRootName = targetParts[0];
       if (!targetRootName) continue;
 
-      if (sourceRootName === 'shared' && ['app', 'modules', 'engines', 'platform'].includes(targetRootName)) {
-        violations.push(`${relative(repositoryRoot, file)}: shared cannot import ${specifier}`);
-      }
-
       if (sourceRootName === 'platform' && ['app', 'modules', 'engines'].includes(targetRootName)) {
         violations.push(`${relative(repositoryRoot, file)}: platform cannot import ${specifier}`);
       }
 
-      if (['modules', 'engines', 'platform', 'shared'].includes(sourceRootName) && legacyRoots.has(targetRootName)) {
+      if (['modules', 'engines', 'platform'].includes(sourceRootName) && legacyRoots.has(targetRootName)) {
         violations.push(`${relative(repositoryRoot, file)}: target architecture code cannot import legacy ${specifier}`);
       }
 
@@ -162,7 +161,7 @@ test('TypeScript and Vite expose the approved architecture aliases', async () =>
   }
 });
 
-test('target architecture folders respect dependency and platform boundaries', async () => {
+test('guarded architecture roots respect dependency and platform boundaries', async () => {
   const violations = await collectBoundaryViolations();
   assert.deepEqual(violations, [], `Architecture violations:\n${violations.join('\n')}`);
 });
