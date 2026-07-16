@@ -89,8 +89,9 @@ Do not start these before Phase 0.5A is merged. Shell/router work may proceed on
 - [x] **1.02:** Moved dynamic Tauri invoke loading to `platform/runtime` and desktop snapshot synchronization/status to `platform/desktop`; retained `src/services/desktopDatabase.ts` as a compatibility re-export.
   - Evidence: [PR #84](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/84), merge `65f929700ae102ea72c3c68f3688f70576c181df`, Build #192, Verify #160.
   - Limitation: `tauri -- info` passed, but compatible Windows build/install/relaunch evidence remains Phase 4 and is not claimed here.
-- [ ] **NEXT — 1.03:** Introduce the persistence engine and canonical operational collection registry.
-- [ ] **PENDING — 1.04:** Register appointments, sales invoices, sale returns, service tasks, audit, preferences, images, and every UI-created entity.
+- [ ] **IN PROGRESS — 1.03:** Introduce the persistence engine and canonical operational collection registry.
+  - Evidence: PR #85 (in progress), verified by `test:persistence-engine`, `test:architecture`, and full test suite; `src/services/localDatabase.ts` retained as a compatibility re-export without changing keys, JSON structure, or schema version.
+- [ ] **NEXT — 1.04:** Register appointments, sales invoices, sale returns, service tasks, audit, preferences, images, and every UI-created entity.
 - [ ] **PENDING — 1.05:** Add transaction/snapshot primitives used by migrations, backup, restore, reset, and later workflow commands.
 
 ### Legacy data migration
@@ -177,3 +178,4 @@ Never merge PR #62 wholesale.
 | Phase 0.5C router ownership | PR #82 / `fd4ca7f333fcad59a7b79a3dbbf6fa49236c8fb3` | Build #184 + Verify #152 | Static router characterization; no visual or business behavior changed | Complete |
 | Phase 1.01 platform storage | PR #83 / `dc5122b90af0bcc3ef5d1961787ddcb2a5833f9a` | Build #188 + Verify #156 | Exact key/JSON contract and persistence-error regressions; no migration | Complete |
 | Phase 1.02 platform desktop/runtime | PR #84 / `65f929700ae102ea72c3c68f3688f70576c181df` | Build #192 + Verify #160 | Four desktop behavior scenarios + ownership contract; Windows relaunch remains Phase 4 | Complete |
+| Phase 1.03 persistence engine & registry | PR #85 (in progress) | Build + Verify | Persistence engine registry & storage delegation characterization; no migration | In Progress |
