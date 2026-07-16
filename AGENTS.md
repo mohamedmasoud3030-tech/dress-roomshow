@@ -6,9 +6,10 @@ Before changing code, read in this order:
 
 1. `docs/BUSINESS_MODEL.md`
 2. `docs/FINAL_DELIVERY_PLAN.md`
-3. GitHub issue #76
-4. `.agents/skills/README.md` and every skill matching the task
-5. The current code and tests on the latest `main`
+3. `docs/TARGET_CODE_ARCHITECTURE.md`
+4. GitHub issue #76
+5. `.agents/skills/README.md` and every skill matching the task
+6. The current code and tests on the latest `main`
 
 Do not execute work from historical roadmaps, audit plans, readiness-progress files, PR #62, or PR #63. PR #62 may be used only as a reference for selective reimplementation after comparison with current `main`; never merge it wholesale.
 
@@ -20,7 +21,7 @@ The repository has exactly five focused skills under `.agents/skills/`. They cov
 - Apply every matching skill when work crosses domains.
 - Do not install or copy broad skill packs into the repository.
 - Extend the existing owning skill instead of creating duplicate instructions.
-- When no skill matches, follow this contract and the two source-of-truth documents; do not invent a new workflow.
+- When no skill matches, follow this contract and the active source-of-truth documents; do not invent a new workflow.
 
 ## System-level reasoning
 
@@ -35,19 +36,36 @@ Treat LENA as one connected showroom operating system, not a set of independent 
 
 Do not call a workflow complete when only its UI or first collection write succeeds.
 
+## Architecture contract
+
+Use the boundaries and migration sequence in `docs/TARGET_CODE_ARCHITECTURE.md`.
+
+- `app` composes bootstrap, providers, routes, and shell only.
+- `modules` own vertical business areas and expose public APIs through `index.ts`.
+- `engines` own cross-module workflow, persistence, availability, finance, reporting, and document capabilities.
+- `platform` owns concrete localStorage, IndexedDB, Tauri, browser, camera, print, and runtime integrations.
+- `shared` contains business-neutral reusable UI and utilities only.
+- No page or module may write storage directly.
+- No module may import another module's private UI or infrastructure files.
+- Multi-module writes run only through workflow/persistence engines.
+- Create target folders only when real code moves into them; do not add empty architecture scaffolding.
+- Preserve temporary compatibility exports until all callers and saved-data migrations are verified.
+
 ## Required workflow
 
-1. Start from the latest `main` and inspect open PRs and CI.
-2. Confirm the active phase and its exit criteria in `docs/FINAL_DELIVERY_PLAN.md`.
-3. Confirm the relevant state transitions and financial meanings in `docs/BUSINESS_MODEL.md`.
-4. Select and apply the matching repository skills.
-5. Inspect real code and tests before trusting documentation or old PR descriptions.
-6. Keep each phase in its own branch and PR unless a smaller safety PR is required.
-7. Preserve local-first, single-showroom, Arabic RTL behavior.
-8. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
-9. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
-10. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
-11. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
+1. Start from latest `main` and inspect open PRs and CI.
+2. Confirm the active phase and exit criteria in `docs/FINAL_DELIVERY_PLAN.md`.
+3. Confirm state transitions and financial meanings in `docs/BUSINESS_MODEL.md`.
+4. Confirm the target owner and allowed dependency direction in `docs/TARGET_CODE_ARCHITECTURE.md`.
+5. Select and apply every matching repository skill.
+6. Inspect real code and tests before trusting documentation or old PR descriptions.
+7. Keep each phase or bounded architecture migration in its own branch and PR.
+8. Preserve local-first, single-showroom, Arabic RTL behavior.
+9. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
+10. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
+11. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
+12. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
+13. Do not combine broad file movement, UI redesign, data migration, and financial behavior changes in one PR.
 
 ## Mandatory checks
 
@@ -61,7 +79,9 @@ npm run lint
 npm run build
 ```
 
-For Tauri-impacting changes, also run the compatible desktop checks and attach the exact result. Do not report a native build as passed when only `tauri -- info` was run.
+Architecture PRs must also run the relevant import-boundary, no-direct-storage, route smoke, characterization, migration, or workflow tests introduced by the target architecture plan.
+
+For Tauri-impacting changes, also run compatible desktop checks and attach the exact result. Do not report a native build as passed when only `tauri -- info` was run.
 
 ## Business invariants
 
@@ -81,4 +101,4 @@ Stop the line only for data loss/corruption, incorrect financial results, broken
 
 ## Repository exploration
 
-Use Graphify first when `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` exist and the CLI is available. Otherwise continue with normal targeted inspection (`rg`, file reads, tests) without blocking execution.
+Use Graphify first when `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` exist and the CLI is available. Otherwise continue with targeted inspection (`rg`, file reads, tests) without blocking execution.
