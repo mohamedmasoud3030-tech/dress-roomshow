@@ -5,3 +5,4 @@ export {
   createStoragePersistenceError,
 } from './storagePersistenceError';
 export type { StoragePersistenceErrorOptions } from './storagePersistenceError';
+export * from './persistenceErrorMessage';
