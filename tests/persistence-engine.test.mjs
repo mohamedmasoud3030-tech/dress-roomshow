@@ -27,6 +27,10 @@ import {
   markMigrationSuccess,
   resetMigrationMarkers,
   runMigratorWithRollback,
+  CURRENT_BACKUP_SCHEMA_VERSION,
+  exportDatabaseBackupAsync,
+  importDatabaseBackupAsync,
+  resetDatabaseAsync,
 } from '../src/engines/persistence/index.ts';
 
 test('persistence engine exposes canonical collection registry and metadata', () => {
@@ -336,6 +340,54 @@ test('runMigratorWithRollback records markers, retries after failure, and rolls 
     });
     assert.equal(skippedResult.status, 'skipped');
     assert.equal(skippedResult.result, null);
+
+    const mSuccess = markMigrationSuccess('manual-test');
+    assert.equal(mSuccess.status, 'completed');
+    const mFail = markMigrationFailure('manual-test', new Error('Manual fail'));
+    assert.equal(mFail.status, 'failed');
+  } finally {
+    delete globalThis.window;
+  }
+});
+
+test('exportDatabaseBackupAsync and importDatabaseBackupAsync validate versioned backup schema and preserve images', async () => {
+  const store = new Map();
+  globalThis.window = {
+    localStorage: {
+      get length() {
+        return store.size;
+      },
+      getItem(key) {
+        return store.has(key) ? store.get(key) : null;
+      },
+      setItem(key, value) {
+        store.set(key, String(value));
+      },
+      removeItem(key) {
+        store.delete(key);
+      },
+      key(index) {
+        return Array.from(store.keys())[index] ?? null;
+      },
+    },
+  };
+
+  try {
+    writeCollection('dresses', [{ id: 'd-img-1', name: 'Dress with image' }]);
+    const backupAsync = await exportDatabaseBackupAsync();
+    assert.equal(backupAsync.backupVersion, CURRENT_BACKUP_SCHEMA_VERSION);
+    assert.equal(Array.isArray(backupAsync.imageBlobs), true);
+
+    await resetDatabaseAsync();
+    assert.deepEqual(readCollection('dresses'), []);
+
+    await importDatabaseBackupAsync(backupAsync);
+    assert.deepEqual(readCollection('dresses'), [{ id: 'd-img-1', name: 'Dress with image' }]);
+
+    // Invalid backup schema or corrupt structure must throw cleanly without mutation
+    assert.throws(() => {
+      importDatabaseBackup({ applicationId: DATABASE_APPLICATION_ID, schemaVersion: 1, backupVersion: 999 });
+    }, /إصدار مخطط النسخة الاحتياطية غير صالح/);
   } finally {
     delete globalThis.window;
   }
