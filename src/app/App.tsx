@@ -1,7 +1,7 @@
 import '../services/desktopDatabase';
 import { Suspense, lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { AppLayout } from '../components/layout/AppLayout';
+import { AppShell } from '@app/shell/AppShell';
 import { NotFoundPage } from '../components/shared/NotFoundPage';
 import { AuditLogPage } from '../features/audit/AuditLogPage';
 import { AppointmentsPage } from '../features/appointments/AppointmentsPage';
@@ -26,7 +26,7 @@ export function App() {
   return (
     <Routes>
       <Route path="/landing" element={<LandingPage />} />
-      <Route element={<AppLayout />}>
+      <Route element={<AppShell />}>
         <Route index element={<DashboardWithClosingAlertPage />} />
         <Route path="inventory" element={<DressesPage />} />
         <Route
