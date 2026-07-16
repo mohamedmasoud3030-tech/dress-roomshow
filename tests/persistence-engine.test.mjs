@@ -4,6 +4,7 @@ import {
   CURRENT_STORAGE_SCHEMA_VERSION,
   DATABASE_APPLICATION_ID,
   REGISTERED_COLLECTIONS,
+  createDatabaseSnapshot,
   exportDatabaseBackup,
   generateId,
   generateNumber,
@@ -14,6 +15,10 @@ import {
   listCollectionNames,
   readCollection,
   resetDatabase,
+  restoreDatabaseSnapshot,
+  runCompensatedOperation,
+  runInTransaction,
+  runInTransactionAsync,
   writeCollection,
 } from '../src/engines/persistence/index.ts';
 
@@ -84,6 +89,80 @@ test('persistence engine read and write collections preserve data and metadata t
 
     const numberStr = generateNumber('INV');
     assert.match(numberStr, /^INV-\d{8}-\d{6}-\d{3}$/);
+  } finally {
+    delete globalThis.window;
+  }
+});
+
+test('persistence engine transaction and snapshot primitives rollback exact prior state on failure', async () => {
+  const store = new Map();
+  globalThis.window = {
+    localStorage: {
+      get length() {
+        return store.size;
+      },
+      getItem(key) {
+        return store.has(key) ? store.get(key) : null;
+      },
+      setItem(key, value) {
+        store.set(key, String(value));
+      },
+      removeItem(key) {
+        store.delete(key);
+      },
+      key(index) {
+        return Array.from(store.keys())[index] ?? null;
+      },
+    },
+  };
+
+  try {
+    writeCollection('customers', [{ id: 'customer-original' }]);
+    writeCollection('dresses', [{ id: 'dress-original' }]);
+
+    const snapshot = createDatabaseSnapshot();
+    assert.deepEqual(snapshot.collections.customers, [{ id: 'customer-original' }]);
+    assert.deepEqual(snapshot.collections.dresses, [{ id: 'dress-original' }]);
+
+    assert.throws(() => {
+      runInTransaction(() => {
+        writeCollection('customers', [{ id: 'customer-updated' }]);
+        writeCollection('dresses', [{ id: 'dress-updated' }]);
+        throw new Error('Simulated workflow failure midway through write sequence');
+      });
+    }, /Simulated workflow failure/);
+
+    assert.deepEqual(readCollection('customers'), [{ id: 'customer-original' }]);
+    assert.deepEqual(readCollection('dresses'), [{ id: 'dress-original' }]);
+
+    const result = runInTransaction(() => {
+      writeCollection('customers', [{ id: 'customer-committed' }]);
+      return 'success';
+    });
+    assert.equal(result, 'success');
+    assert.deepEqual(readCollection('customers'), [{ id: 'customer-committed' }]);
+
+    await assert.rejects(async () => {
+      await runInTransactionAsync(async () => {
+        writeCollection('dresses', [{ id: 'dress-async-updated' }]);
+        throw new Error('Simulated async failure');
+      });
+    }, /Simulated async failure/);
+    assert.deepEqual(readCollection('dresses'), [{ id: 'dress-original' }]);
+
+    assert.throws(() => {
+      runCompensatedOperation(
+        () => {
+          writeCollection('customers', [{ id: 'customer-compensated' }]);
+          throw new Error('Trigger compensation');
+        },
+        (error, priorSnapshot) => {
+          assert.match(String(error), /Trigger compensation/);
+          restoreDatabaseSnapshot(priorSnapshot);
+        },
+      );
+    }, /Trigger compensation/);
+    assert.deepEqual(readCollection('customers'), [{ id: 'customer-committed' }]);
   } finally {
     delete globalThis.window;
   }
