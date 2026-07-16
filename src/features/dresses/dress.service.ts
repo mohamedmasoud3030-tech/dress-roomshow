@@ -1,18 +1,16 @@
 import { Dress, DressFilters } from './dress.types';
+import { migrateLegacyInventoryStorage, readCollection, writeCollection } from '../../services/localDatabase';
 
-const DRESSES_KEY = 'lena_dresses';
+const INVENTORY_COLLECTION = 'dresses';
 
 function getDressesFromStorage(): Dress[] {
-  try {
-    const data = localStorage.getItem(DRESSES_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+  migrateLegacyInventoryStorage();
+  return readCollection<Dress>(INVENTORY_COLLECTION, []);
 }
 
 function saveDressesToStorage(dresses: Dress[]): void {
-  localStorage.setItem(DRESSES_KEY, JSON.stringify(dresses));
+  migrateLegacyInventoryStorage();
+  writeCollection<Dress>(INVENTORY_COLLECTION, dresses);
 }
 
 export function getDresses(): Dress[] {

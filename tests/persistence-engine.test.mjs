@@ -20,6 +20,7 @@ import {
   runInTransaction,
   runInTransactionAsync,
   writeCollection,
+  migrateLegacyInventoryStorage,
 } from '../src/engines/persistence/index.ts';
 
 test('persistence engine exposes canonical collection registry and metadata', () => {
@@ -163,6 +164,56 @@ test('persistence engine transaction and snapshot primitives rollback exact prio
       );
     }, /Trigger compensation/);
     assert.deepEqual(readCollection('customers'), [{ id: 'customer-committed' }]);
+  } finally {
+    delete globalThis.window;
+  }
+});
+
+test('migrateLegacyInventoryStorage migrates lena_dresses exactly once without duplication', () => {
+  const store = new Map();
+  globalThis.window = {
+    localStorage: {
+      get length() {
+        return store.size;
+      },
+      getItem(key) {
+        return store.has(key) ? store.get(key) : null;
+      },
+      setItem(key, value) {
+        store.set(key, String(value));
+      },
+      removeItem(key) {
+        store.delete(key);
+      },
+      key(index) {
+        return Array.from(store.keys())[index] ?? null;
+      },
+    },
+  };
+
+  try {
+    writeCollection('dresses', [{ id: 'dress-existing', code: 'D001', name: 'Existing Dress' }]);
+    store.set('lena_dresses', JSON.stringify([
+      { id: 'dress-existing', code: 'D001', name: 'Duplicate Dress (should skip)' },
+      { id: 'dress-legacy-1', code: 'D002', name: 'Legacy Dress 1' },
+      { id: 'dress-legacy-2', code: 'D003', name: 'Legacy Dress 2' },
+    ]));
+
+    const migrated = migrateLegacyInventoryStorage();
+    assert.equal(migrated, true);
+    assert.equal(store.has('lena_dresses'), false);
+
+    const canonicalItems = readCollection('dresses');
+    assert.equal(canonicalItems.length, 3);
+    assert.deepEqual(canonicalItems, [
+      { id: 'dress-existing', code: 'D001', name: 'Existing Dress' },
+      { id: 'dress-legacy-1', code: 'D002', name: 'Legacy Dress 1' },
+      { id: 'dress-legacy-2', code: 'D003', name: 'Legacy Dress 2' },
+    ]);
+
+    // Second run should return false and keep exact same items
+    assert.equal(migrateLegacyInventoryStorage(), false);
+    assert.equal(readCollection('dresses').length, 3);
   } finally {
     delete globalThis.window;
   }

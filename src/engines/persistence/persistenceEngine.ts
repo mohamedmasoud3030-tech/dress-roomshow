@@ -12,6 +12,7 @@ import {
   getCollectionKey,
   listCollectionNames,
 } from './collectionRegistry';
+import { migrateLegacyInventoryStorage } from './inventoryMigration';
 
 export type DatabaseMetadata = {
   applicationId: typeof DATABASE_APPLICATION_ID;
@@ -106,6 +107,7 @@ export function initializeLocalDatabase(): DatabaseMetadata {
   const storage = getStorage();
   const storedMetadata = storage ? parseMetadata(storage.getItem(METADATA_KEY)) : memoryMetadata;
   const migratedMetadata = runMigrations(storedMetadata ?? createMetadata(0));
+  migrateLegacyInventoryStorage();
   saveMetadata(migratedMetadata);
   return cloneValue(migratedMetadata);
 }
