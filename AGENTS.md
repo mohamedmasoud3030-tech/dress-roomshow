@@ -7,11 +7,23 @@ Before changing code, read in this order:
 1. `docs/BUSINESS_MODEL.md`
 2. `docs/FINAL_DELIVERY_PLAN.md`
 3. `docs/TARGET_CODE_ARCHITECTURE.md`
-4. GitHub issue #76
-5. `.agents/skills/README.md` and every skill matching the task
-6. The current code and tests on the latest `main`
+4. `docs/EXECUTION_CHECKLIST.md`
+5. GitHub issue #76
+6. `.agents/skills/README.md` and every skill matching the task
+7. The current code and tests on the latest `main`
 
 Do not execute work from historical roadmaps, audit plans, readiness-progress files, PR #62, or PR #63. PR #62 may be used only as a reference for selective reimplementation after comparison with current `main`; never merge it wholesale.
+
+## Execution queue
+
+`docs/EXECUTION_CHECKLIST.md` is the operational handoff between agents.
+
+- Continue an existing **IN PROGRESS** item when its PR is still active and matches the current scope.
+- Otherwise take the first unchecked, unblocked **NEXT** item.
+- Do not skip ahead to a later phase because it is easier or more visually attractive.
+- Update the checklist in the same PR with state, evidence, and the next remaining task.
+- Mark `[x]` only after the PR is merged to `main` and required CI is green.
+- A local implementation, draft PR, written plan, or partial test run is not completion.
 
 ## Agent skills
 
@@ -38,7 +50,7 @@ Do not call a workflow complete when only its UI or first collection write succe
 
 ## Architecture contract
 
-Use the boundaries and migration sequence in `docs/TARGET_CODE_ARCHITECTURE.md`.
+Use the boundaries and migration sequence in `docs/TARGET_CODE_ARCHITECTURE.md` and the verified hotspots in `docs/ARCHITECTURE_BASELINE.md`.
 
 - `app` composes bootstrap, providers, routes, and shell only.
 - `modules` own vertical business areas and expose public APIs through `index.ts`.
@@ -54,18 +66,20 @@ Use the boundaries and migration sequence in `docs/TARGET_CODE_ARCHITECTURE.md`.
 ## Required workflow
 
 1. Start from latest `main` and inspect open PRs and CI.
-2. Confirm the active phase and exit criteria in `docs/FINAL_DELIVERY_PLAN.md`.
-3. Confirm state transitions and financial meanings in `docs/BUSINESS_MODEL.md`.
-4. Confirm the target owner and allowed dependency direction in `docs/TARGET_CODE_ARCHITECTURE.md`.
-5. Select and apply every matching repository skill.
-6. Inspect real code and tests before trusting documentation or old PR descriptions.
-7. Keep each phase or bounded architecture migration in its own branch and PR.
-8. Preserve local-first, single-showroom, Arabic RTL behavior.
-9. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
-10. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
-11. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
-12. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
-13. Do not combine broad file movement, UI redesign, data migration, and financial behavior changes in one PR.
+2. Read the current state and first assignable item in `docs/EXECUTION_CHECKLIST.md`.
+3. Confirm the active phase and exit criteria in `docs/FINAL_DELIVERY_PLAN.md`.
+4. Confirm state transitions and financial meanings in `docs/BUSINESS_MODEL.md`.
+5. Confirm the target owner and allowed dependency direction in `docs/TARGET_CODE_ARCHITECTURE.md`.
+6. Select and apply every matching repository skill.
+7. Inspect real code and tests before trusting documentation or old PR descriptions.
+8. Keep each phase or bounded architecture migration in its own branch and PR.
+9. Preserve local-first, single-showroom, Arabic RTL behavior.
+10. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
+11. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
+12. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
+13. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
+14. Do not combine broad file movement, UI redesign, data migration, and financial behavior changes in one PR.
+15. Before finishing, update the checklist and explicitly mark the next unfinished item.
 
 ## Mandatory checks
 

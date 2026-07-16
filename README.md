@@ -2,6 +2,14 @@
 
 تطبيق عربي RTL لإدارة وتشغيل معرض واحد لفساتين ومستلزمات المناسبات، بنمط Local-first.
 
+## العمل الحالي
+
+- [قائمة التنفيذ وعلامات الإنجاز](docs/EXECUTION_CHECKLIST.md)
+- [المعمارية المستهدفة](docs/TARGET_CODE_ARCHITECTURE.md)
+- [خط أساس التفكيك والمكونات المختلطة](docs/ARCHITECTURE_BASELINE.md)
+
+أي وكيل أو مطور يبدأ من أول بند غير مكتمل وغير محجوب داخل `EXECUTION_CHECKLIST.md`. لا يُعلّم أي بند كمكتمل إلا بعد دمجه في `main` ونجاح الفحوصات المطلوبة.
+
 ## هدف المنظومة
 
 LENA يربط الحقيقة المادية والتجارية والمالية والتشغيلية للمعرض في نظام واحد:
@@ -52,10 +60,14 @@ npm run build
 npm run tauri -- info
 ```
 
+`tauri -- info` يصف البيئة فقط ولا يُعد دليلًا على نجاح Native Build.
+
 ## مصادر الحقيقة النشطة
 
 - [منطق الأعمال وسير العمل](docs/BUSINESS_MODEL.md)
 - [خطة التسليم النهائية](docs/FINAL_DELIVERY_PLAN.md)
+- [عقد المعمارية المستهدفة](docs/TARGET_CODE_ARCHITECTURE.md)
+- [قائمة التنفيذ الحالية](docs/EXECUTION_CHECKLIST.md)
 - [GitHub issue #76](https://github.com/mohamedmasoud3030-tech/dress-roomshow/issues/76)
 
 أي Roadmap أو Audit Plan أو Sale Readiness Progress قديم لا يُستخدم لتنفيذ عمل جديد.
@@ -64,6 +76,7 @@ npm run tauri -- info
 
 `main` يحتوي تطبيقًا تشغيليًا، لكنه ليس Release نهائيًا. بوابات التسليم الحالية تشمل خصوصًا:
 
+- استكمال حواجز المعمارية ثم تفكيك App Shell تدريجيًا.
 - نقل المخزون والمواعيد إلى عقد التخزين الموحد بدون فقد البيانات القديمة.
 - إدخال الصور والفواتير والمرتجعات وكل الكيانات في النسخ الاحتياطي وSnapshot سطح المكتب.
 - جعل عمليات الدفع والتسليم والاسترجاع والبيع متعددة الملفات Atomic أو Compensation-safe.
