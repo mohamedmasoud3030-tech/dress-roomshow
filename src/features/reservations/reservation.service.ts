@@ -6,7 +6,6 @@ import { getCustomers } from '../customers/customer.service';
 import { getDresses } from '../dresses/dress.service';
 import { assertReservationCanBeCancelled } from '../integrity/integrity.service';
 import { getAppPreferences } from '../preferences/preferences.service';
-import { mockReservations } from './reservation.mock';
 import type { AvailabilityCheck, Reservation, ReservationFilters, ReservationSummary } from './reservation.types';
 
 const COLLECTION = 'reservations';
@@ -22,7 +21,7 @@ function remaining(reservation: Reservation): number { return calculateReservati
 function persist(reservations: Reservation[], updated: Reservation): Reservation { const next = { ...updated, remainingAmount: remaining(updated) }; writeCollection(COLLECTION, reservations.map((item) => item.id === next.id ? next : item)); return next; }
 function hydrateOverdueStatus(reservation: Reservation): Reservation { return reservation.returnDate < getTodayISO() && ['pending', 'confirmed', 'delivered'].includes(reservation.status) ? { ...reservation, status: 'overdue' } : reservation; }
 export function getReservationBufferDays(): number { return getAppPreferences().reservationBufferDays; }
-export function getReservations(): Reservation[] { return readCollection(COLLECTION, mockReservations).map(hydrateOverdueStatus); }
+export function getReservations(): Reservation[] { return readCollection<Reservation>(COLLECTION, []).map(hydrateOverdueStatus); }
 
 export function filterReservations(reservations: Reservation[], filters: ReservationFilters): Reservation[] {
   const search = filters.search.trim().toLowerCase(); const today = getTodayISO();
