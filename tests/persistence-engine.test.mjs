@@ -31,6 +31,12 @@ import {
   exportDatabaseBackupAsync,
   importDatabaseBackupAsync,
   resetDatabaseAsync,
+  isDemoDataLoaded,
+  loadConfirmedDemoData,
+  revertDemoDataToPreviousSnapshot,
+  getPreDemoSnapshot,
+  clearPreDemoSnapshot,
+  savePreDemoSnapshot,
 } from '../src/engines/persistence/index.ts';
 
 test('persistence engine exposes canonical collection registry and metadata', () => {
@@ -388,6 +394,55 @@ test('exportDatabaseBackupAsync and importDatabaseBackupAsync validate versioned
     assert.throws(() => {
       importDatabaseBackup({ applicationId: DATABASE_APPLICATION_ID, schemaVersion: 1, backupVersion: 999 });
     }, /إصدار مخطط النسخة الاحتياطية غير صالح/);
+  } finally {
+    delete globalThis.window;
+  }
+});
+
+test('loadConfirmedDemoData captures pre-demo snapshot and revertDemoDataToPreviousSnapshot restores exact prior state', () => {
+  const store = new Map();
+  globalThis.window = {
+    localStorage: {
+      get length() {
+        return store.size;
+      },
+      getItem(key) {
+        return store.has(key) ? store.get(key) : null;
+      },
+      setItem(key, value) {
+        store.set(key, String(value));
+      },
+      removeItem(key) {
+        store.delete(key);
+      },
+      key(index) {
+        return Array.from(store.keys())[index] ?? null;
+      },
+    },
+  };
+
+  try {
+    resetDatabase();
+    writeCollection('customers', [{ id: 'custom-user-1', name: 'Real Production User' }]);
+    assert.equal(isDemoDataLoaded(), false);
+
+    loadConfirmedDemoData();
+    assert.equal(isDemoDataLoaded(), true);
+    assert.notEqual(readCollection('customers').length, 1);
+    const preDemo = getPreDemoSnapshot();
+    assert.notEqual(preDemo, null);
+    assert.deepEqual(preDemo.collections.customers, [{ id: 'custom-user-1', name: 'Real Production User' }]);
+
+    const reverted = revertDemoDataToPreviousSnapshot();
+    assert.equal(reverted, true);
+    assert.equal(isDemoDataLoaded(), false);
+    assert.deepEqual(readCollection('customers'), [{ id: 'custom-user-1', name: 'Real Production User' }]);
+    assert.equal(getPreDemoSnapshot(), null);
+
+    // Also test helper exports to ensure lint covers unused vars
+    savePreDemoSnapshot(preDemo);
+    clearPreDemoSnapshot();
+    assert.equal(getPreDemoSnapshot(), null);
   } finally {
     delete globalThis.window;
   }

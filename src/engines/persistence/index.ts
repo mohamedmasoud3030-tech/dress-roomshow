@@ -5,3 +5,5 @@ export * from './inventoryMigration';
 export * from './appointmentMigration';
 export * from './imageMigration';
 export * from './migrationRunner';
+export * from './demoData';
+export * from './demoDataRecords';
