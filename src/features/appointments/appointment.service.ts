@@ -1,18 +1,16 @@
 import { Appointment, AppointmentStatus } from './appointment.types';
+import { migrateLegacyAppointmentStorage, readCollection, writeCollection } from '../../services/localDatabase';
 
-const APPOINTMENTS_KEY = 'lena_appointments';
+const APPOINTMENTS_COLLECTION = 'appointments';
 
 function getAppointments(): Appointment[] {
-  try {
-    const data = localStorage.getItem(APPOINTMENTS_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch {
-    return [];
-  }
+  migrateLegacyAppointmentStorage();
+  return readCollection<Appointment>(APPOINTMENTS_COLLECTION, []);
 }
 
 function saveAppointments(appointments: Appointment[]): void {
-  localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
+  migrateLegacyAppointmentStorage();
+  writeCollection<Appointment>(APPOINTMENTS_COLLECTION, appointments);
 }
 
 export function addAppointment(input: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>): Appointment {
