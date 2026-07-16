@@ -8,6 +8,7 @@ export {
   generateNumber,
   importDatabaseBackup,
   initializeLocalDatabase,
+  migrateLegacyInventoryStorage,
   readCollection,
   resetDatabase,
   restoreDatabaseSnapshot,

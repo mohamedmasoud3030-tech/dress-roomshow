@@ -93,13 +93,14 @@ Do not start these before Phase 0.5A is merged. Shell/router work may proceed on
   - Evidence: [PR #85](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/85), merge `6c889327bcf9fe1a98039c9d083da3fd9fad98b3`; verified by `test:persistence-engine`, `test:architecture`, and full test suite; `src/services/localDatabase.ts` retained as a compatibility re-export without changing keys, JSON structure, or schema version.
 - [x] **1.04:** Registered appointments, sales invoices, sale returns, service tasks, audit, preferences, images, and every UI-created entity.
   - Evidence: [PR #86](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/86), merge `bc8e86c15cfee1a91f1881cc0014f60b1f54b297`.
-- [ ] **IN PROGRESS — 1.05:** Add transaction/snapshot primitives used by migrations, backup, restore, reset, and later workflow commands.
-  - Evidence: PR #87 (in progress), introduced `createDatabaseSnapshot`, `restoreDatabaseSnapshot`, `runInTransaction`, `runInTransactionAsync`, and `runCompensatedOperation` under `@engines/persistence/transactions.ts`.
+- [x] **1.05:** Added transaction/snapshot primitives used by migrations, backup, restore, reset, and later workflow commands.
+  - Evidence: [PR #87](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/87), merge `71b4bc9bc71df50453ec46e1cc48c81f717b8036`.
 
 ### Legacy data migration
 
-- [ ] **NEXT — 1.06:** Migrate `lena_dresses` exactly once into canonical inventory storage without duplication.
-- [ ] **PENDING — 1.07:** Migrate `lena_appointments` exactly once into canonical appointment storage without duplication.
+- [ ] **IN PROGRESS — 1.06:** Migrate `lena_dresses` exactly once into canonical inventory storage without duplication.
+  - Evidence: PR #88 (in progress), created `migrateLegacyInventoryStorage()` under `@engines/persistence/inventoryMigration.ts` and routed all `dress.service.ts` queries through canonical storage.
+- [ ] **NEXT — 1.07:** Migrate `lena_appointments` exactly once into canonical appointment storage without duplication.
 - [ ] **PENDING — 1.08:** Preserve temporary legacy service exports until all callers migrate.
 - [ ] **PENDING — 1.09:** Add migration markers, retry behavior, and exact rollback on failure.
 
@@ -182,4 +183,5 @@ Never merge PR #62 wholesale.
 | Phase 1.02 platform desktop/runtime | PR #84 / `65f929700ae102ea72c3c68f3688f70576c181df` | Build #192 + Verify #160 | Four desktop behavior scenarios + ownership contract; Windows relaunch remains Phase 4 | Complete |
 | Phase 1.03 persistence engine & registry | PR #85 / `6c889327bcf9fe1a98039c9d083da3fd9fad98b3` | Build + Verify | Persistence engine registry & storage delegation characterization; no migration | Complete |
 | Phase 1.04 register operational collections | PR #86 / `bc8e86c15cfee1a91f1881cc0014f60b1f54b297` | Build + Verify | Register appointments, sales invoices, returns, service tasks, audit, and images | Complete |
-| Phase 1.05 transaction & snapshot primitives | PR #87 (in progress) | Build + Verify | Snapshot creation/restoration & atomic compensated transaction rollback | In Progress |
+| Phase 1.05 transaction & snapshot primitives | PR #87 / `71b4bc9bc71df50453ec46e1cc48c81f717b8036` | Build + Verify | Snapshot creation/restoration & atomic compensated transaction rollback | Complete |
+| Phase 1.06 migrate legacy inventory storage | PR #88 (in progress) | Build + Verify | Migrate lena_dresses exactly once into canonical inventory storage without duplication | In Progress |
