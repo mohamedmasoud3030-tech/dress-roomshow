@@ -7,9 +7,20 @@ Before changing code, read in this order:
 1. `docs/BUSINESS_MODEL.md`
 2. `docs/FINAL_DELIVERY_PLAN.md`
 3. GitHub issue #76
-4. The current code and tests on the latest `main`
+4. `.agents/skills/README.md` and every skill matching the task
+5. The current code and tests on the latest `main`
 
 Do not execute work from historical roadmaps, audit plans, readiness-progress files, PR #62, or PR #63. PR #62 may be used only as a reference for selective reimplementation after comparison with current `main`; never merge it wholesale.
+
+## Agent skills
+
+The repository has exactly five focused skills under `.agents/skills/`. They cover showroom workflows, local data safety, financial correctness, Arabic mobile UI, and release readiness.
+
+- Read the index before editing.
+- Apply every matching skill when work crosses domains.
+- Do not install or copy broad skill packs into the repository.
+- Extend the existing owning skill instead of creating duplicate instructions.
+- When no skill matches, follow this contract and the two source-of-truth documents; do not invent a new workflow.
 
 ## System-level reasoning
 
@@ -29,13 +40,14 @@ Do not call a workflow complete when only its UI or first collection write succe
 1. Start from the latest `main` and inspect open PRs and CI.
 2. Confirm the active phase and its exit criteria in `docs/FINAL_DELIVERY_PLAN.md`.
 3. Confirm the relevant state transitions and financial meanings in `docs/BUSINESS_MODEL.md`.
-4. Inspect real code and tests before trusting documentation or old PR descriptions.
-5. Keep each phase in its own branch and PR unless a smaller safety PR is required.
-6. Preserve local-first, single-showroom, Arabic RTL behavior.
-7. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
-8. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
-9. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
-10. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
+4. Select and apply the matching repository skills.
+5. Inspect real code and tests before trusting documentation or old PR descriptions.
+6. Keep each phase in its own branch and PR unless a smaller safety PR is required.
+7. Preserve local-first, single-showroom, Arabic RTL behavior.
+8. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
+9. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
+10. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
+11. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
 
 ## Mandatory checks
 
