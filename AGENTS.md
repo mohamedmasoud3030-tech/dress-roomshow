@@ -1,14 +1,72 @@
-# Graphify
+# LENA Developer Contract
 
-Use Graphify before broad codebase exploration.
+## Sources of truth
 
-When answering architecture questions, debugging unfamiliar behavior, or planning to search across files, first check whether `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` exist.
+Before changing code, read in this order:
 
-If the graph exists:
+1. `docs/BUSINESS_MODEL.md`
+2. `docs/FINAL_DELIVERY_PLAN.md`
+3. GitHub issue #76
+4. The current code and tests on the latest `main`
 
-- Prefer targeted Graphify queries such as `graphify query "<question>"` before broad `rg`, `find`, or file-by-file inspection.
-- Read `graphify-out/GRAPH_REPORT.md` for god nodes, communities, surprising connections, and suggested questions when you need broad orientation.
-- Use `graphify path "<source>" "<target>"` or `graphify explain "<node>"` for relationship-heavy questions.
-- After meaningful code or documentation changes, run `graphify . --update` when the CLI is available so the graph stays current.
+Do not execute work from historical roadmaps, audit plans, readiness-progress files, PR #62, or PR #63. PR #62 may be used only as a reference for selective reimplementation after comparison with current `main`; never merge it wholesale.
 
-If the graph does not exist or the Graphify CLI is unavailable, continue with normal repository inspection and mention the limitation when relevant.
+## System-level reasoning
+
+Treat LENA as one connected showroom operating system, not a set of independent pages. Every change must preserve consistency between:
+
+- inventory physical state;
+- customer and reservation history;
+- payments, deposits, fees, refunds, sales, and expenses;
+- delivery, return, inspection, and service work;
+- reports and daily closing;
+- audit, backup/restore, reset, and Tauri relaunch.
+
+Do not call a workflow complete when only its UI or first collection write succeeds.
+
+## Required workflow
+
+1. Start from the latest `main` and inspect open PRs and CI.
+2. Confirm the active phase and its exit criteria in `docs/FINAL_DELIVERY_PLAN.md`.
+3. Confirm the relevant state transitions and financial meanings in `docs/BUSINESS_MODEL.md`.
+4. Inspect real code and tests before trusting documentation or old PR descriptions.
+5. Keep each phase in its own branch and PR unless a smaller safety PR is required.
+6. Preserve local-first, single-showroom, Arabic RTL behavior.
+7. Do not introduce SaaS tenancy, multi-device sync, online payment, roles, or auth during v1.0 delivery.
+8. Add regression tests for every money, liability, settlement, inventory-state, identity, backup, migration, or persistence change.
+9. Verify that every operational entity participates in backup, restore, reset, Tauri snapshots, integrity checks, reports, and audit where applicable.
+10. Multi-collection commands must be atomic or restore the exact previous snapshot after any forced failure.
+
+## Mandatory checks
+
+Run before opening or updating an implementation PR:
+
+```bash
+npm ci
+npm test
+npm run typecheck
+npm run lint
+npm run build
+```
+
+For Tauri-impacting changes, also run the compatible desktop checks and attach the exact result. Do not report a native build as passed when only `tauri -- info` was run.
+
+## Business invariants
+
+- Inventory IDs are immutable; codes and barcodes are unique and never reused.
+- Historical records keep stable IDs plus display snapshots.
+- Referenced inventory/customers are archived, not hard-deleted.
+- Reservation availability is date-derived and separate from physical item state.
+- Financial movements are append-only; corrections use linked adjustments/refunds.
+- Deposits are liabilities until refunded or retained; they are not rental revenue.
+- Sale return and rental return route through inspection/service before availability.
+- Audit commits with the business operation.
+- Production first run is empty unless demo data is explicitly loaded.
+
+## Release discipline
+
+Stop the line only for data loss/corruption, incorrect financial results, broken core operations, failed backup/restore, startup/install failure, inaccessible core navigation, or a critical security issue. Record cosmetic refinements for post-release instead of delaying delivery.
+
+## Repository exploration
+
+Use Graphify first when `graphify-out/graph.json` and `graphify-out/GRAPH_REPORT.md` exist and the CLI is available. Otherwise continue with normal targeted inspection (`rg`, file reads, tests) without blocking execution.
