@@ -84,8 +84,9 @@ Do not start these before Phase 0.5A is merged. Shell/router work may proceed on
 
 ### Persistence/platform foundation
 
-- [ ] **NEXT — 1.01:** Introduce concrete `platform/storage` ports and adapters without changing saved data.
-- [ ] **PENDING — 1.02:** Move Tauri/runtime access to `platform/desktop` and `platform/runtime` with compatibility delegates.
+- [x] **1.01:** Introduced `StoragePort` and `BrowserLocalStorageAdapter` under `platform/storage` without changing saved data, keys, schema version, backup format, in-memory fallback, or public local-database APIs.
+  - Evidence: [PR #83](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/83), merge `dc5122b90af0bcc3ef5d1961787ddcb2a5833f9a`, Build #188, Verify #156.
+- [ ] **NEXT — 1.02:** Move Tauri/runtime access to `platform/desktop` and `platform/runtime` with compatibility delegates.
 - [ ] **PENDING — 1.03:** Introduce the persistence engine and canonical operational collection registry.
 - [ ] **PENDING — 1.04:** Register appointments, sales invoices, sale returns, service tasks, audit, preferences, images, and every UI-created entity.
 - [ ] **PENDING — 1.05:** Add transaction/snapshot primitives used by migrations, backup, restore, reset, and later workflow commands.
@@ -172,3 +173,4 @@ Never merge PR #62 wholesale.
 | Mobile summary cards 2×2 | PR #81 / `9ca10a65d7bf11d18ae121b4ad067bfaee30d2dd` | Build #165 + Verify #133 | Five summary grids; no business logic changed | Complete |
 | Phase 0.5A guardrails + 0.5B app shell | PR #80 / `3cf83a47fe87520414e5327251567267ea06f72f` | Build #181 + Verify #149 | Characterization coverage; visual styling intentionally unchanged; device matrix remains Phase 4 | Complete |
 | Phase 0.5C router ownership | PR #82 / `fd4ca7f333fcad59a7b79a3dbbf6fa49236c8fb3` | Build #184 + Verify #152 | Static router characterization; no visual or business behavior changed | Complete |
+| Phase 1.01 platform storage | PR #83 / `dc5122b90af0bcc3ef5d1961787ddcb2a5833f9a` | Build #188 + Verify #156 | Exact key/JSON contract and persistence-error regressions; no migration | Complete |
