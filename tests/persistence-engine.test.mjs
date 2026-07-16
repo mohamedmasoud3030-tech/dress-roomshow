@@ -22,6 +22,11 @@ import {
   writeCollection,
   migrateLegacyInventoryStorage,
   migrateLegacyAppointmentStorage,
+  getMigrationMarker,
+  markMigrationFailure,
+  markMigrationSuccess,
+  resetMigrationMarkers,
+  runMigratorWithRollback,
 } from '../src/engines/persistence/index.ts';
 
 test('persistence engine exposes canonical collection registry and metadata', () => {
@@ -199,6 +204,7 @@ test('migrateLegacyInventoryStorage migrates lena_dresses exactly once without d
       { id: 'dress-legacy-1', code: 'D002', name: 'Legacy Dress 1' },
       { id: 'dress-legacy-2', code: 'D003', name: 'Legacy Dress 2' },
     ]));
+    resetMigrationMarkers();
 
     const migrated = migrateLegacyInventoryStorage();
     assert.equal(migrated, true);
@@ -249,6 +255,7 @@ test('migrateLegacyAppointmentStorage migrates lena_appointments exactly once wi
       { id: 'apt-legacy-1', clientName: 'Legacy Client 1' },
       { id: 'apt-legacy-2', clientName: 'Legacy Client 2' },
     ]));
+    resetMigrationMarkers();
 
     const migrated = migrateLegacyAppointmentStorage();
     assert.equal(migrated, true);
@@ -264,6 +271,71 @@ test('migrateLegacyAppointmentStorage migrates lena_appointments exactly once wi
 
     assert.equal(migrateLegacyAppointmentStorage(), false);
     assert.equal(readCollection('appointments').length, 3);
+  } finally {
+    delete globalThis.window;
+  }
+});
+
+test('runMigratorWithRollback records markers, retries after failure, and rolls back partial state', () => {
+  const store = new Map();
+  globalThis.window = {
+    localStorage: {
+      get length() {
+        return store.size;
+      },
+      getItem(key) {
+        return store.has(key) ? store.get(key) : null;
+      },
+      setItem(key, value) {
+        store.set(key, String(value));
+      },
+      removeItem(key) {
+        store.delete(key);
+      },
+      key(index) {
+        return Array.from(store.keys())[index] ?? null;
+      },
+    },
+  };
+
+  try {
+    resetMigrationMarkers();
+    writeCollection('customers', [{ id: 'c-init', name: 'Original Customer' }]);
+
+    assert.throws(() => {
+      runMigratorWithRollback('test-migrator-1', () => {
+        writeCollection('customers', [{ id: 'c-init', name: 'Original Customer' }, { id: 'c-corrupt', name: 'Corrupt' }]);
+        throw new Error('Mid-migration failure');
+      });
+    }, /Mid-migration failure/);
+
+    const markerAfterFailure = getMigrationMarker('test-migrator-1');
+    assert.equal(markerAfterFailure.status, 'failed');
+    assert.equal(markerAfterFailure.attemptCount, 1);
+    assert.match(markerAfterFailure.lastError, /Mid-migration failure/);
+    assert.deepEqual(readCollection('customers'), [{ id: 'c-init', name: 'Original Customer' }]);
+
+    const retryResult = runMigratorWithRollback('test-migrator-1', () => {
+      writeCollection('customers', [{ id: 'c-init', name: 'Original Customer' }, { id: 'c-success', name: 'Migrated' }]);
+      return 'done';
+    });
+
+    assert.equal(retryResult.status, 'completed');
+    assert.equal(retryResult.result, 'done');
+    assert.deepEqual(readCollection('customers'), [
+      { id: 'c-init', name: 'Original Customer' },
+      { id: 'c-success', name: 'Migrated' },
+    ]);
+
+    const markerAfterSuccess = getMigrationMarker('test-migrator-1');
+    assert.equal(markerAfterSuccess.status, 'completed');
+    assert.equal(markerAfterSuccess.attemptCount, 2);
+
+    const skippedResult = runMigratorWithRollback('test-migrator-1', () => {
+      throw new Error('Should never run once completed');
+    });
+    assert.equal(skippedResult.status, 'skipped');
+    assert.equal(skippedResult.result, null);
   } finally {
     delete globalThis.window;
   }

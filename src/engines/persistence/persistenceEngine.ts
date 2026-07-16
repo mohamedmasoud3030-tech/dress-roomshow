@@ -104,12 +104,24 @@ function runMigrations(metadata: DatabaseMetadata): DatabaseMetadata {
   return nextMetadata;
 }
 
-export function initializeLocalDatabase(): DatabaseMetadata {
+let isInitializingDatabase = false;
+let isTakingSnapshot = false;
+
+export function initializeLocalDatabase(skipMigrations = false): DatabaseMetadata {
   const storage = getStorage();
   const storedMetadata = storage ? parseMetadata(storage.getItem(METADATA_KEY)) : memoryMetadata;
   const migratedMetadata = runMigrations(storedMetadata ?? createMetadata(0));
-  migrateLegacyInventoryStorage();
-  migrateLegacyAppointmentStorage();
+
+  if (!skipMigrations && !isTakingSnapshot && !isInitializingDatabase) {
+    isInitializingDatabase = true;
+    try {
+      migrateLegacyInventoryStorage();
+      migrateLegacyAppointmentStorage();
+    } finally {
+      isInitializingDatabase = false;
+    }
+  }
+
   saveMetadata(migratedMetadata);
   return cloneValue(migratedMetadata);
 }
@@ -161,22 +173,27 @@ export function writeCollection<T>(collection: string, items: T[]): void {
 }
 
 export function exportDatabaseBackup(): LocalDatabaseBackup {
-  const metadata = initializeLocalDatabase();
-  const collections = listCollectionNames(getStorage(), memoryCollections.keys()).reduce<Record<string, unknown[]>>(
-    (result, collection) => {
-      result[collection] = readStoredCollection(collection) ?? [];
-      return result;
-    },
-    {},
-  );
+  isTakingSnapshot = true;
+  try {
+    const metadata = initializeLocalDatabase(true);
+    const collections = listCollectionNames(getStorage(), memoryCollections.keys()).reduce<Record<string, unknown[]>>(
+      (result, collection) => {
+        result[collection] = readStoredCollection(collection) ?? [];
+        return result;
+      },
+      {},
+    );
 
-  return {
-    applicationId: DATABASE_APPLICATION_ID,
-    schemaVersion: CURRENT_STORAGE_SCHEMA_VERSION,
-    exportedAt: new Date().toISOString(),
-    metadata,
-    collections,
-  };
+    return {
+      applicationId: DATABASE_APPLICATION_ID,
+      schemaVersion: CURRENT_STORAGE_SCHEMA_VERSION,
+      exportedAt: new Date().toISOString(),
+      metadata,
+      collections,
+    };
+  } finally {
+    isTakingSnapshot = false;
+  }
 }
 
 function validateBackup(value: unknown): LocalDatabaseBackup {

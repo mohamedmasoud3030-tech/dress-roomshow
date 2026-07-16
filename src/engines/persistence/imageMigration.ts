@@ -1,6 +1,7 @@
 import { getBrowserLocalStorage, type StoragePort } from '@platform/storage';
 import { saveImages, isIndexedDBAvailable, getImageCount } from '@platform/images';
 import { readCollection } from './persistenceEngine';
+import { runMigratorWithRollbackAsync, getMigrationMarker } from './migrationRunner';
 
 const MIGRATION_KEY = 'dress-roomshow:images-migrated';
 
@@ -12,7 +13,7 @@ function isMigrated(): boolean {
   const storage = getStorage();
   if (!storage) return false;
   try {
-    return storage.getItem(MIGRATION_KEY) === 'v1';
+    return storage.getItem(MIGRATION_KEY) === 'v1' || getMigrationMarker('images-v1')?.status === 'completed';
   } catch {
     return false;
   }
@@ -42,28 +43,36 @@ export async function migrateImagesToIndexedDB(): Promise<{ migrated: number; sk
     return { migrated: 0, skipped: true };
   }
 
-  const dresses = readCollection<DressWithImages>('dresses', []);
-  let totalMigrated = 0;
+  const result = await runMigratorWithRollbackAsync('images-v1', async () => {
+    const dresses = readCollection<DressWithImages>('dresses', []);
+    let totalMigrated = 0;
 
-  for (const dress of dresses) {
-    if (!dress.id || !dress.images || dress.images.length === 0) continue;
+    for (const dress of dresses) {
+      if (!dress.id || !dress.images || dress.images.length === 0) continue;
 
-    const hasDataUrl = dress.images.some((img: string) => img.startsWith('data:'));
-    if (!hasDataUrl) continue;
+      const hasDataUrl = dress.images.some((img: string) => img.startsWith('data:'));
+      if (!hasDataUrl) continue;
 
-    try {
-      await saveImages(dress.id, dress.images.filter((img: string) => img.startsWith('data:')));
-      totalMigrated += dress.images.length;
-    } catch {
-      // Continue with next dress even if one fails
+      try {
+        await saveImages(dress.id, dress.images.filter((img: string) => img.startsWith('data:')));
+        totalMigrated += dress.images.length;
+      } catch {
+        // Continue with next dress even if one fails
+      }
     }
+
+    if (totalMigrated > 0) {
+      markMigrated();
+    }
+
+    return totalMigrated;
+  });
+
+  if (result.status === 'skipped') {
+    return { migrated: 0, skipped: true };
   }
 
-  if (totalMigrated > 0) {
-    markMigrated();
-  }
-
-  return { migrated: totalMigrated, skipped: false };
+  return { migrated: result.result ?? 0, skipped: false };
 }
 
 export async function getStorageSummary(): Promise<{
