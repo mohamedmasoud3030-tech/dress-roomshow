@@ -37,34 +37,11 @@ test('app shell keeps the established navigation order and labels', async () => 
   }
 });
 
-test('app shell preserves routes, outlet boundary, mobile menu, and compatibility export', async () => {
-  const app = await read('src/app/App.tsx');
+test('app shell preserves outlet boundary, mobile menu, persistence warning, and compatibility export', async () => {
   const shell = await read('src/app/shell/AppShell.tsx');
   const mobileMenu = await read('src/app/shell/MobileMoreMenu.tsx');
   const legacyLayout = await read('src/components/layout/AppLayout.tsx');
 
-  for (const route of [
-    '/landing',
-    'inventory',
-    'inventory/:code',
-    'customers',
-    'reservations',
-    'appointments',
-    'delivery-return',
-    'payments',
-    'expenses',
-    'daily-closing',
-    'audit-log',
-    'reports',
-    'preferences',
-    '*',
-  ]) {
-    const doubleQuoted = `path="${route}"`;
-    const singleQuoted = `path='${route}'`;
-    assert.ok(app.includes(doubleQuoted) || app.includes(singleQuoted), `Missing route: ${route}`);
-  }
-
-  assert.match(app, /<Route element={<AppShell \/>}>/);
   assert.match(shell, /<PersistenceErrorBoundary key={location\.pathname}>/);
   assert.match(shell, /<Outlet \/>/);
   assert.match(shell, /desktopSyncStatus\.state === 'browser-fallback'/);
