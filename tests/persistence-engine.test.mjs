@@ -30,6 +30,12 @@ test('persistence engine exposes canonical collection registry and metadata', ()
   assert.equal(REGISTERED_COLLECTIONS.includes('customers'), true);
   assert.equal(REGISTERED_COLLECTIONS.includes('dresses'), true);
   assert.equal(REGISTERED_COLLECTIONS.includes('reservations'), true);
+  assert.equal(REGISTERED_COLLECTIONS.includes('appointments'), true);
+  assert.equal(REGISTERED_COLLECTIONS.includes('sales-invoices'), true);
+  assert.equal(REGISTERED_COLLECTIONS.includes('sale-returns'), true);
+  assert.equal(REGISTERED_COLLECTIONS.includes('service-tasks'), true);
+  assert.equal(REGISTERED_COLLECTIONS.includes('audit'), true);
+  assert.equal(REGISTERED_COLLECTIONS.includes('images'), true);
 });
 
 test('persistence engine read and write collections preserve data and metadata through StoragePort', () => {
