@@ -59,7 +59,9 @@ test('app shell preserves routes, outlet boundary, mobile menu, and compatibilit
     'preferences',
     '*',
   ]) {
-    assert.match(app, new RegExp(`path=["']${route.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`));
+    const doubleQuoted = `path="${route}"`;
+    const singleQuoted = `path='${route}'`;
+    assert.ok(app.includes(doubleQuoted) || app.includes(singleQuoted), `Missing route: ${route}`);
   }
 
   assert.match(app, /<Route element={<AppShell \/>}>/);
