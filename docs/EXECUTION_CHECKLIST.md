@@ -119,9 +119,11 @@ Do not start these before Phase 0.5A is merged. Shell/router work may proceed on
 
 ### Identity and production startup
 
-- [ ] **NEXT — 1.16:** Remove automatic mock fallback data from production startup.
-- [ ] **PENDING — 1.17:** Add explicit confirmed demo-data loading and reversible reset.
-- [ ] **PENDING — 1.18:** Add immutable customer and inventory references while preserving display snapshots.
+- [x] **1.16:** Removed automatic mock fallback data from production startup.
+  - Evidence: [PR #93](https://github.com/mohamedmasoud3030-tech/dress-roomshow/pull/93), merge `6cc44047189ac71322252f30df6d5a532d93736a`.
+- [ ] **IN PROGRESS — 1.17:** Add explicit confirmed demo-data loading and reversible reset.
+  - Evidence: PR #94 (in progress), introduced `loadConfirmedDemoData` / `revertDemoDataToPreviousSnapshot` in `@engines/persistence/demoData.ts` backed by clean `demoDataRecords.ts`.
+- [ ] **NEXT — 1.18:** Add immutable customer and inventory references while preserving display snapshots.
 - [ ] **PENDING — 1.19:** Replace length-based inventory codes with a monotonic collision-safe allocator.
 - [ ] **PENDING — 1.20:** Archive referenced inventory/customers instead of hard-deleting them.
 
@@ -192,4 +194,6 @@ Never merge PR #62 wholesale.
 | Phase 1.07 migrate legacy appointment storage | PR #89 / `6107b93b134dfd2ed97d437b7ea658d385830df3` | Build + Verify | Migrate lena_appointments exactly once into canonical appointment storage without duplication | Complete |
 | Phase 1.08 preserve legacy service delegates | PR #90 / `dffa1c2f34d176c3f70dd6c80477c486d4e089a6` | Build + Verify | Convert all concrete services in `src/services/` into pure compatibility re-export delegates | Complete |
 | Phase 1.09 migration markers & retry rollback | PR #91 / `d0030ef0632b72dfa7b8baab2a0c510772735f22` | Build + Verify | Add migration markers, retry behavior, and exact rollback on failure | Complete |
-| Phase 1.10-1.15 versioned backup schema & images | PR #92 (in progress) | Build + Verify | Versioned backup schema, async export/import, full validation, and exact image rollback | In Progress |
+| Phase 1.10-1.15 versioned backup schema & images | PR #92 / `f7e3a1b6ea3916851a4f51d15aa893fc6ef1cf93` | Build + Verify | Versioned backup schema, async export/import, full validation, and exact image rollback | Complete |
+| Phase 1.16 remove production mock fallback | PR #93 / `6cc44047189ac71322252f30df6d5a532d93736a` | Build + Verify | Default operational queries to empty arrays instead of injecting mock data | Complete |
+| Phase 1.17 confirmed demo data & reversible reset | PR #94 (in progress) | Build + Verify | Explicit confirmed demo loading (`loadConfirmedDemoData`) with pre-demo snapshot rollback | In Progress |
