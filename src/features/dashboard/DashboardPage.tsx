@@ -20,7 +20,7 @@ export function DashboardPage() {
         <p className="mt-2 text-sm text-slate-500">ملخص سريع لحالة المخزون والحجوزات والعملاء.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <SummaryCard label="إجمالي المخزون" value={dressSummary.total} hint={`${dressSummary.available} متاح`} tone="positive" />
         <SummaryCard label="الحجوزات النشطة" value={reservationSummary.active} hint={`${reservationSummary.today} عملية اليوم`} />
         <SummaryCard label="العملاء" value={customerCount} />

@@ -82,7 +82,7 @@ export function DeliveryReturnPage() {
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm text-slate-500">بانتظار التسليم</p>
           <p className="mt-2 text-3xl font-bold text-slate-950">{summary.pendingDelivery}</p>
