@@ -300,14 +300,13 @@ test('the document markup falls back safely when no settings are given', () => {
 
 // --- Contact details ------------------------------------------------------
 
-test('the showroom contact carries every provided channel', () => {
+test('the default public contact exposes only the approved primary channels', () => {
   const { contact } = landingShowroomProfile;
 
   assert.equal(contact.phone, '+968 9191 8186');
-  assert.ok(contact.alternatePhones.includes('+966 50 868 8213'));
-  assert.ok(contact.alternatePhones.includes('+20 121 210 1073'));
   assert.equal(contact.email, 'Ahmedmasoud@outlook.com');
-  assert.equal(contact.alternateEmail, 'MohamedMs.oud@outlook.com');
+  assert.equal(contact.alternatePhones, undefined);
+  assert.equal(contact.alternateEmail, undefined);
 });
 
 test('the printed contract carries the contact details', () => {

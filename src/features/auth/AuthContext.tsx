@@ -12,6 +12,8 @@ import type { Session } from '@supabase/supabase-js';
 import { fetchProfile, getCurrentSession, onAuthStateChange, signIn, signOut } from './auth.service';
 import { resolveAuthStatus, type AuthStatus, type Profile } from './auth.model';
 import { setCurrentOperatorName } from '../operators/operator.service';
+import { clearStoredApplicationData } from '@engines/persistence';
+import { clearAllImages } from '@platform/images';
 
 type AuthContextValue = {
   status: AuthStatus;
@@ -103,7 +105,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       signOut: async () => {
         await signOut();
-        await applySession(null);
+        try {
+          // The centralized snapshot can always be rehydrated after the next
+          // login. Leaving customer/finance data in a shared browser after
+          // logout is a privacy leak; the device PIN is outside this prefix and
+          // intentionally survives.
+          clearStoredApplicationData();
+          await clearAllImages();
+        } finally {
+          await applySession(null);
+        }
       },
       retry,
     }),

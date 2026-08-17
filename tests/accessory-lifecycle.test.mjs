@@ -207,7 +207,7 @@ test('only the accessories actually handed over are recorded as delivered', () =
   }
 });
 
-test('a partial accessory return leaves the rest outstanding', () => {
+test('a whole-contract return cannot close while an accessory is still outside', () => {
   installStorage();
   try {
     const { reservation, veil, crown } = seedRental();
@@ -221,7 +221,7 @@ test('a partial accessory return leaves the rest outstanding', () => {
       idempotencyKey: 'deliver-2',
     });
 
-    completeReturnCommand({
+    assert.throws(() => completeReturnCommand({
       reservationNumber: reservation.reservationNumber,
       returnDateTime: nowDateTimeLocal(),
       lateFee: 0,
@@ -230,13 +230,44 @@ test('a partial accessory return leaves the rest outstanding', () => {
       nextItemStatus: 'inspection',
       accessoryReturns: [{ accessoryId: veil.id, condition: 'intact' }],
       idempotencyKey: 'return-partial',
+    }), /كل الملحقات الخارجة.*ACC-/);
+
+    assert.equal(getReservations().find((item) => item.id === reservation.id).status, 'delivered');
+    assert.equal(getOutstandingAccessories(reservation.reservationNumber).length, 2);
+    assert.equal(getAccessoryById(veil.id).status, 'delivered');
+    assert.equal(getAccessoryById(crown.id).status, 'delivered');
+  } finally {
+    cleanup();
+  }
+});
+
+test('closing a rental releases attached accessories that never left the showroom', () => {
+  installStorage();
+  try {
+    const { reservation, veil, crown } = seedRental();
+    attachAccessoryCommand({ reservationNumber: reservation.reservationNumber, accessoryId: veil.id });
+    attachAccessoryCommand({ reservationNumber: reservation.reservationNumber, accessoryId: crown.id });
+    completeDeliveryCommand({
+      paymentOverrideReason: 'تجاوز سداد مخصص لسيناريو الاختبار',
+      reservationNumber: reservation.reservationNumber,
+      deliveryDateTime: nowDateTimeLocal(),
+      deliveredAccessoryIds: [veil.id],
+      idempotencyKey: 'deliver-release-undelivered',
     });
 
-    const outstanding = getOutstandingAccessories(reservation.reservationNumber);
-    assert.equal(outstanding.length, 1);
-    assert.equal(outstanding[0].accessoryId, crown.id);
-    assert.equal(getAccessoryById(veil.id).status, 'service');
-    assert.equal(getAccessoryById(crown.id).status, 'delivered');
+    completeReturnCommand({
+      reservationNumber: reservation.reservationNumber,
+      returnDateTime: nowDateTimeLocal(),
+      lateFee: 0,
+      damageFee: 0,
+      refundMethod: 'cash',
+      nextItemStatus: 'inspection',
+      accessoryReturns: [{ accessoryId: veil.id, condition: 'intact' }],
+      idempotencyKey: 'return-release-undelivered',
+    });
+
+    assert.equal(getAccessoryById(crown.id).status, 'available');
+    assert.equal(getOutstandingAccessories(reservation.reservationNumber).length, 0);
   } finally {
     cleanup();
   }
@@ -418,35 +449,16 @@ test('an already-returned accessory can never be closed or charged twice', () =>
       deliveredAccessoryIds: [veil.id, crown.id],
       idempotencyKey: 'deliver-idem',
     });
-    // Partial return: the veil is closed, the crown stays out.
-    completeReturnCommand({
+    // An accessory-only operational return can close one item while the rental
+    // itself stays open for the crown and the dress.
+    recordAccessoryReturn({
       reservationNumber: reservation.reservationNumber,
-      returnDateTime: nowDateTimeLocal(),
-      lateFee: 0,
-      damageFee: 0,
-      refundMethod: 'cash',
-      nextItemStatus: 'inspection',
-      accessoryReturns: [{ accessoryId: veil.id, condition: 'damaged', chargeAmount: 5 }],
-      idempotencyKey: 'return-idem-1',
+      entries: [{ accessoryId: veil.id, condition: 'damaged', chargeAmount: 5 }],
+      returnedAt: nowDateTimeLocal(),
     });
 
-    // The reservation guard stops a second return command outright...
-    assert.throws(
-      () => completeReturnCommand({
-        reservationNumber: reservation.reservationNumber,
-        returnDateTime: nowDateTimeLocal(),
-        lateFee: 0,
-        damageFee: 0,
-        refundMethod: 'cash',
-        nextItemStatus: 'inspection',
-        accessoryReturns: [{ accessoryId: veil.id, condition: 'damaged', chargeAmount: 5 }],
-        idempotencyKey: 'return-idem-2',
-      }),
-      /غير مؤهل للاسترجاع/,
-    );
-
-    // ...and the accessory rule itself refuses a repeated close, so no future
-    // caller can charge the same damage twice.
+    // The accessory rule refuses a repeated close, so no future caller can
+    // charge the same damage twice.
     assert.throws(
       () => recordAccessoryReturn({
         reservationNumber: reservation.reservationNumber,

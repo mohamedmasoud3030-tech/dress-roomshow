@@ -408,6 +408,58 @@ test('cancelling the blocking booking turns the want into an opportunity', () =>
   }
 });
 
+test('creating a reservation from a waitlist request converts it atomically', () => {
+  installStorage();
+  try {
+    const { customer } = seed();
+    const { design, piece } = seedDesignWithOnePiece();
+    const period = { pickupDate: addDaysISO(today, 3), returnDate: addDaysISO(today, 5) };
+    const entry = addWaitlistEntry({ customerId: customer.id, designId: design.id, ...period });
+
+    const reservation = createReservationCommand({
+      customerId: customer.id,
+      dressId: piece.id,
+      ...period,
+      depositAmount: 0,
+      waitlistEntryId: entry.id,
+      idempotencyKey: 'waitlist-conversion',
+    });
+
+    const converted = getWaitlistEntries().find((item) => item.id === entry.id);
+    assert.equal(converted.status, 'converted');
+    assert.equal(converted.reservationNumber, reservation.reservationNumber);
+  } finally {
+    cleanup();
+  }
+});
+
+test('a mismatched waitlist conversion rolls the new reservation back', () => {
+  installStorage();
+  try {
+    const waiting = addCustomer({ name: 'منتظرة', phone: '90000075', status: 'normal' });
+    const other = addCustomer({ name: 'أخرى', phone: '90000076', status: 'normal' });
+    saveAppPreferences({ ...DEFAULT_APP_PREFERENCES, preparationDaysBeforePickup: 0, cleaningDaysAfterReturn: 0 });
+    const { design, piece } = seedDesignWithOnePiece();
+    const period = { pickupDate: addDaysISO(today, 3), returnDate: addDaysISO(today, 5) };
+    const entry = addWaitlistEntry({ customerId: waiting.id, designId: design.id, ...period });
+    const before = readCollection('reservations', []).length;
+
+    assert.throws(() => createReservationCommand({
+      customerId: other.id,
+      dressId: piece.id,
+      ...period,
+      depositAmount: 0,
+      waitlistEntryId: entry.id,
+      idempotencyKey: 'waitlist-mismatch',
+    }), /لا يطابق العميلة/);
+
+    assert.equal(readCollection('reservations', []).length, before);
+    assert.equal(getWaitlistEntries().find((item) => item.id === entry.id).status, 'waiting');
+  } finally {
+    cleanup();
+  }
+});
+
 test('opportunities are ordered by who asked first', () => {
   installStorage();
   try {

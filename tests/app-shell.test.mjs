@@ -18,7 +18,7 @@ test('app shell keeps the established navigation order and labels', async () => 
   const expectedItems = [
     ['/', 'لوحة التحكم'],
     ['/inventory', 'المخزون'],
-    ['/customers', 'العملاء'],
+    ['/customers', 'العميلات'],
     ['/reservations', 'الحجوزات'],
     ['/appointments', 'المواعيد'],
     ['/delivery-return', 'التسليم والاسترجاع'],

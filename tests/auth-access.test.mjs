@@ -35,6 +35,24 @@ test('common Supabase failures have actionable Arabic messages', () => {
   assert.match(toFriendlyAuthMessage('Rate limit exceeded'), /محاولات دخول كثيرة/);
 });
 
+test('the login screen offers password recovery and explains account activation', async () => {
+  const [page, service] = await Promise.all([
+    readFile(new URL('../src/features/auth/LoginPage.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/features/auth/auth.service.ts', import.meta.url), 'utf8'),
+  ]);
+  assert.match(page, /نسيت كلمة المرور/);
+  assert.match(page, /الحسابات الجديدة تنشئها مديرة المعرض/);
+  assert.match(service, /resetPasswordForEmail/);
+});
+
+test('signing out clears the private showroom cache without resetting the device lock', async () => {
+  const source = await readFile(new URL('../src/features/auth/AuthContext.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /clearStoredApplicationData\(\)/);
+  assert.match(source, /await clearAllImages\(\)/);
+  assert.doesNotMatch(source, /removeDevicePin|DEVICE_PIN_STORAGE_KEY/);
+});
+
 test('the route guard preserves the full intended URL and blocks every non-active state', async () => {
   const source = await readFile(
     new URL('../src/app/router/RequireAuth.tsx', import.meta.url),

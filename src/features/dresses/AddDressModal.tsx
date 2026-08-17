@@ -119,11 +119,13 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
   useEffect(() => {
     if (!open) return;
     reset(getDefaultValues());
+    setImages([]);
     setSubmitError(null);
   }, [open, reset]);
 
   const closeModal = () => {
     reset(getDefaultValues());
+    setImages([]);
     setSubmitError(null);
     onClose();
   };

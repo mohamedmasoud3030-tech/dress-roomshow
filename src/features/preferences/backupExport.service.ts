@@ -1,6 +1,6 @@
 import { exportDatabaseBackupAsync } from '@engines/persistence';
 import { downloadJson } from '@platform/download';
-import { recordAudit } from '../audit/audit.service';
+import { recordBackupExportCommand } from '../workflows';
 
 type BackupExportContext = {
   businessDate?: string;
@@ -16,14 +16,10 @@ export async function exportBackupForDownload({ businessDate, source }: BackupEx
   const filename = `lena-backup-${date}${source === 'daily-close' ? '-after-close' : ''}.json`;
 
   downloadJson(filename, backup);
-  recordAudit({
-    action: 'create',
-    entityType: 'backup',
-    entityId: backup.exportedAt,
-    summary: source === 'daily-close'
-      ? `تم تصدير نسخة احتياطية بعد إقفال يومية ${businessDate}.`
-      : 'تم تصدير نسخة احتياطية من بيانات التطبيق.',
-  });
+  recordBackupExportCommand(
+    source === 'daily-close' ? businessDate : undefined,
+    `backup-export:${backup.exportedAt}`,
+  );
 
   return { backup, filename };
 }

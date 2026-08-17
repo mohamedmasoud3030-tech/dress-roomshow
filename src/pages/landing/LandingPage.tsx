@@ -4,6 +4,7 @@ import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
 import { getShowroomProfile } from '../../features/preferences/showroomProfile.service';
 import { landingShowroomProfile, type LandingShowroomProfile } from './landingContent';
 import { loadLandingInventory } from './landingDress.repository';
+import { loadPublicShowroomProfile } from './landingProfile.repository';
 import { LandingAboutServices } from './components/LandingAboutServices';
 import { LandingCategories } from './components/LandingCategories';
 import { LandingContact } from './components/LandingContact';
@@ -14,6 +15,7 @@ import { LandingHero } from './components/LandingHero';
 import { LandingInventory } from './components/LandingInventory';
 import { LandingSteps } from './components/LandingSteps';
 import type { InventoryCategoryFilter, LandingUsageFilter } from './components/types';
+import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from './landingWhatsapp';
 
 const inventoryCategories = ['all', ...DRESS_CATEGORIES] as const;
 
@@ -38,7 +40,15 @@ export function LandingPage() {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InventoryCategoryFilter>('all');
   const [usageFilter, setUsageFilter] = useState<LandingUsageFilter>('all');
-  const profile: LandingShowroomProfile = getShowroomProfileSafely();
+  const [profile, setProfile] = useState<LandingShowroomProfile>(() => getShowroomProfileSafely());
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadPublicShowroomProfile()
+      .then((loaded) => { if (!cancelled) setProfile(loaded); })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,7 +93,7 @@ export function LandingPage() {
   const saleCount = dresses.filter((dress) => dress.isForSale).length;
 
   return (
-    <div className="min-h-screen bg-stone-50 text-slate-900" dir="rtl">
+    <div className="min-h-screen bg-stone-50 pb-20 text-slate-900 lg:pb-0" dir="rtl">
       <LandingHeader profile={profile} />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -114,6 +124,14 @@ export function LandingPage() {
       </main>
 
       <LandingFooter profile={profile} />
+      <a
+        href={buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage())}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-xl lg:hidden"
+      >
+        طلب موعد عبر واتساب
+      </a>
     </div>
   );
 }

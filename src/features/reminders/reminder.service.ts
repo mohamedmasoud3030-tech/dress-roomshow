@@ -25,8 +25,6 @@ import type { Reminder, ReminderDismissal, ReminderKind, ReminderSummary } from 
 
 const DISMISSAL_COLLECTION = 'reminder-dismissals';
 
-const ACTIVE_STATUSES = new Set<Reservation['status']>(['pending', 'confirmed', 'delivered', 'overdue']);
-
 export const REMINDER_KIND_LABELS: Record<ReminderKind, string> = {
   pickup_tomorrow: 'تذكير بالاستلام غداً',
   return_tomorrow: 'تذكير بالإرجاع غداً',
@@ -145,7 +143,9 @@ function createReminder(kind: ReminderKind, reservation: Reservation, urgency: R
 export function getReminders(includeHandled = false): Reminder[] {
   const today = getTodayISO();
   const tomorrow = addDaysISO(today, 1);
-  const reservations = getReservations().filter((reservation) => ACTIVE_STATUSES.has(reservation.status));
+  // Operational pickup/return reminders still check their exact statuses below,
+  // but debt collection must also include a completed return with money outstanding.
+  const reservations = getReservations().filter((reservation) => reservation.status !== 'cancelled');
   const reminders: Reminder[] = [];
 
   reservations.forEach((reservation) => {

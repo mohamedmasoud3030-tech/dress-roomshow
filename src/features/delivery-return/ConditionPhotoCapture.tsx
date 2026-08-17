@@ -19,6 +19,15 @@ import type { ConditionPhoto } from './deliveryReturn.types';
  */
 
 const MAX_PHOTOS = 4;
+export const MAX_CONDITION_PHOTO_BYTES = 12 * 1024 * 1024;
+
+export function getConditionPhotoSizeError(
+  files: ReadonlyArray<Pick<File, 'name' | 'size'>>,
+): string | null {
+  const oversized = files.find((file) => file.size > MAX_CONDITION_PHOTO_BYTES);
+  if (!oversized) return null;
+  return `الصورة ${oversized.name} أكبر من الحد المسموح (12 MB لكل صورة).`;
+}
 
 function generatePhotoId(): string {
   const runtimeCrypto = globalThis.crypto;
@@ -62,6 +71,11 @@ export function ConditionPhotoCapture({
     const selected = Array.from(files).filter((file) => file.type.startsWith('image/')).slice(0, remaining);
     if (selected.length === 0) {
       setError('يمكن إرفاق صور فقط.');
+      return;
+    }
+    const sizeError = getConditionPhotoSizeError(selected);
+    if (sizeError) {
+      setError(sizeError);
       return;
     }
 

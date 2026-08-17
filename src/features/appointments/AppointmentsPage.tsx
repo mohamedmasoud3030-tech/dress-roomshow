@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Clock } from 'lucide-react';
 import { AddAppointmentModal } from './AddAppointmentModal';
-import { getTodaysAppointments } from './appointment.service';
+import { getTodaysAppointments, getUpcomingAppointments } from './appointment.service';
 import type { Appointment } from './appointment.types';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Section } from '../../components/shared/Section';
@@ -23,13 +23,19 @@ const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
 export function AppointmentsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [todayAppointments, setTodayAppointments] = useState<Appointment[]>([]);
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
+
+  const refreshAppointments = () => {
+    setTodayAppointments(getTodaysAppointments());
+    setUpcomingAppointments(getUpcomingAppointments());
+  };
 
   useEffect(() => {
-    setTodayAppointments(getTodaysAppointments());
+    refreshAppointments();
   }, []);
 
-  const handleAppointmentCreated = (appointment: Appointment) => {
-    setTodayAppointments((current) => [...current, appointment]);
+  const handleAppointmentCreated = () => {
+    refreshAppointments();
     setShowAddModal(false);
   };
 
@@ -76,6 +82,35 @@ export function AppointmentsPage() {
                 </div>
                 <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${APPOINTMENT_STATUS_BADGES[apt.status] ?? 'bg-stone-100 text-slate-700 ring-slate-200'}`}>
                   {APPOINTMENT_STATUS_LABELS[apt.status] ?? apt.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      <Section
+        title="المواعيد القادمة"
+        description="كل المواعيد بعد اليوم، مرتبة بالتاريخ والوقت."
+      >
+        {upcomingAppointments.length === 0 ? (
+          <EmptyState
+            icon={<Clock className="h-10 w-10" />}
+            title="لا توجد مواعيد قادمة"
+            description="ستظهر هنا المواعيد المستقبلية فور حفظها."
+          />
+        ) : (
+          <ul className="space-y-3">
+            {upcomingAppointments.map((appointment) => (
+              <li key={appointment.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-stone-50 p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-900">{appointment.customerName}</p>
+                  <p className="mt-0.5 text-xs text-slate-500">
+                    {appointment.appointmentDate} · {appointment.startTime} - {appointment.endTime}
+                  </p>
+                </div>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${APPOINTMENT_STATUS_BADGES[appointment.status] ?? 'bg-stone-100 text-slate-700 ring-slate-200'}`}>
+                  {APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}
                 </span>
               </li>
             ))}

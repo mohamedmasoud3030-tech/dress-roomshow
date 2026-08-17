@@ -57,6 +57,7 @@ import {
 import {
   addWaitlistEntry,
   closeWaitlistEntry,
+  markWaitlistConverted,
   markWaitlistNotified,
 } from '../waitlist/waitlist.service';
 import type { AddWaitlistEntryInput, WaitlistEntry } from '../waitlist/waitlist.types';
@@ -148,6 +149,16 @@ export function closeWaitlistEntryCommand(id: string, idempotencyKey?: string): 
   return atomic('waitlist.close', 'waitlist.close:after-write', idempotencyKey, () => closeWaitlistEntry(id), (entry) => entry.id);
 }
 
+export function markWaitlistConvertedCommand(id: string, reservationNumber: string, idempotencyKey?: string): WaitlistEntry {
+  return atomic(
+    'waitlist.convert',
+    'waitlist.convert:after-write',
+    idempotencyKey,
+    () => markWaitlistConverted(id, reservationNumber),
+    (entry) => entry.id,
+  );
+}
+
 export function startStocktakeSessionCommand(scope?: string, idempotencyKey?: string): StocktakeSession {
   return atomic('stocktake.start', 'stocktake.start:after-write', idempotencyKey, () => startStocktakeSession(scope), (session) => session.sessionNumber);
 }
@@ -210,6 +221,19 @@ export function dismissReminderCommand(
   idempotencyKey?: string,
 ): ReminderDismissal {
   return atomic('reminder.dismiss', 'reminder.dismiss:after-write', idempotencyKey, () => dismissReminder(reminderRef, channel));
+}
+
+export function recordBackupExportCommand(businessDate?: string, idempotencyKey?: string): void {
+  atomic('backup.export', 'backup.export:after-audit', idempotencyKey, () => {
+    recordAudit({
+      action: 'create',
+      entityType: 'backup',
+      entityId: new Date().toISOString(),
+      summary: businessDate
+        ? `تم تصدير نسخة احتياطية بعد إقفال يومية ${businessDate}.`
+        : 'تم تصدير نسخة احتياطية من بيانات التطبيق.',
+    });
+  });
 }
 
 export function resetApplicationDataCommand(idempotencyKey?: string): void {

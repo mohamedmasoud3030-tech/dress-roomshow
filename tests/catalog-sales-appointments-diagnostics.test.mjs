@@ -6,7 +6,7 @@ import {
   futureDate,
   todayISO,
 } from './helpers/storage.mjs';
-import { resetCountersForTesting } from '../src/engines/persistence/index.ts';
+import { readCollection, resetCountersForTesting, writeCollection } from '../src/engines/persistence/index.ts';
 import { getAuditLog } from '../src/features/audit/audit.service.ts';
 import { addCustomer } from '../src/features/customers/customer.service.ts';
 import {
@@ -15,12 +15,14 @@ import {
   updateDress,
 } from '../src/features/dresses/dress.service.ts';
 import { getSaleableDresses } from '../src/features/dresses/sale.service.ts';
-import { createReservationCommand } from '../src/features/workflows/reservationCommands.ts';
+import { createReservationCommand, cancelReservationCommand } from '../src/features/workflows/reservationCommands.ts';
+import { getReservations } from '../src/features/reservations/reservation.service.ts';
 import { createSaleInvoiceCommand } from '../src/features/workflows/salesCommands.ts';
 import {
   bookAppointmentCommand,
   updateAppointmentStatusCommand,
 } from '../src/features/workflows/appointmentCommands.ts';
+import { getTodaysAppointments, getUpcomingAppointments } from '../src/features/appointments/appointment.service.ts';
 import {
   DEFAULT_APP_PREFERENCES,
   saveAppPreferences,
@@ -157,6 +159,43 @@ test('an Omani local phone and its +968 form are the same customer identity', ()
   }
 });
 
+test('a never-delivered expired booking stays cancellable instead of becoming an overdue return', () => {
+  installStorage();
+  try {
+    const customer = addCustomer({ name: 'عميلة لم تحضر', phone: '90000077', status: 'normal' });
+    const dress = addDress({ ...dressInput, name: 'قطعة عدم الحضور' });
+    const reservation = createReservationCommand({
+      customerId: customer.id,
+      dressId: dress.id,
+      pickupDate: futureDate(1),
+      returnDate: futureDate(2),
+      depositAmount: 0,
+      idempotencyKey: 'diagnosis-no-show',
+    });
+    writeCollection('reservations', readCollection('reservations', []).map((item) => (
+      item.id === reservation.id
+        ? {
+            ...item,
+            pickupDate: futureDate(-3),
+            returnDate: futureDate(-2),
+            lines: item.lines.map((line) => ({
+              ...line,
+              pickupDate: futureDate(-3),
+              returnDate: futureDate(-2),
+              deliveryStatus: 'pending_delivery',
+            })),
+          }
+        : item
+    )));
+
+    assert.equal(getReservations()[0].status, 'confirmed');
+    cancelReservationCommand(getReservations()[0].id);
+    assert.equal(getReservations()[0].status, 'cancelled');
+  } finally {
+    cleanup();
+  }
+});
+
 test('appointment service rejects a past appointment even outside the form', () => {
   installStorage();
   try {
@@ -173,6 +212,28 @@ test('appointment service rejects a past appointment even outside the form', () 
       }),
       /الماضي/,
     );
+  } finally {
+    cleanup();
+  }
+});
+
+test('future appointments remain visible in the upcoming list and never appear as today', () => {
+  installStorage();
+  try {
+    bookAppointmentCommand({
+      customerId: 'customer-upcoming',
+      customerName: 'عميلة مستقبلية',
+      phone: '90000088',
+      appointmentDate: futureDate(3),
+      startTime: '11:00',
+      endTime: '12:00',
+      status: 'pending',
+      idempotencyKey: 'diagnosis-upcoming-appointment',
+    });
+
+    assert.equal(getTodaysAppointments().length, 0);
+    assert.equal(getUpcomingAppointments().length, 1);
+    assert.equal(getUpcomingAppointments()[0].customerName, 'عميلة مستقبلية');
   } finally {
     cleanup();
   }

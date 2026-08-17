@@ -5,6 +5,7 @@ import { TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { useAuth } from './AuthContext';
 import { getSafeReturnPath } from './auth.model';
+import { requestPasswordReset } from './auth.service';
 
 /**
  * The real front door.
@@ -18,6 +19,8 @@ export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
 
   if (status === 'signed-in') {
@@ -47,8 +50,22 @@ export function LoginPage() {
     }
   };
 
+  const handlePasswordReset = async () => {
+    setError(null);
+    setFeedback(null);
+    setResetting(true);
+    try {
+      await requestPasswordReset(email);
+      setFeedback('أرسلنا رابط استعادة كلمة المرور إلى بريدك. افتحي الرسالة واتبعي الخطوات ثم عودي لتسجيل الدخول.');
+    } catch (reason) {
+      setError(reason);
+    } finally {
+      setResetting(false);
+    }
+  };
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-stone-50 px-4 py-12" dir="rtl">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-stone-50 px-4 py-12" dir="rtl">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-l from-amber-200/50 via-transparent to-amber-100/60" />
 
       <div className="relative w-full max-w-sm">
@@ -67,6 +84,7 @@ export function LoginPage() {
           {error !== null && (
             <UserFacingErrorAlert error={error} fallback="تعذر تسجيل الدخول." className="mb-4" />
           )}
+          {feedback && <p role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</p>}
           {accountNotice && (
             <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
               {accountNotice}
@@ -108,13 +126,22 @@ export function LoginPage() {
 
           <button
             type="submit"
-            disabled={submitting || status === 'loading'}
+            disabled={submitting || resetting || status === 'loading'}
             className="mt-6 min-h-11 w-full rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting || status === 'loading' ? 'جارٍ التحقق...' : 'دخول'}
           </button>
+          <button
+            type="button"
+            onClick={() => void handlePasswordReset()}
+            disabled={submitting || resetting || status === 'loading'}
+            className="mt-3 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 disabled:opacity-60"
+          >
+            {resetting ? 'جارٍ إرسال رابط الاستعادة...' : 'نسيت كلمة المرور'}
+          </button>
+          <p className="mt-4 text-center text-xs leading-5 text-slate-500">الحسابات الجديدة تنشئها مديرة المعرض. إذا كان حسابك موقوفًا، تواصلي معها لتفعيله.</p>
         </form>
       </div>
-    </div>
+    </main>
   );
 }

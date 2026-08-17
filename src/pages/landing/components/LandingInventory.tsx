@@ -47,16 +47,16 @@ function InventoryCard({ dress, profile }: { dress: Dress; profile: LandingProfi
         </div>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="rounded-xl bg-stone-50 p-3">
-            <p className="text-slate-400">المقاس</p>
+            <p className="text-slate-600">المقاس</p>
             <p className="mt-1 font-bold text-slate-900" dir="ltr">{dress.size}</p>
           </div>
           <div className="rounded-xl bg-stone-50 p-3">
-            <p className="text-slate-400">اللون</p>
+            <p className="text-slate-600">اللون</p>
             <p className="mt-1 font-bold text-slate-900">{dress.color}</p>
           </div>
         </div>
         <div className="rounded-xl border border-slate-100 bg-white p-4">
-          <p className="text-xs font-semibold text-slate-400">السعر</p>
+          <p className="text-xs font-semibold text-slate-600">السعر</p>
           <p className="mt-2 text-sm font-bold text-slate-900">{getLandingDressPriceLabel(dress)}</p>
           {dress.isForRent && dress.depositAmount > 0 && <p className="mt-2 text-xs text-slate-500">التأمين: {formatMoneyOMR(dress.depositAmount)}</p>} {/* legacy compat */}
         </div>
@@ -110,13 +110,13 @@ export function LandingInventory({ profile, dresses, loading, loadError, search,
         <div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">
           <label className="relative block">
             <span className="sr-only">ابحثي في المعروض</span>
-            <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+            <Search className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-600" />
             <input type="search" value={search} onChange={(event) => onSearchChange(event.target.value)} placeholder="ابحثي بالاسم أو الفئة أو اللون أو المقاس" className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30" />
           </label>
           <label>
             <span className="sr-only">فلتر الفئة</span>
             <div className="relative">
-              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Filter className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
               <select value={selectedCategory} onChange={(event) => onCategoryChange(event.target.value as InventoryCategoryFilter)} className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-10 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30">
                 {inventoryCategories.map((category) => <option key={category} value={category}>{category === 'all' ? 'كل الفئات' : category}</option>)}
               </select>

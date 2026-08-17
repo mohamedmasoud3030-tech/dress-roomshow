@@ -3,6 +3,7 @@ import {
   getOutstandingAccessories,
   recordAccessoryDelivery,
   recordAccessoryReturn,
+  releaseAccessoriesForReservation,
   type AccessoryReturnEntry,
 } from '../accessories/reservationAccessory.service';
 import { recordAudit } from '../audit/audit.service';
@@ -173,9 +174,17 @@ export function completeReturn(input: CompleteReturnInput): DeliveryReturnRecord
   const base = getBaseRecord(reservation);
   if (base.deliveryDateTime && returnTimestamp < new Date(base.deliveryDateTime).getTime()) throw new Error('وقت الاسترجاع لا يمكن أن يسبق وقت التسليم.');
 
-  // Accessory conditions and charges are recorded before the money settlement so a
-  // rejected accessory entry cannot leave a posted settlement behind.
+  // Closing the rental while an accessory is still outside makes that asset
+  // disappear from active-reservation dashboards and leaves no usable follow-up
+  // path. A whole-contract return therefore settles every delivered accessory;
+  // an omitted one blocks closure instead of being silently orphaned.
   const accessoryReturns = input.accessoryReturns ?? [];
+  const outstandingAccessories = getOutstandingAccessories(reservation.reservationNumber);
+  const returnedAccessoryIds = new Set(accessoryReturns.map((entry) => entry.accessoryId));
+  const omittedAccessories = outstandingAccessories.filter((link) => !returnedAccessoryIds.has(link.accessoryId));
+  if (omittedAccessories.length > 0) {
+    throw new Error(`لا يمكن إغلاق استرجاع الحجز قبل تسجيل حالة كل الملحقات الخارجة: ${omittedAccessories.map((link) => link.accessoryCodeSnapshot).join('، ')}.`);
+  }
   if (accessoryReturns.length > 0) {
     recordAccessoryReturn({ reservationNumber: reservation.reservationNumber, entries: accessoryReturns, returnedAt: input.returnDateTime });
   }
@@ -186,6 +195,9 @@ export function completeReturn(input: CompleteReturnInput): DeliveryReturnRecord
   const record = saveDeliveryReturnRecord({ ...base, status, returnDateTime: input.returnDateTime, returnCondition: input.returnCondition?.trim() || undefined, returnPhotos: normalizeConditionPhotos(input.returnPhotos), lateFee: input.lateFee, damageFee: input.damageFee, depositRefundAmount: settlement.refundAmount, notes: input.notes?.trim() || base.notes });
   updateReservationFulfillment(reservation.reservationNumber, 'return');
   const returnedItemCodes = updateEveryReservationItemStatus(reservation, input.nextDressStatus);
+  // Attached accessories that never left the showroom must not stay reserved
+  // after their reservation closes.
+  releaseAccessoriesForReservation(reservation.reservationNumber);
   recordAudit({ action: 'return', entityType: 'delivery-return', entityId: record.id, summary: `تم استرجاع ${returnedItemCodes.length} قطعة من الحجز ${reservation.reservationNumber}.`, nextValues: { returnDateTime: record.returnDateTime, status: record.status, returnedItemCodes, lateFee: record.lateFee, damageFee: record.damageFee, depositRefundAmount: record.depositRefundAmount, accessoriesStillOut: stillOut.length, returnPhotos: record.returnPhotos?.length ?? 0 } });
   return record;
 }

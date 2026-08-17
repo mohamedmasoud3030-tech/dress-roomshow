@@ -16,6 +16,7 @@ import {
   unsubscribeFromShowroomChanges,
 } from './showroomCloudState';
 import { reportClientError } from '../observability/clientObservability';
+import { createCommitGenerationGuard } from './commitGenerationGuard';
 
 function publishStatus(status: PersistenceStatus): void {
   window.dispatchEvent(new CustomEvent(PERSISTENCE_STATUS_EVENT, { detail: status }));
@@ -27,6 +28,7 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
   const revisionRef = useRef(0);
   const committingRef = useRef(false);
   const queueRef = useRef(Promise.resolve());
+  const commitGenerationRef = useRef(createCommitGenerationGuard());
 
   const hydrate = useCallback(async () => {
     setFailure(null);
@@ -56,7 +58,9 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
     const handleCommit = (event: Event) => {
       const detail = (event as CustomEvent<ShowroomCommandCommitted>).detail;
       if (!detail) return;
+      const generation = commitGenerationRef.current.capture();
       queueRef.current = queueRef.current.then(async () => {
+        if (!commitGenerationRef.current.isCurrent(generation)) return;
         committingRef.current = true;
         publishStatus({ state: 'syncing', message: 'جارٍ حفظ العملية…', updatedAt: new Date().toISOString() });
         try {
@@ -70,6 +74,7 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
           publishStatus({ state: 'synced', message: 'تم حفظ العملية بنجاح.', updatedAt: new Date().toISOString() });
         } catch (reason) {
           void reportClientError('cloud.commit', reason);
+          commitGenerationRef.current.invalidate();
           restoreDatabaseSnapshot(detail.before);
           const message = reason instanceof Error ? reason.message : 'تعذر حفظ العملية. لم يُسجل أي تغيير.';
           document.documentElement.dataset.cloudCommit = 'error';

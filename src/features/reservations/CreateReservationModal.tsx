@@ -11,7 +11,9 @@ import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getCustomers } from '../customers/customer.service';
 import type { Customer } from '../customers/customer.types';
+import { AddCustomerModal } from '../customers/AddCustomerModal';
 import { getDresses } from '../dresses/dress.service';
+import { AddDressModal } from '../dresses/AddDressModal';
 import { getBookablePieces } from '../dresses/design.service';
 import type { Dress } from '../dresses/dress.types';
 import { getDressSecurityDepositAmount } from '../dresses/dress.types';
@@ -53,7 +55,7 @@ type CreateReservationModalProps = {
   open: boolean;
   onClose: () => void;
   onCreated: (reservation: Reservation) => void;
-  prefill?: { dressCode?: string; pickupDate?: string; returnDate?: string };
+  prefill?: { customerId?: string; dressCode?: string; pickupDate?: string; returnDate?: string; waitlistEntryId?: string };
 };
 
 function addDays(dateValue: string, days: number): string {
@@ -88,9 +90,11 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
   const fieldId = useId();
   const [submitError, setSubmitError] = useState<unknown>(null);
   const { current: currentStep, next: nextStep, prev: previousStep, goTo: goToStep, reset: resetStep } = useStepper(RESERVATION_STEPS.length);
-  const [submissionKey] = useState(() => createSubmissionKey('rsv'));
+  const [submissionKey, setSubmissionKey] = useState(() => createSubmissionKey('rsv'));
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [dresses, setDresses] = useState<Dress[]>([]);
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [showAddDress, setShowAddDress] = useState(false);
   const [lines, setLines] = useState<LineEntry[]>([]);
   const bufferDays = getBufferSettings();
 
@@ -198,6 +202,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
 
       reset({
         ...defaults,
+        customerId: prefill?.customerId || defaults.customerId,
         pickupDate: prefill?.pickupDate || defaults.pickupDate,
         returnDate: prefill?.returnDate || defaults.returnDate,
       });
@@ -215,11 +220,12 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
       }
 
       setSubmitError(null);
+      setSubmissionKey(createSubmissionKey('rsv'));
       resetStep();
     } catch (error: unknown) {
       setSubmitError(error);
     }
-  }, [open, reset, resetStep, prefill?.dressCode, prefill?.pickupDate, prefill?.returnDate]);
+  }, [open, reset, resetStep, prefill?.customerId, prefill?.dressCode, prefill?.pickupDate, prefill?.returnDate]);
 
   // Auto-fill rental price and security deposit when a dress is selected
   useEffect(() => {
@@ -327,6 +333,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
         rentalPrice: 0, // Per-line pricing
         notes: formValues.notes,
         lines: lineInputs,
+        waitlistEntryId: prefill?.waitlistEntryId,
         idempotencyKey: submissionKey,
       });
       onCreated(reservation);
@@ -337,6 +344,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
   };
 
   return (
+    <>
     <Modal open={open} onClose={closeModal} title="حجز جديد">
       <form onSubmit={handleSubmit(onSubmit, handleInvalidSubmit)} className="space-y-5">
         <Stepper steps={RESERVATION_STEPS} currentStep={currentStep} onStepChange={goToStep} idPrefix={fieldId} />
@@ -357,6 +365,11 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
               error={errors.customerId?.message}
               unavailableText="لا توجد عميلات مسجلات بعد."
             />
+            {customers.length === 0 && (
+              <button type="button" onClick={() => setShowAddCustomer(true)} className="mt-4 min-h-11 w-full rounded-xl border border-amber-300 bg-amber-50 px-4 text-sm font-bold text-amber-900">
+                إضافة عميلة الآن والعودة للحجز
+              </button>
+            )}
           </section>
         )}
 
@@ -409,8 +422,13 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
 
           {lines.length === 0 && (
             <p className="rounded-xl border border-dashed border-slate-300 bg-stone-50 p-4 text-center text-sm text-slate-500">
-              لم يتم إضافة قطع بعد. اضغطي "إضافة قطعة" لبدء العقد.
+              {dresses.length === 0 ? 'لا توجد قطع مؤهلة للإيجار بعد.' : 'لم يتم إضافة قطع بعد. اضغطي "إضافة قطعة" لبدء العقد.'}
             </p>
+          )}
+          {dresses.length === 0 && (
+            <button type="button" onClick={() => setShowAddDress(true)} className="min-h-11 w-full rounded-xl border border-amber-300 bg-amber-50 px-4 text-sm font-bold text-amber-900">
+              إضافة قطعة مخزون الآن والعودة للحجز
+            </button>
           )}
 
           {lines.map((entry) => {
@@ -598,5 +616,24 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
         </div>
       </form>
     </Modal>
+    <AddCustomerModal
+      open={showAddCustomer}
+      onClose={() => setShowAddCustomer(false)}
+      onCreated={(customer) => {
+        setCustomers(getCustomers());
+        setValue('customerId', customer.id, { shouldValidate: true });
+        setShowAddCustomer(false);
+      }}
+    />
+    <AddDressModal
+      open={showAddDress}
+      onClose={() => setShowAddDress(false)}
+      onCreated={(dress) => {
+        setDresses(getReservableDresses());
+        setLines([{ key: nextLineKey(), dressId: dress.id, rentalPrice: String(dress.rentalPrice), securityDepositAmount: String(getDressSecurityDepositAmount(dress)), bookingAdvanceAmount: '0' }]);
+        setShowAddDress(false);
+      }}
+    />
+    </>
   );
 }

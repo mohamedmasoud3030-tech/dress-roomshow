@@ -145,6 +145,34 @@ test('service work is blocked when it collides with a confirmed booking plus the
   }
 });
 
+test('service work is blocked for every item in a multi-item contract, not only the first line', () => {
+  installStorage();
+  try {
+    const customer = addCustomer({ name: 'سارة', phone: '90000009', status: 'normal' });
+    const first = addDress({ ...itemInput, name: 'القطعة الأولى', status: 'available' });
+    const secondary = addDress({ ...itemInput, name: 'القطعة الثانية', status: 'available' });
+    createReservationCommand({
+      customerId: customer.id,
+      pickupDate: futureDate(3),
+      returnDate: futureDate(5),
+      depositAmount: 0,
+      lines: [{ dressId: first.id }, { dressId: secondary.id }],
+      idempotencyKey: 'rsv-multi-service-conflict',
+    });
+
+    assert.throws(() => openServiceTaskCommand({
+      dressCode: secondary.code,
+      type: 'maintenance',
+      startDate: futureDate(3),
+      expectedCompletionDate: futureDate(4),
+      idempotencyKey: 'srv-secondary-conflict',
+    }), /يتعارض/);
+    assert.equal(getServiceTasks().length, 0);
+  } finally {
+    cleanup();
+  }
+});
+
 test('a rented or sold item cannot enter the service queue', () => {
   installStorage();
   try {
@@ -243,6 +271,8 @@ test('cancelling a task requires a reason and is recorded', () => {
 
     const cancelled = cancelServiceTaskCommand(task.id, 'لا حاجة للإصلاح');
     assert.equal(cancelled.status, 'cancelled');
+    assert.equal(cancelled.resultingItemStatus, 'inspection');
+    assert.equal(itemStatus(dress.code), 'inspection', 'cancelling restores the physical state from before the task');
     assert.equal(summarizeServiceQueue(getServiceTasks()).open, 0);
   } finally {
     cleanup();

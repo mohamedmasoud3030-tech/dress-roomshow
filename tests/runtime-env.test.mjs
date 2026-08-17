@@ -1,10 +1,33 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import { URL } from 'node:url';
 import {
   MissingRuntimeConfigError,
   getSupabaseConfig,
   readRequiredEnv,
 } from '../src/config/env.ts';
+
+const repositoryUrl = new URL('../', import.meta.url);
+const readRepositoryFile = (path) => readFile(new URL(path, repositoryUrl), 'utf8');
+
+test('the documented Node default stays inside the Node 22 LTS line used by CI', async () => {
+  const [nvmrc, packageJson, ...workflows] = await Promise.all([
+    readRepositoryFile('.nvmrc'),
+    readRepositoryFile('package.json'),
+    readRepositoryFile('.github/workflows/build.yml'),
+    readRepositoryFile('.github/workflows/verify.yml'),
+    readRepositoryFile('.github/workflows/windows-release.yml'),
+  ]);
+  const defaultVersion = nvmrc.trim();
+  const packageMetadata = JSON.parse(packageJson);
+
+  assert.equal(defaultVersion, '22.23.2');
+  assert.match(packageMetadata.engines.node, new RegExp(`\\^${defaultVersion.replaceAll('.', '\\.')}\\b`));
+  for (const workflow of workflows) {
+    assert.match(workflow, /node-version: ['"]?22['"]?/, 'CI follows the supported Node 22 LTS line');
+  }
+});
 
 test('readRequiredEnv trims configured values', () => {
   assert.equal(readRequiredEnv({ VITE_SUPABASE_URL: ' https://example.test ' }, 'VITE_SUPABASE_URL'), 'https://example.test');

@@ -8,8 +8,9 @@ import { addDress } from '../src/features/dresses/dress.service.ts';
 import { addAccessory } from '../src/features/accessories/accessory.service.ts';
 import { createReservationCommand } from '../src/features/workflows/reservationCommands.ts';
 import { recordPaymentCommand } from '../src/features/workflows/paymentCommands.ts';
-import { completeDeliveryCommand, completeReturnCommand } from '../src/features/workflows/deliveryReturnCommands.ts';
+import { completeDeliveryCommand } from '../src/features/workflows/deliveryReturnCommands.ts';
 import { attachAccessoryCommand } from '../src/features/workflows/accessoryCommands.ts';
+import { recordAccessoryReturn } from '../src/features/accessories/reservationAccessory.service.ts';
 import { quickSaleCommand, recordSaleReturnCommand } from '../src/features/workflows/salesCommands.ts';
 import { postExpenseCommand } from '../src/features/workflows/expenseCommands.ts';
 import { cancelReservationCommand } from '../src/features/workflows/reservationCommands.ts';
@@ -264,7 +265,18 @@ test('an overdue rental is counted as late', () => {
     // Push the booking into the past so the overdue projection fires.
     writeCollection('reservations', readCollection('reservations', []).map((item) => (
       item.reservationNumber === reservation.reservationNumber
-        ? { ...item, pickupDate: addDaysISO(today, -8), returnDate: addDaysISO(today, -5) }
+        ? {
+            ...item,
+            status: 'delivered',
+            pickupDate: addDaysISO(today, -8),
+            returnDate: addDaysISO(today, -5),
+            lines: item.lines.map((line) => ({
+              ...line,
+              pickupDate: addDaysISO(today, -8),
+              returnDate: addDaysISO(today, -5),
+              deliveryStatus: 'delivered',
+            })),
+          }
         : item
     )));
 
@@ -427,16 +439,12 @@ test('a partial accessory return and a lost accessory land on the accessory row'
       deliveredAccessoryIds: [veil.id, crown.id],
       idempotencyKey: 'acc-perf-deliver',
     });
-    // Partial return: only the veil comes back, and it is lost.
-    completeReturnCommand({
+    // Accessory-only partial return: the rental remains open for the crown and
+    // the dress, while the veil condition is recorded independently.
+    recordAccessoryReturn({
       reservationNumber: reservation.reservationNumber,
-      returnDateTime: nowDateTimeLocal(),
-      lateFee: 0,
-      damageFee: 0,
-      refundMethod: 'cash',
-      nextItemStatus: 'inspection',
-      accessoryReturns: [{ accessoryId: veil.id, condition: 'lost', chargeAmount: 30 }],
-      idempotencyKey: 'acc-perf-return',
+      entries: [{ accessoryId: veil.id, condition: 'lost', chargeAmount: 30 }],
+      returnedAt: nowDateTimeLocal(),
     });
 
     const report = buildInventoryPerformanceReport(filters());

@@ -5,6 +5,7 @@ import { calculateLinesFees, getReservationDepositTotal, getReservationSecurityD
 import { recordReturnSettlement } from '../payments/payment.service';
 import type { PaymentMethod } from '../payments/payment.types';
 import type { Reservation } from '../reservations/reservation.types';
+import { markWaitlistConverted } from '../waitlist/waitlist.service';
 
 export type CreateReservationCommandInput = {
   customerId: string;
@@ -19,15 +20,20 @@ export type CreateReservationCommandInput = {
   rentalPrice?: number;
   notes?: string;
   lines?: import('../reservations/reservation.types').CreateReservationLineInput[];
+  /** Waiting-list request completed by this reservation, inside the same rollback boundary. */
+  waitlistEntryId?: string;
   idempotencyKey?: string;
 };
 
 export function createReservationCommand(input: CreateReservationCommandInput): Reservation {
-  const { idempotencyKey, ...reservationInput } = input;
+  const { idempotencyKey, waitlistEntryId, ...reservationInput } = input;
   return runCommand(
     { name: 'reservation.create', idempotencyKey, summarize: (reservation) => reservation.reservationNumber },
     () => {
       const reservation = createReservation(reservationInput);
+      if (waitlistEntryId) {
+        markWaitlistConverted(waitlistEntryId, reservation.reservationNumber);
+      }
       commandBoundary('reservation.create:after-write');
       return reservation;
     },

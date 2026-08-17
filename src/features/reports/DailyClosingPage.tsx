@@ -10,8 +10,11 @@ import { formatReportMoney, getDayClosings } from './report.service';
 import { closeDayCommand, reopenDayCommand } from '../workflows';
 import type { DayCloseRecord } from './report.types';
 import { exportBackupForDownload } from '../preferences/backupExport.service';
+import { useAuth } from '../auth/AuthContext';
 
 export function DailyClosingPage() {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const [closings, setClosings] = useState<DayCloseRecord[]>(() => getDayClosings());
   const [businessDate, setBusinessDate] = useState(getTodayISO());
   const [openingCash, setOpeningCash] = useState('0');
@@ -85,7 +88,7 @@ export function DailyClosingPage() {
       </form>
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">سجل الإقفالات التاريخي</h2>
-        {closings.length === 0 ? <p className="mt-3 text-sm text-slate-500">لا توجد يوميات مقفلة حتى الآن.</p> : <div className="mt-4 space-y-3">{closings.map((closing) => <div key={closing.id} className="rounded-xl border border-slate-200 p-4 text-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-bold">{closing.businessDate} · {closing.status === 'closed' ? 'مقفلة' : 'أعيد فتحها'}</p><p className="mt-1 text-xs text-slate-500">تم الإقفال: {new Date(closing.closedAt).toLocaleString('ar-OM')}</p>{closing.reopenedAt && <p className="mt-1 text-xs text-amber-800">إعادة الفتح: {new Date(closing.reopenedAt).toLocaleString('ar-OM')} — {closing.reopenReason}</p>}</div>{closing.status === 'closed' && <button type="button" onClick={() => reopen(closing)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700"><RotateCcw aria-hidden="true" className="h-4 w-4" />إعادة فتح</button>}</div><div className="mt-3 grid gap-2 md:grid-cols-4"><p>البداية: <b>{formatReportMoney(closing.openingCash)}</b></p><p>المتوقع: <b>{formatReportMoney(closing.expectedCash)}</b></p><p>الفعلي: <b>{formatReportMoney(closing.actualCash)}</b></p><p>الفرق: <b>{formatReportMoney(closing.difference)}</b></p></div><DailyClosingBreakdown breakdown={closing.breakdown} /></div>)}</div>}
+        {closings.length === 0 ? <p className="mt-3 text-sm text-slate-500">لا توجد يوميات مقفلة حتى الآن.</p> : <div className="mt-4 space-y-3">{closings.map((closing) => <div key={closing.id} className="rounded-xl border border-slate-200 p-4 text-sm"><div className="flex flex-wrap items-start justify-between gap-3"><div><p className="font-bold">{closing.businessDate} · {closing.status === 'closed' ? 'مقفلة' : 'أعيد فتحها'}</p><p className="mt-1 text-xs text-slate-500">تم الإقفال: {new Date(closing.closedAt).toLocaleString('ar-OM')}</p>{closing.reopenedAt && <p className="mt-1 text-xs text-amber-800">إعادة الفتح: {new Date(closing.reopenedAt).toLocaleString('ar-OM')} — {closing.reopenReason}</p>}</div>{closing.status === 'closed' && isAdmin && <button type="button" onClick={() => reopen(closing)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700"><RotateCcw aria-hidden="true" className="h-4 w-4" />إعادة فتح</button>}</div><div className="mt-3 grid gap-2 md:grid-cols-4"><p>البداية: <b>{formatReportMoney(closing.openingCash)}</b></p><p>المتوقع: <b>{formatReportMoney(closing.expectedCash)}</b></p><p>الفعلي: <b>{formatReportMoney(closing.actualCash)}</b></p><p>الفرق: <b>{formatReportMoney(closing.difference)}</b></p></div><DailyClosingBreakdown breakdown={closing.breakdown} /></div>)}</div>}
       </article>
     </section>
   );

@@ -133,6 +133,8 @@ test('authenticated staff hydrates cloud state and cannot open administrator set
     window.history.pushState({}, '', '/preferences');
     window.dispatchEvent(new PopStateEvent('popstate'));
   });
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/preferences$/);
+  await expect(page.getByRole('heading', { name: 'هذه الصفحة للمديرة فقط' })).toBeVisible();
+  await expect(page.getByText('إعدادات النسخ والحسابات والصلاحيات تحتاج حساب مديرة.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'النسخ الاحتياطي وإعدادات التشغيل' })).toHaveCount(0);
 });

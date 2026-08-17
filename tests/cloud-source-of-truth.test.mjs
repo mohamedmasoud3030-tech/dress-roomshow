@@ -33,6 +33,20 @@ test('the database migration enforces atomic revisions, grants, RLS, and deposit
   assert.doesNotMatch(migration, /payment_type in \([^)]*security_deposit_collection[^)]*\) then amount/);
 });
 
+test('hardening migrations protect audit rows, validate snapshots, and expose only the public profile projection', async () => {
+  const hardening = await read('supabase/migrations/0019_audit_and_snapshot_validation.sql');
+  const publicProfile = await read('supabase/migrations/0020_public_showroom_profile.sql');
+
+  assert.match(hardening, /audit-log[\s\S]*audit[\s\S]*daily-closings/);
+  assert.match(hardening, /showroom_state_validate_snapshot/);
+  assert.match(hardening, /LENA_INVALID_PAYMENT/);
+  assert.match(hardening, /LENA_DUPLICATE_ENTITY/);
+  assert.match(publicProfile, /create table if not exists public\.showroom_public_profile/);
+  assert.match(publicProfile, /to anon, authenticated/);
+  assert.match(publicProfile, /sync_showroom_public_profile/);
+  assert.doesNotMatch(publicProfile, /grant select on table public\.showroom_state to anon/);
+});
+
 test('public catalogue is a narrow anonymous projection and Vercel serves SPA deep links securely', async () => {
   const migration = await read('supabase/migrations/0016_centralized_showroom_state.sql');
   const landing = await read('src/pages/landing/landingDress.repository.ts');
