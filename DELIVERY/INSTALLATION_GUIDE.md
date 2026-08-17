@@ -2,7 +2,7 @@
 
 ## المتطلبات:
 
-- Node.js 18+
+- Node.js 22 (المدى المدعوم: >=22 <25 — راجعي `engines` في `package.json`)
 - npm أو pnpm
 
 ## التركيب
