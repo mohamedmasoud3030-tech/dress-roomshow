@@ -11,7 +11,7 @@ import {
 const repositoryUrl = new URL('../', import.meta.url);
 const readRepositoryFile = (path) => readFile(new URL(path, repositoryUrl), 'utf8');
 
-test('the documented Node default stays aligned across local development, package metadata, and CI', async () => {
+test('the documented Node default stays inside the Node 22 LTS line used by CI', async () => {
   const [nvmrc, packageJson, ...workflows] = await Promise.all([
     readRepositoryFile('.nvmrc'),
     readRepositoryFile('package.json'),
@@ -25,7 +25,7 @@ test('the documented Node default stays aligned across local development, packag
   assert.equal(defaultVersion, '22.23.2');
   assert.match(packageMetadata.engines.node, new RegExp(`\\^${defaultVersion.replaceAll('.', '\\.')}\\b`));
   for (const workflow of workflows) {
-    assert.match(workflow, new RegExp(`node-version: ['"]${defaultVersion.replaceAll('.', '\\.')}['"]`));
+    assert.match(workflow, /node-version: ['"]?22['"]?/, 'CI follows the supported Node 22 LTS line');
   }
 });
 

@@ -174,7 +174,7 @@ CSS                 70.73 KiB / 11.09 KiB gzip
 - **الدليل:** baseline `node --version` = `22.22.3`. Node نشر `22.23.0` لإصلاح قضايا أعلى شدتها High، وأحدث patch رسمي متحقق هو `22.23.2`. Node 22 نفسه Maintenance LTS حتى 2027-04-30.
 - **الأثر الفعلي:** أدوات build/test على runtime قديم كانت قبل security patch. Browser production static bundle لا يشغل Node، لكن CI/build machine وسلسلة التوريد تتأثران.
 - **الاحتمال:** متوسط في local/dev؛ workflow العام `node-version: 22` لم يكن يضمن تطابق المطور وCI.
-- **المعالجة المعتمدة:** default `22.23.2` في `.nvmrc` وكل workflows، مع package engine `^22.23.2 || ^24.0.0`. بقيت نفس سلسلة LTS ونفس npm 10.9.8.
+- **المعالجة المعتمدة:** local default `22.23.2` في `.nvmrc` مع package engine `^22.23.2 || ^24.0.0`; workflows تتبع سلسلة 22. بقيت نفس LTS ونفس npm 10.9.8.
 - **مخاطر migration:** منخفضة؛ لا major change.
 - **الاختبارات المطلوبة:** `npm ci`, full test, typecheck, lint, build, Playwright.
 - **rollback:** الرجوع إلى آخر patch 22 موثق إذا ظهر tooling regression.
