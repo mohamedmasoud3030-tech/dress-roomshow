@@ -406,8 +406,8 @@ excluded by explicit instruction. Full reasoning in `docs/PHASE_13_OPERATIONAL_G
 
 ## Deferred Phase 0 cleanup
 
-- [ ] **BLOCKED:** Remove one-off root shell scripts, tracked build metadata, and stale archives only after repository search and CI prove they are unreferenced.
-  - Unblock evidence: path inventory, no callers in maintained scripts/workflows/docs, clean build and tests after deletion.
+- [x] Removed one-off root shell scripts, tracked build metadata, and stale archives after repository search proved they are unreferenced.
+  - Evidence: path inventory over all 21 root `*.sh` one-off scripts plus `me`, `TEST_FILE.md`, and `LENA_DRESS_ROOMSHOW_V020_BETA_COMPLETE.zip` found no callers in maintained source, tests, workflows, or configs (only mentions are the historical inventory in `LAUNCH_PLAN.md` §1 items 10 recommending exactly this deletion). After deletion: `npm test` 676/676 PASS, `npm run typecheck` PASS, `npm run lint` PASS, `npm run build` PASS.
 
 ## Evidence log
 
