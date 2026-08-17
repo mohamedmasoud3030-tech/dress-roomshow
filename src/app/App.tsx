@@ -1,5 +1,6 @@
 import { AppRoutes } from '@app/router/AppRoutes';
 import { AppUpdateNotice } from '../components/shared/AppUpdateNotice';
+import { DocumentTitle } from '@app/router/DocumentTitle';
 
 /**
  * Official runtime entry: Web App + PWA backed by Supabase.
@@ -14,6 +15,7 @@ import { AppUpdateNotice } from '../components/shared/AppUpdateNotice';
 export function App() {
   return (
     <>
+      <DocumentTitle />
       <AppRoutes />
       <AppUpdateNotice />
     </>

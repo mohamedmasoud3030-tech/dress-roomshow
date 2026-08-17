@@ -15,6 +15,7 @@ import { ViewModeToggle, useViewMode } from '../../components/shared/ViewModeTog
 import { filterCustomers, getCustomerDeletionBlockers, getCustomers, summarizeCustomers } from './customer.service';
 import { archiveCustomerCommand, deleteCustomerCommand } from '../workflows';
 import type { Customer, CustomerFilters, CustomerStatus } from './customer.types';
+import { useAuth } from '../auth/AuthContext';
 
 const statusLabels: Record<CustomerStatus, string> = {
   normal: 'عادية',
@@ -32,9 +33,9 @@ const statusStyles: Record<CustomerStatus, string> = {
 
 const statuses: Array<'all' | CustomerStatus> = ['all', 'normal', 'trusted', 'warning', 'blocked'];
 
-function CustomerCard({ customer, onArchive, onDelete }: { customer: Customer; onArchive: (customer: Customer) => void; onDelete: (customer: Customer) => void }) {
+function CustomerCard({ customer, onArchive, onDelete, canDelete }: { customer: Customer; onArchive: (customer: Customer) => void; onDelete: (customer: Customer) => void; canDelete: boolean }) {
   const deletionBlockers = getCustomerDeletionBlockers(customer.id);
-  const canHardDelete = deletionBlockers.length === 0;
+  const canHardDelete = canDelete && deletionBlockers.length === 0;
   const [showConduct, setShowConduct] = useState(false);
   const [showMeasurements, setShowMeasurements] = useState(false);
   // A warning must be visible before booking, not hidden behind a click.
@@ -119,16 +120,18 @@ function CustomerCard({ customer, onArchive, onDelete }: { customer: Customer; o
             أرشفة
           </button>
         )}
-        <button
-          type="button"
-          onClick={() => onDelete(customer)}
-          disabled={!canHardDelete}
-          title={canHardDelete ? 'حذف نهائي متاح لعميلة بلا أي تاريخ.' : `${deletionBlockers.join(' ')} استخدمي الأرشفة بدل الحذف.`}
-          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          <Trash2 aria-hidden="true" className="h-4 w-4" />
-          حذف نهائي
-        </button>
+        {canDelete && (
+          <button
+            type="button"
+            onClick={() => onDelete(customer)}
+            disabled={!canHardDelete}
+            title={canHardDelete ? 'حذف نهائي متاح لعميلة بلا أي تاريخ.' : `${deletionBlockers.join(' ')} استخدمي الأرشفة بدل الحذف.`}
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <Trash2 aria-hidden="true" className="h-4 w-4" />
+            حذف نهائي
+          </button>
+        )}
       </div>
     </article>
   );
@@ -137,6 +140,8 @@ function CustomerCard({ customer, onArchive, onDelete }: { customer: Customer; o
 export function CustomersPage() {
   // `?search=` lets the reservation screen and the calendar link straight to a
   // customer record instead of dropping the operator on an unfiltered list.
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const [searchParams] = useSearchParams();
   const [customers, setCustomers] = useState<Customer[]>(() => getCustomers());
   const [filters, setFilters] = useState<CustomerFilters>(() => ({
@@ -282,7 +287,7 @@ export function CustomersPage() {
         viewMode === 'grid' ? (
           <div className="grid gap-5 xl:grid-cols-2">
             {filteredCustomers.map((customer) => (
-              <CustomerCard key={customer.id} customer={customer} onArchive={handleArchive} onDelete={handleDelete} />
+              <CustomerCard key={customer.id} customer={customer} onArchive={handleArchive} onDelete={handleDelete} canDelete={isAdmin} />
             ))}
           </div>
         ) : (

@@ -56,6 +56,14 @@ export async function signOut(): Promise<void> {
   if (error) throw new AuthError('تعذر تسجيل الخروج. حاولي مجدداً.');
 }
 
+export async function requestPasswordReset(email: string): Promise<void> {
+  const normalizedEmail = email.trim();
+  if (!normalizedEmail) throw new AuthError('اكتبي البريد الإلكتروني أولاً لإرسال رابط الاستعادة.');
+  const redirectTo = typeof window === 'undefined' ? undefined : `${window.location.origin}/login`;
+  const { error } = await getSupabaseClient().auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
+  if (error) throw new AuthError(toFriendlyAuthMessage(error.message));
+}
+
 export async function getCurrentSession(): Promise<Session | null> {
   const { data, error } = await getSupabaseClient().auth.getSession();
   if (error) throw new AuthError(error.message);

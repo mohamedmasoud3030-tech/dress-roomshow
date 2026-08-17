@@ -9,10 +9,12 @@ const sourceRoot = join(repositoryRoot, 'src');
 
 test('manual and daily-close exports include IndexedDB images through the shared backup path', async () => {
   const exporter = await readFile(join(sourceRoot, 'features/preferences/backupExport.service.ts'), 'utf8');
+  const commands = await readFile(join(sourceRoot, 'features/workflows/administrationCommands.ts'), 'utf8');
 
   assert.match(exporter, /exportDatabaseBackupAsync/, 'a backup must include image blobs, not only localStorage collections');
   assert.match(exporter, /downloadJson/, 'download mechanics stay inside the platform boundary');
-  assert.match(exporter, /recordAudit/, 'each completed backup keeps an audit record');
+  assert.match(exporter, /recordBackupExportCommand/, 'each completed backup publishes its audit through the workflow boundary');
+  assert.match(commands, /backup\.export[\s\S]*recordAudit/, 'the backup workflow owns the durable audit write');
   assert.match(exporter, /after-close/, 'the daily-close filename must be identifiable to the operator');
 });
 

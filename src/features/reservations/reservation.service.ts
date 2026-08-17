@@ -123,7 +123,14 @@ function hydrateOverdueStatus(reservation: Reservation): Reservation {
     return { ...reservation, status: 'overdue' };
   }
 
-  return reservation.returnDate < getTodayISO() && ['pending', 'confirmed', 'delivered'].includes(reservation.status) ? { ...reservation, status: 'overdue' } : reservation;
+  // A booking that was never handed over is a no-show candidate, not an
+  // overdue return. Keep it pending/confirmed so the operator can cancel it and
+  // release the item instead of trapping it in a state that only return can close.
+  if (reservation.returnDate < getTodayISO() && reservation.status === 'delivered') {
+    return { ...reservation, status: 'overdue' };
+  }
+
+  return reservation;
 }
 export function getReservationBufferDays(): number { return getAppPreferences().reservationBufferDays; }
 export function getReservationTimeDefaults(): { pickupTime: string; returnTime: string } { const preferences = getAppPreferences(); return { pickupTime: preferences.defaultPickupTime, returnTime: preferences.defaultReturnTime }; }
@@ -397,6 +404,23 @@ export function addContractLine(input: AddContractLineInput): Reservation {
   const updatedLines = [...existingLines, line];
   const updated = syncTopLevelFromLines({ ...reservation, lines: updatedLines });
 
+  recordAudit({
+    action: 'update',
+    entityType: 'reservation',
+    entityId: reservation.id,
+    summary: `تمت إضافة البند ${line.dressCodeSnapshot} إلى الحجز ${reservation.reservationNumber}.`,
+    previousValues: { lineCount: existingLines.length },
+    nextValues: {
+      lineId: line.id,
+      dressCode: line.dressCodeSnapshot,
+      pickupDate: line.pickupDate,
+      returnDate: line.returnDate,
+      rentalPrice: line.rentalPrice,
+      securityDepositAmount: getLineSecurityDepositAmount(line),
+      bookingAdvanceAmount: getLineBookingAdvanceAmount(line),
+      lineCount: updatedLines.length,
+    },
+  });
   return persist(reservations, updated);
 }
 
@@ -924,9 +948,16 @@ export function cancelReservation(idOrInput: string | CancelReservationInput): v
   const now = new Date().toISOString();
   const reason = input.cancellationReason?.trim();
   const policyAck = input.cancellationPolicyAck ?? false;
+  const collectedBookingAdvance = reservation.bookingAdvanceCollectedAmount ?? 0;
+  if (collectedBookingAdvance > 0) {
+    if (!reason) throw new Error('سبب الإلغاء مطلوب عند وجود دفعة حجز محصلة.');
+    if (!policyAck) {
+      throw new Error('يجب الإقرار بسياسة دفعة الحجز غير المستردة قبل إلغاء هذا الحجز.');
+    }
+  }
 
-  // Policy enforcement: if trying to refund booking advance without documented policy, require ack
-  // Booking advance remains as collected revenue, not refunded via deposit settlement
+  // The approved default policy keeps a collected booking advance as recognised
+  // rental revenue. No refund movement is invented by cancellation.
   const nextReservation: Reservation = {
     ...reservation,
     status: 'cancelled' as const,

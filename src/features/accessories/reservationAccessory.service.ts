@@ -235,6 +235,7 @@ export function recordAccessoryReturn(input: ReturnAccessoriesInput): Reservatio
   input.entries.forEach((entry) => {
     const link = reservationLinks.find((item) => item.accessoryId === entry.accessoryId);
     if (!link) throw new Error('أحد الملحقات المحددة غير مرتبط بهذا الحجز.');
+    if (!link.deliveredAt) throw new Error(`لا يمكن تسجيل استرجاع الملحق ${link.accessoryCodeSnapshot} لأنه لم يُسلّم.`);
     if (link.returnedAt) throw new Error(`تم تسجيل استرجاع الملحق ${link.accessoryCodeSnapshot} بالفعل.`);
     if (entry.chargeAmount !== undefined && (!Number.isFinite(entry.chargeAmount) || entry.chargeAmount < 0)) {
       throw new Error('قيمة رسوم التلف أو الفقد غير صالحة.');

@@ -6,6 +6,7 @@ import { addExpense } from '../expenses/expense.service';
 import type { ExpenseCategory } from '../expenses/expense.types';
 import { getAppPreferences } from '../preferences/preferences.service';
 import { getReservations } from '../reservations/reservation.service';
+import { getReservationLines } from '../reservations/contractLineHelpers';
 import type {
   ServiceQueueSummary,
   ServiceTask,
@@ -116,12 +117,14 @@ export function getServiceConflictBlockers(dressCode: string, startDate: string,
   const buffer = getAppPreferences().reservationBufferDays;
   const serviceEnd = expectedCompletionDate ?? startDate;
 
-  return getReservations()
-    .filter((reservation) => reservation.dressCode === dressCode
-      && ['pending', 'confirmed'].includes(reservation.status)
-      && addDays(reservation.pickupDate, -buffer) <= serviceEnd
-      && startDate <= addDays(reservation.returnDate, buffer))
-    .map((reservation) => `يتعارض العمل مع الحجز ${reservation.reservationNumber} (${reservation.pickupDate} إلى ${reservation.returnDate}) بعد احتساب أيام التجهيز.`);
+  return getReservations().flatMap((reservation) => getReservationLines(reservation)
+    .filter((line) => line.dressCodeSnapshot === dressCode
+      && line.deliveryStatus === 'pending_delivery'
+      && reservation.status !== 'cancelled'
+      && reservation.status !== 'returned'
+      && addDays(line.pickupDate, -buffer) <= serviceEnd
+      && startDate <= addDays(line.returnDate, buffer))
+    .map((line) => `يتعارض العمل مع الحجز ${reservation.reservationNumber} (${line.pickupDate} إلى ${line.returnDate}) بعد احتساب أيام التجهيز.`));
 }
 
 export function openServiceTask(input: OpenServiceTaskInput): ServiceTask {
@@ -148,6 +151,7 @@ export function openServiceTask(input: OpenServiceTaskInput): ServiceTask {
     dressName: dress.name,
     type: input.type,
     status: 'open',
+    previousItemStatus: dress.status,
     startDate: input.startDate,
     expectedCompletionDate: input.expectedCompletionDate,
     cost: 0,
@@ -245,15 +249,26 @@ export function cancelServiceTask(taskId: string, reason: string): ServiceTask {
   const normalizedReason = reason.trim();
   if (!normalizedReason) throw new Error('سبب إلغاء عمل الخدمة مطلوب.');
 
-  const updated: ServiceTask = { ...task, status: 'cancelled', notes: normalizedReason };
+  const restorableStatuses: ServiceOutcomeStatus[] = ['available', 'inspection', 'laundry', 'maintenance', 'damaged', 'inactive'];
+  const resultingItemStatus: ServiceOutcomeStatus = task.previousItemStatus
+    && restorableStatuses.includes(task.previousItemStatus as ServiceOutcomeStatus)
+    ? task.previousItemStatus as ServiceOutcomeStatus
+    : 'inspection';
+  const updated: ServiceTask = {
+    ...task,
+    status: 'cancelled',
+    resultingItemStatus,
+    notes: normalizedReason,
+  };
   writeCollection(COLLECTION, tasks.map((item) => (item.id === taskId ? updated : item)));
+  updateDressStatus(task.dressCode, resultingItemStatus);
   recordAudit({
     action: 'cancel',
     entityType: 'dress',
     entityId: task.id,
     summary: `تم إلغاء عمل الخدمة ${task.taskNumber}.`,
     previousValues: { status: task.status },
-    nextValues: { status: updated.status, reason: normalizedReason },
+    nextValues: { status: updated.status, reason: normalizedReason, resultingItemStatus },
   });
   return updated;
 }

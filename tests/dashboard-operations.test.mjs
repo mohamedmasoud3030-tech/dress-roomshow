@@ -263,7 +263,16 @@ test('an overdue return is surfaced as its own actionable list', () => {
     });
     writeCollection('reservations', readCollection('reservations', []).map((item) => (
       item.reservationNumber === reservation.reservationNumber
-        ? { ...item, pickupDate: addDaysISO(today, -5), returnDate: addDaysISO(today, -2) }
+        ? {
+            ...item,
+            pickupDate: addDaysISO(today, -5),
+            returnDate: addDaysISO(today, -2),
+            lines: item.lines.map((line) => ({
+              ...line,
+              pickupDate: addDaysISO(today, -5),
+              returnDate: addDaysISO(today, -2),
+            })),
+          }
         : item
     )));
 
@@ -305,6 +314,14 @@ test('accessories attached to a booking are counted on its task row and while ou
     snapshot = getDashboardSnapshot();
     assert.equal(snapshot.accessoriesOutCount, 1, 'only the delivered accessory is out');
     assert.equal(snapshot.accessories.total, 2);
+
+    // Defensive visibility: even legacy/corrupted data that closed the booking
+    // too early must not hide a physical accessory still outside.
+    writeCollection('reservations', readCollection('reservations', []).map((item) => (
+      item.id === reservation.id ? { ...item, status: 'returned' } : item
+    )));
+    assert.equal(getDashboardSnapshot().accessoriesOutCount, 1);
+
   } finally {
     cleanup();
   }

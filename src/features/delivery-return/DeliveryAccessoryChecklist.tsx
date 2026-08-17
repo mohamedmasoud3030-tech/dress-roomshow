@@ -154,7 +154,7 @@ export function DeliveryAccessoryChecklist(props: Props) {
 
       {props.mode === 'return' && relevant.length > 0 && (
         <p className="rounded-xl bg-amber-50 p-3 text-xs font-bold text-amber-800">
-          الملحقات غير المحددة تبقى خارج المحل ويمكن تسجيل استرجاعها لاحقاً (إرجاع جزئي).
+          يجب تسجيل حالة كل الملحقات الخارجة قبل إغلاق استرجاع الحجز، حتى لا يختفي أي ملحق من المتابعة.
         </p>
       )}
     </section>

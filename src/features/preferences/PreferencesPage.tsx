@@ -13,6 +13,7 @@ import {
 } from '../workflows';
 import { ShowroomProfileEditor } from './ShowroomProfileEditor';
 import { AccountSettings } from './AccountSettings';
+import { AccountManagement } from '../auth/AccountManagement';
 import { DevicePinSettings } from '../device-lock/DevicePinSettings';
 import { getAppBuildInfo } from '@platform/app-update';
 import { MessageTemplatesEditor } from './MessageTemplatesEditor';
@@ -116,7 +117,7 @@ export function PreferencesPage() {
           <button type="button" onClick={() => void exportBackup()} disabled={isExporting} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"><Download aria-hidden="true" className="h-4 w-4" />{isExporting ? 'جارٍ تجهيز النسخة...' : 'تنزيل نسخة احتياطية'}</button>
           <button type="button" onClick={() => importInput.current?.click()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-stone-100"><Upload aria-hidden="true" className="h-4 w-4" />استعادة نسخة احتياطية</button>
           <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void importBackup(event.target.files?.[0])} />
-          <button type="button" onClick={resetAllData} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 px-4 py-2 text-sm font-bold text-rose-700 hover:bg-rose-50"><RotateCcw aria-hidden="true" className="h-4 w-4" />تصفير جميع البيانات</button>
+
         </div>
       </article>
 
@@ -239,6 +240,8 @@ export function PreferencesPage() {
 
       <AccountSettings />
 
+      <AccountManagement />
+
       <DevicePinSettings />
 
       {/* Named here because support is impossible while the operator cannot
@@ -265,6 +268,12 @@ export function PreferencesPage() {
       <PrintSettingsEditor />
 
       <ShowroomProfileEditor />
+
+      <article className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-5 shadow-sm">
+        <h2 className="text-lg font-black text-rose-900">منطقة الخطر</h2>
+        <p className="mt-2 text-sm leading-6 text-rose-800">تصفير البيانات يمسح سجلات التشغيل من مساحة المعرض. نزّلي نسخة احتياطية حديثة وتحققي من حفظها قبل المتابعة.</p>
+        <button type="button" onClick={resetAllData} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-500 bg-white px-4 py-2 text-sm font-bold text-rose-800 hover:bg-rose-100"><RotateCcw aria-hidden="true" className="h-4 w-4" />تصفير جميع البيانات</button>
+      </article>
     </section>
   );
 }

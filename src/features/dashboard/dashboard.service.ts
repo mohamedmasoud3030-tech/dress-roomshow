@@ -1,6 +1,6 @@
 import { getTodayISO } from '../../shared/utils/date';
 import { getAccessories } from '../accessories/accessory.service';
-import { getOutstandingAccessories, getReservationAccessories } from '../accessories/reservationAccessory.service';
+import { getReservationAccessories } from '../accessories/reservationAccessory.service';
 import { getCustomers } from '../customers/customer.service';
 import { getDresses, summarizeDresses } from '../dresses/dress.service';
 import { getFinanceTotals, getOutstandingRentalBalances } from '../finance/finance.service';
@@ -145,10 +145,11 @@ export function getDashboardSnapshot(): DashboardSnapshot {
   const accessories = getAccessories();
   const serviceSummary = summarizeServiceQueue(getServiceTasks());
 
-  const accessoriesOutCount = active.reduce(
-    (total, reservation) => total + getOutstandingAccessories(reservation.reservationNumber).length,
-    0,
-  );
+  // Count physical handovers directly, including defensive visibility for any
+  // historical/corrupted link whose reservation was closed too early.
+  const accessoriesOutCount = getReservationAccessories()
+    .filter((link) => link.deliveredAt && !link.returnedAt)
+    .length;
 
   const inventory = summarizeDresses();
 

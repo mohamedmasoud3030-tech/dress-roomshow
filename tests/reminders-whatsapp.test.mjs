@@ -225,6 +225,39 @@ test('money owed is urgent once the rental has ended, informational before', () 
   }
 });
 
+test('a returned rental with money still owed remains in the collection reminders', () => {
+  installStorage();
+  try {
+    const { customer } = seed();
+    const dress = addDress(dressInput);
+    const reservation = createReservationCommand({
+      customerId: customer.id,
+      dressId: dress.id,
+      pickupDate: addDaysISO(today, 1),
+      returnDate: addDaysISO(today, 2),
+      depositAmount: 0,
+      idempotencyKey: 'owed-returned',
+    });
+    writeCollection('reservations', readCollection('reservations', []).map((item) => (
+      item.id === reservation.id ? {
+        ...item,
+        status: 'returned',
+        pickupDate: addDaysISO(today, -3),
+        returnDate: addDaysISO(today, -1),
+        remainingAmount: 100,
+      } : item
+    )));
+
+    const reminder = getReminders().find((item) => item.kind === 'outstanding_balance');
+    assert.ok(reminder);
+    assert.equal(reminder.reservation.status, 'returned');
+    assert.equal(reminder.urgency, 'critical');
+    assert.equal(reminder.amount, 100);
+  } finally {
+    cleanup();
+  }
+});
+
 test('a fully paid, on-time booking raises no reminder at all', () => {
   installStorage();
   try {

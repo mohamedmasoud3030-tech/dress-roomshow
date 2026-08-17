@@ -19,6 +19,8 @@ export type ServiceTask = {
   dressName: string;
   type: ServiceTaskType;
   status: ServiceTaskStatus;
+  /** Physical state to restore if the task is cancelled before completion. */
+  previousItemStatus?: DressStatus;
   startDate: string;
   expectedCompletionDate?: string;
   completedDate?: string;

@@ -12,17 +12,20 @@ import { getBarcodeEngineEnvironmentNote, getBarcodeRuntimeSupportStatus } from 
 import { getDressDeletionBlockers, getDresses } from './dress.service';
 import { archiveDressCommand, deleteDressCommand } from '../workflows';
 import { AssignToDesignModal } from './AssignToDesignModal';
+import { useAuth } from '../auth/AuthContext';
 
 export function DressDetailsPage() {
   const { code = '' } = useParams();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const dress = getDresses().find((item) => item.code === code);
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [showAssign, setShowAssign] = useState(false);
   const [assignFeedback, setAssignFeedback] = useState<string | null>(null);
   const deletionBlockers = dress ? getDressDeletionBlockers(dress.code) : [];
-  const canHardDelete = Boolean(dress) && deletionBlockers.length === 0;
+  const canHardDelete = isAdmin && Boolean(dress) && deletionBlockers.length === 0;
 
   const handleArchive = () => {
     if (!dress) return;
@@ -97,16 +100,18 @@ export function DressDetailsPage() {
             <Archive aria-hidden="true" className="h-4 w-4" />
             أرشفة العنصر
           </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={!canHardDelete}
-            title={canHardDelete ? 'حذف نهائي متاح لعنصر بلا أي تاريخ.' : `${deletionBlockers.join(' ')} استخدمي الأرشفة بدل الحذف.`}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <Trash2 aria-hidden="true" className="h-4 w-4" />
-            حذف نهائي
-          </button>
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={!canHardDelete}
+              title={canHardDelete ? 'حذف نهائي متاح لعنصر بلا أي تاريخ.' : `${deletionBlockers.join(' ')} استخدمي الأرشفة بدل الحذف.`}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Trash2 aria-hidden="true" className="h-4 w-4" />
+              حذف نهائي
+            </button>
+          )}
         </div>
       </div>
 

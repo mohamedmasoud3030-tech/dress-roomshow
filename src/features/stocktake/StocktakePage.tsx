@@ -145,16 +145,16 @@ export function StocktakePage() {
       )}
 
       {!openSession ? (
-        <Section title="بدء جلسة جرد" description="يمكنك جرد المحل كاملاً أو رفاً واحداً. الجلسة الواحدة فقط تكون مفتوحة في نفس الوقت.">
+        <Section title="بدء جلسة جرد" description="الجلسة تحاسب كامل المخزون العامل. يمكنك كتابة ملاحظة تنظيمية، لكنها لا تستبعد أي رف أو فئة من التقرير.">
           <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
             <label className="block min-w-0">
-              <span className="sr-only">نطاق الجرد</span>
+              <span className="sr-only">ملاحظة جلسة الجرد</span>
               <input
                 type="text"
                 value={scopeInput}
                 onChange={(event) => setScopeInput(event.target.value)}
-                placeholder="نطاق الجرد (اختياري) — مثال: رف الزفاف"
-                aria-label="نطاق الجرد"
+                placeholder="ملاحظة اختيارية — مثال: الجولة الصباحية"
+                aria-label="ملاحظة جلسة الجرد"
                 className={FORM_FIELD_CLASS_NAME}
               />
             </label>

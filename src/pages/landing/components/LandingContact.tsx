@@ -15,29 +15,29 @@ export function LandingContact({ profile }: { profile: LandingProfile }) {
         <p className="mt-3 text-sm leading-7 text-slate-600">تواصلي معنا لحجز موعد، التأكد من توفر قطعة، أو الاستفسار عن المقاسات والأسعار.</p>
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-400">الهاتف</p>
+            <p className="text-xs font-semibold text-slate-600">الهاتف</p>
             <a href={primaryPhoneHref} className="mt-2 block font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.phone}</a>
             {profile.contact.alternatePhones?.map((phone) => (
               <a key={phone} href={`tel:${phone.replace(/\s+/g, '')}`} className="mt-1 block text-sm text-slate-600 underline-offset-2 hover:underline" dir="ltr">{phone}</a>
             ))}
           </div>
           <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-400">واتساب</p>
+            <p className="text-xs font-semibold text-slate-600">واتساب</p>
             <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-2 block font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.whatsapp}</a>
           </div>
           <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-400">البريد الإلكتروني</p>
+            <p className="text-xs font-semibold text-slate-600">البريد الإلكتروني</p>
             <a href={primaryEmailHref} className="mt-2 block break-all font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.email}</a>
             {profile.contact.alternateEmail && (
               <a href={`mailto:${profile.contact.alternateEmail}`} className="mt-1 block break-all text-sm text-slate-600 underline-offset-2 hover:underline" dir="ltr">{profile.contact.alternateEmail}</a>
             )}
           </div>
           <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-400">إنستجرام</p>
+            <p className="text-xs font-semibold text-slate-600">إنستجرام</p>
             <p className="mt-2 font-bold text-slate-900">{profile.contact.instagram}</p>
           </div>
           <div className="rounded-xl bg-stone-50 p-4 sm:col-span-2">
-            <p className="text-xs font-semibold text-slate-400">ساعات العمل</p>
+            <p className="text-xs font-semibold text-slate-600">ساعات العمل</p>
             <p className="mt-2 font-bold text-slate-900">{profile.contact.workingHours}</p>
           </div>
         </div>

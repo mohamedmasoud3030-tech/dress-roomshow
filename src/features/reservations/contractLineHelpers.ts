@@ -270,8 +270,12 @@ export function syncTopLevelFromLines(reservation: Reservation): Reservation {
     listRentalPrice: primary.listRentalPrice,
     depositAmount: primary.securityDepositAmount ?? primary.depositAmount, // legacy compat
 
-    securityDepositAmount: getLineSecurityDepositAmount(primary),
-    bookingAdvanceAmount: getLineBookingAdvanceAmount(primary),
+    // Canonical reservation-level financial fields are aggregates. Identity,
+    // display snapshots and per-item prices still mirror the first line for
+    // legacy readers, but liabilities/advances must never change meaning after
+    // adding or removing another line.
+    securityDepositAmount: calculateLinesSecurityDeposit(reservation.lines),
+    bookingAdvanceAmount: bookingAdvanceTotal,
     totalAmount,
     // Use canonical remaining when new fields exist, otherwise legacy
     remainingAmount: hasNewFields ? remainingAmount : legacyRemaining,

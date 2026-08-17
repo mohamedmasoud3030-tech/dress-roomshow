@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { setCommandFailurePoint } from '../src/engines/workflows/index.ts';
-import { createReservationCommand } from '../src/features/workflows/reservationCommands.ts';
+import { createReservationCommand, cancelReservationCommand } from '../src/features/workflows/reservationCommands.ts';
 import { recordPaymentCommand } from '../src/features/workflows/paymentCommands.ts';
 import { completeDeliveryCommand, completeReturnCommand } from '../src/features/workflows/deliveryReturnCommands.ts';
 import { getFinanceTotals } from '../src/features/finance/finance.service.ts';
@@ -332,7 +332,7 @@ test('duplicate retry does not duplicate refund or retention', () => {
   } finally { cleanup(); }
 });
 
-test('booking-advance cancellation refund is deliberately outside this PR', () => {
+test('a collected booking advance can cancel only with the approved non-refundable policy record', () => {
   installStorage();
   try {
     const customer = addCustomer({ name: 'ع', phone: '90000011', status: 'normal' });
@@ -357,6 +357,22 @@ test('booking-advance cancellation refund is deliberately outside this PR', () =
       notes: 'إلغاء الحجز',
       idempotencyKey: 'cancel-refund-attempt',
     }), /خارج نطاق هذه النسخة|تتجاوز/);
+    assert.throws(() => cancelReservationCommand({
+      id: reservation.id,
+      cancellationReason: 'تعذر حضور المناسبة',
+      cancellationPolicyAck: false,
+    }), /الإقرار بسياسة/);
+
+    cancelReservationCommand({
+      id: reservation.id,
+      cancellationReason: 'تعذر حضور المناسبة',
+      cancellationPolicyAck: true,
+    }, 'cancel-with-policy');
+
+    const cancelled = getReservations().find((item) => item.id === reservation.id);
+    assert.equal(cancelled.status, 'cancelled');
+    assert.equal(cancelled.cancellationPolicyAck, true);
+    assert.equal(getFinanceTotals().bookingAdvanceRevenue, 20, 'the acknowledged non-refundable advance remains recognised');
   } finally { cleanup(); }
 });
 

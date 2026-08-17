@@ -129,7 +129,21 @@ export function assertReservationCanBeCancelled(reservation: Reservation): void 
     throw new Error('لا يمكن إلغاء الحجز بعد التسليم أو بعد تجاوز موعد الإرجاع. استخدمي مسار الاسترجاع والتسوية.');
   }
 
-  if (reservation.paidAmount > 0) {
-    throw new Error('لا يمكن إلغاء الحجز قبل تسوية المبالغ المحصلة أو تسجيل الاسترجاع المالي.');
+  const rentalStillCollected = Math.max(
+    (reservation.rentalCollectedAmount ?? 0) - (reservation.rentalRefundedAmount ?? 0),
+    0,
+  );
+  const depositLiability = Math.max(
+    (reservation.securityDepositCollectedAmount ?? 0)
+      - (reservation.securityDepositRefundedAmount ?? 0)
+      - (reservation.securityDepositRetainedAmount ?? 0),
+    0,
+  );
+  const isLegacyFinancialRecord = reservation.bookingAdvanceAmount === undefined
+    && reservation.securityDepositAmount === undefined;
+  if (rentalStillCollected > 0 || depositLiability > 0 || (isLegacyFinancialRecord && reservation.paidAmount > 0)) {
+    throw new Error('لا يمكن إلغاء الحجز قبل تسوية الإيجار أو التأمين المحصل.');
   }
+  // A booking advance is deliberately not blocked here: cancellation records
+  // the approved non-refundable policy decision in cancelReservation.
 }

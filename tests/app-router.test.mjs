@@ -54,14 +54,28 @@ test('router preserves every current URL, shell boundary, lazy details route, an
   assert.match(routes, /<Route path="\*" element={<NotFoundPage \/>} \/>/);
 });
 
+test('route ownership includes contextual document titles and an explanatory permission state', async () => {
+  const [app, titles, admin] = await Promise.all([
+    read('src/app/App.tsx'),
+    read('src/app/router/DocumentTitle.tsx'),
+    read('src/app/router/RequireAdmin.tsx'),
+  ]);
+  assert.match(app, /<DocumentTitle \/>/);
+  assert.match(titles, /تسجيل الدخول/);
+  assert.match(titles, /لوحة التحكم/);
+  assert.match(admin, /هذه الصفحة للمديرة فقط/);
+  assert.doesNotMatch(admin, /<Navigate/);
+});
+
 test('router keeps the inventory details page lazy and preserves the loading copy', async () => {
   const pages = await read('src/app/router/routePages.ts');
   const fallback = await read('src/app/router/RouteLoadingFallback.tsx');
 
   assert.match(pages, /export const DressDetailsPage = lazy/);
   assert.match(pages, /import\('\.\.\/\.\.\/features\/dresses\/DressDetailsPage'\)/);
-  assert.match(fallback, /جاري تحميل تفاصيل العنصر…/);
-  assert.match(fallback, /انتظر لحظة حتى يتم تجهيز بيانات الباركود والطباعة\./);
+  assert.match(fallback, /جارٍ تحميل بيانات المعرض…/);
+  assert.match(fallback, /آخر نسخة محفوظة/);
+  assert.doesNotMatch(fallback, /الباركود والطباعة/, 'global loading copy must not pretend every route is an inventory detail');
   assert.match(fallback, /role="status"/);
   assert.match(fallback, /aria-live="polite"/);
 });

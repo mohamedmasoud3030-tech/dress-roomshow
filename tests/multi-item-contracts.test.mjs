@@ -32,6 +32,7 @@ import {
 import { DEFAULT_APP_PREFERENCES, saveAppPreferences } from '../src/features/preferences/preferences.service.ts';
 import { buildRentalContractHtml } from '../src/features/reservations/printRentalContract.ts';
 import { buildReservationsCsv } from '../src/features/reports/ledgerExports.ts';
+import { getAuditLog } from '../src/features/audit/audit.service.ts';
 
 function cleanup() {
   resetCountersForTesting();
@@ -247,6 +248,7 @@ test('adding a line to an existing reservation', () => {
 
     assert.equal(reservation.lines?.length, 1);
     assert.equal(reservation.totalAmount, 60);
+    const auditBefore = getAuditLog().length;
 
     const updated = addContractLine({
       reservationNumber: reservation.reservationNumber,
@@ -257,10 +259,14 @@ test('adding a line to an existing reservation', () => {
 
     assert.equal(updated.lines?.length, 2);
     assert.equal(updated.totalAmount, 60 + 35 + 15);
+    assert.equal(updated.securityDepositAmount, 35, 'canonical top-level deposit is the sum of both lines');
+    assert.equal(updated.bookingAdvanceAmount, 0);
     assert.equal(isMultiItemReservation(updated), true);
 
     // Top-level fields still mirror the first line
     assert.equal(updated.dressCode, dress1.code);
+    assert.equal(getAuditLog().length, auditBefore + 1);
+    assert.match(getAuditLog()[0].summary, new RegExp(dress2.code));
   } finally {
     cleanup();
   }
@@ -634,6 +640,7 @@ test('syncTopLevelFromLines mirrors first line to top-level fields', () => {
     assert.equal(afterRemove.inventoryItemId, dress2.id);
     assert.equal(afterRemove.rentalPrice, 35);
     assert.equal(afterRemove.depositAmount, 15);
+    assert.equal(afterRemove.securityDepositAmount, 15, 'aggregate canonical value follows the remaining lines');
   } finally {
     cleanup();
   }

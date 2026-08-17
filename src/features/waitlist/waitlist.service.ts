@@ -113,6 +113,24 @@ export function markWaitlistNotified(id: string): WaitlistEntry {
 }
 
 export function markWaitlistConverted(id: string, reservationNumber: string): WaitlistEntry {
+  const entry = getWaitlistEntries().find((item) => item.id === id);
+  if (!entry) throw new Error('طلب الانتظار غير موجود.');
+  if (entry.status !== 'waiting' && entry.status !== 'notified') {
+    throw new Error('طلب الانتظار مغلق أو محوّل بالفعل.');
+  }
+  const reservation = getReservations().find((item) => item.reservationNumber === reservationNumber);
+  if (!reservation) throw new Error('الحجز المرتبط بطلب الانتظار غير موجود.');
+  if (reservation.customerId !== entry.customerId
+    || reservation.pickupDate !== entry.pickupDate
+    || reservation.returnDate !== entry.returnDate) {
+    throw new Error('الحجز لا يطابق العميلة والفترة المسجلتين في طلب الانتظار.');
+  }
+  if (entry.inventoryItemId) {
+    const hasRequestedItem = (reservation.lines ?? []).some((line) => line.inventoryItemId === entry.inventoryItemId)
+      || reservation.inventoryItemId === entry.inventoryItemId;
+    if (!hasRequestedItem) throw new Error('الحجز لا يحتوي القطعة المطلوبة في قائمة الانتظار.');
+  }
+
   return updateEntry(
     id,
     { status: 'converted', reservationNumber, closedAt: new Date().toISOString() },

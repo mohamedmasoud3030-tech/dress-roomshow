@@ -5,7 +5,7 @@ import { recordAudit } from '../audit/audit.service';
 
 const APPOINTMENTS_COLLECTION = 'appointments';
 
-function getAppointments(): Appointment[] {
+export function getAppointments(): Appointment[] {
   migrateLegacyAppointmentStorage();
   return readCollection<Appointment>(APPOINTMENTS_COLLECTION, []);
 }
@@ -59,7 +59,15 @@ export function getAppointmentsByDate(date: string): Appointment[] {
 }
 
 export function getTodaysAppointments(): Appointment[] {
-  return getAppointmentsByDate(getTodayISO());
+  return getAppointmentsByDate(getTodayISO()).sort((left, right) => left.startTime.localeCompare(right.startTime));
+}
+
+export function getUpcomingAppointments(): Appointment[] {
+  const today = getTodayISO();
+  return getAppointments()
+    .filter((appointment) => appointment.appointmentDate > today)
+    .sort((left, right) => left.appointmentDate.localeCompare(right.appointmentDate)
+      || left.startTime.localeCompare(right.startTime));
 }
 
 export function updateAppointmentStatus(id: string, status: AppointmentStatus): Appointment | null {

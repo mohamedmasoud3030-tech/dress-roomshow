@@ -84,7 +84,10 @@ function seedFullScenario() {
     damageFee: 0,
     refundMethod: 'cash',
     nextItemStatus: 'inspection',
-    accessoryReturns: [{ accessoryId: veil.id, condition: 'damaged', chargeAmount: 9 }],
+    accessoryReturns: [
+      { accessoryId: veil.id, condition: 'damaged', chargeAmount: 9 },
+      { accessoryId: crown.id, condition: 'intact' },
+    ],
     idempotencyKey: 'return-backup',
   });
 

@@ -41,7 +41,18 @@ function LineStatusBadge({ deliveryStatus }: { deliveryStatus: string }) {
 }
 
 function ReservationCard({ reservation, onCancel, onPrint }: { reservation: Reservation; onCancel: (id: string) => void; onPrint: (reservation: Reservation) => void }) {
-  const canCancel = ['pending', 'confirmed'].includes(reservation.status) && reservation.paidAmount === 0;
+  const rentalStillCollected = Math.max((reservation.rentalCollectedAmount ?? 0) - (reservation.rentalRefundedAmount ?? 0), 0);
+  const depositLiability = Math.max(
+    (reservation.securityDepositCollectedAmount ?? 0)
+      - (reservation.securityDepositRefundedAmount ?? 0)
+      - (reservation.securityDepositRetainedAmount ?? 0),
+    0,
+  );
+  const hasOnlyBookingAdvance = (reservation.bookingAdvanceCollectedAmount ?? 0) > 0
+    && rentalStillCollected === 0
+    && depositLiability === 0;
+  const canCancel = ['pending', 'confirmed'].includes(reservation.status)
+    && (reservation.paidAmount === 0 || hasOnlyBookingAdvance);
   const times = getReservationTimes(reservation);
   const lines = getReservationLines(reservation);
   const isMulti = isMultiItemReservation(reservation);
@@ -139,9 +150,11 @@ export function ReservationsPage() {
 
   const showCreateModal = searchParams.get('new') === '1';
   const createPrefill = useMemo(() => ({
+    customerId: searchParams.get('customer') ?? undefined,
     dressCode: searchParams.get('dress') ?? undefined,
     pickupDate: searchParams.get('pickup') ?? undefined,
     returnDate: searchParams.get('return') ?? undefined,
+    waitlistEntryId: searchParams.get('waitlist') ?? undefined,
   }), [searchParams]);
   const filteredReservations = useMemo(() => filterReservations(reservations, filters), [reservations, filters]);
   const summary = useMemo(() => summarizeReservations(reservations), [reservations]);
@@ -151,7 +164,13 @@ export function ReservationsPage() {
   const handleCancel = (id: string) => {
     const reservation = reservations.find((item) => item.id === id);
     if (!reservation || !window.confirm(`هل تريدين إلغاء الحجز ${reservation.reservationNumber}؟`)) return;
-    try { cancelReservationCommand(id); setReservations(getReservations()); setFeedback({ tone: 'success', message: `تم إلغاء الحجز ${reservation.reservationNumber}.` }); }
+    const hasBookingAdvance = (reservation.bookingAdvanceCollectedAmount ?? 0) > 0;
+    const cancellationReason = hasBookingAdvance
+      ? window.prompt('اكتبي سبب الإلغاء. ستبقى دفعة الحجز المحصلة غير مستردة وفق السياسة:')
+      : undefined;
+    if (hasBookingAdvance && cancellationReason === null) return;
+    if (hasBookingAdvance && !window.confirm('تأكيد: تم إبلاغ العميلة بأن دفعة الحجز المحصلة غير مستردة، وسيتم حفظ هذا الإقرار في السجل؟')) return;
+    try { cancelReservationCommand({ id, cancellationReason: cancellationReason ?? undefined, cancellationPolicyAck: hasBookingAdvance }); setReservations(getReservations()); setFeedback({ tone: 'success', message: `تم إلغاء الحجز ${reservation.reservationNumber}.` }); }
     catch (error: unknown) { setFeedback({ tone: 'danger', message: error instanceof Error ? error.message : 'تعذر إلغاء الحجز.' }); }
   };
   const handleOpenFromCalendar = (reservation: Reservation) => {

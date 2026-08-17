@@ -142,7 +142,14 @@ export function WaitlistPage() {
                       إبلاغها
                     </button>
                     <Link
-                      to="/reservations?new=1"
+                      to={`/reservations?${new URLSearchParams({
+                        new: '1',
+                        customer: entry.customerId,
+                        dress: availableCodes[0],
+                        pickup: entry.pickupDate,
+                        return: entry.returnDate,
+                        waitlist: entry.id,
+                      }).toString()}`}
                       className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
                     >
                       <CheckCircle2 aria-hidden="true" className="h-4 w-4" />

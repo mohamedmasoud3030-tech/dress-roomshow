@@ -618,6 +618,8 @@ test('the stocktake loop stays hands-free and explains every absence', async () 
   // A count that flags every rented dress is noise, and noise gets ignored.
   assert.match(page, /STOCKTAKE_ABSENCE_LABELS/, 'an explained absence must be labelled as such');
   assert.match(page, /غائبة بعذر/, 'legitimate absence must be separated from loss');
+  assert.match(page, /الجلسة تحاسب كامل المخزون العامل/, 'free-text notes must not pretend to scope the report to one shelf');
+  assert.doesNotMatch(page, /يمكنك جرد المحل كاملاً أو رفاً واحداً/, 'scoped stocktake is not implemented and must not be promised');
 });
 
 test('an app update waits for the operator and never reloads on its own', async () => {
