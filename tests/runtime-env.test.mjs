@@ -17,7 +17,9 @@ test('the documented Node default stays inside the Node 22 LTS line used by CI',
     readRepositoryFile('package.json'),
     readRepositoryFile('.github/workflows/build.yml'),
     readRepositoryFile('.github/workflows/verify.yml'),
-    readRepositoryFile('.github/workflows/windows-release.yml'),
+    // windows-release.yml was retired on 2026-08-20 (dead Tauri line from the
+    // stale feature/supabase-auth branch; ADR 0001 excludes Tauri from the
+    // official release surface). Live CI coverage stays asserted above.
   ]);
   const defaultVersion = nvmrc.trim();
   const packageMetadata = JSON.parse(packageJson);

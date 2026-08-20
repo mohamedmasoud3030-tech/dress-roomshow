@@ -1,6 +1,12 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { KeyRound, LogOut, ShieldCheck } from 'lucide-react';
-import { configureDevicePin, hasDevicePin, verifyDevicePin } from '@platform/security';
+import {
+  buildPinLockoutMessage,
+  configureDevicePin,
+  getPinLockoutSecondsRemaining,
+  hasDevicePin,
+  verifyDevicePinWithThrottle,
+} from '@platform/security';
 import { useAuth } from '../auth/AuthContext';
 
 type LockMode = 'checking' | 'setup' | 'locked' | 'unlocked';
@@ -43,10 +49,23 @@ export function DeviceLockGate({ children }: { children: ReactNode }) {
   const [confirmation, setConfirmation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
 
   useEffect(() => {
     setMode(hasDevicePin() ? 'locked' : 'setup');
+    setLockoutSeconds(getPinLockoutSecondsRemaining());
   }, []);
+
+  // Live countdown while a lockout is active so the retry message never lies.
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+    const timer = setInterval(() => {
+      const remaining = getPinLockoutSecondsRemaining();
+      setLockoutSeconds(remaining);
+      if (remaining <= 0) clearInterval(timer);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lockoutSeconds > 0]);
 
   const isSetup = mode === 'setup';
   const title = useMemo(
@@ -68,9 +87,23 @@ export function DeviceLockGate({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (!(await verifyDevicePin(pin))) {
-        throw new Error('رقم القفل غير صحيح. حاولي مجدداً.');
+      const attempt = await verifyDevicePinWithThrottle(pin);
+      if (attempt.status === 'locked') {
+        // The amber role="alert" banner owns the lockout message and counts
+        // down live; routing it through `message` would leave a stale
+        // "retry after N seconds" red banner behind after the lock expires.
+        setLockoutSeconds(attempt.retryAfterSeconds);
+        setPin('');
+        return;
       }
+      if (attempt.status === 'wrong') {
+        throw new Error(
+          attempt.attemptsRemaining <= 2
+            ? `رقم القفل غير صحيح. تبقّت ${attempt.attemptsRemaining} ${attempt.attemptsRemaining === 1 ? 'محاولة' : 'محاولات'} قبل قفل مؤقت.`
+            : 'رقم القفل غير صحيح. حاولي مجدداً.',
+        );
+      }
+      setLockoutSeconds(0);
       setMode('unlocked');
     } catch (reason) {
       setPin('');
@@ -95,6 +128,11 @@ export function DeviceLockGate({ children }: { children: ReactNode }) {
             ? 'اختاري رقمًا من 6 أرقام. سيُطلب عند فتح التطبيق على هذا الجهاز، ولن يُحفظ الرقم نفسه.'
             : 'أدخلي رقم قفل الجهاز للوصول إلى بيانات المعرض.'}
         </p>
+        {lockoutSeconds > 0 && (
+          <p role="alert" className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-900">
+            {buildPinLockoutMessage(lockoutSeconds)}
+          </p>
+        )}
 
         {mode === 'checking' ? (
           <p role="status" className="mt-6 text-sm font-bold text-slate-600">جارٍ التحقق من حماية الجهاز…</p>
@@ -105,10 +143,10 @@ export function DeviceLockGate({ children }: { children: ReactNode }) {
             {message && <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm font-bold text-rose-800">{message}</p>}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || lockoutSeconds > 0}
               className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? 'جارٍ التحقق…' : isSetup ? 'تأمين الجهاز والمتابعة' : 'فتح التطبيق'}
+              {isSubmitting ? 'جارٍ التحقق…' : lockoutSeconds > 0 ? `مقفل مؤقتاً (${lockoutSeconds})` : isSetup ? 'تأمين الجهاز والمتابعة' : 'فتح التطبيق'}
             </button>
           </form>
         )}

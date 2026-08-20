@@ -74,7 +74,7 @@ export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProp
       onChange([...images, ...compressed.map((result) => result.dataUrl)]);
     } catch (error) {
       console.error('Image upload error:', error);
-      setUploadError('تعذر رفع الصور المختارة. حاولي مرة أخرى.');
+      setUploadError(error instanceof Error && error.message ? error.message : 'تعذر رفع الصور المختارة. حاولي مرة أخرى.');
     } finally {
       setIsProcessing(false);
     }

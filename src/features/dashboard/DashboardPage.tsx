@@ -23,6 +23,8 @@ import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_STYLES } from '../../shar
 import { formatTimeLabel } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getDashboardSnapshot, isShowroomEmpty, type DashboardTask } from './dashboard.service';
+import { SetupChecklistCard } from './SetupChecklistCard';
+import { AboutSupportCard } from './AboutSupportCard';
 
 const shortcuts = [
   { to: '/reservations?new=1', label: 'حجز جديد', hint: 'إنشاء حجز', icon: CalendarDays, tone: 'bg-emerald-50 text-emerald-700' },
@@ -30,7 +32,7 @@ const shortcuts = [
   { to: '/payments', label: 'تحصيل دفعة', hint: 'تسجيل مبلغ', icon: WalletCards, tone: 'bg-amber-50 text-amber-700' },
   { to: '/inventory', label: 'المخزون', hint: 'إدارة العناصر', icon: Shirt, tone: 'bg-blue-50 text-blue-700' },
   { to: '/accessories', label: 'الملحقات', hint: 'الطرح والتيجان', icon: Gem, tone: 'bg-rose-50 text-rose-700' },
-  { to: '/customers', label: 'العملاء', hint: 'سجل العميلات', icon: UsersRound, tone: 'bg-stone-100 text-slate-700' },
+  { to: '/customers', label: 'العميلات', hint: 'سجل العميلات', icon: UsersRound, tone: 'bg-stone-100 text-slate-700' },
 ];
 
 function TaskRow({ task }: { task: DashboardTask }) {
@@ -73,6 +75,7 @@ export function DashboardPage() {
     return (
       <div className="space-y-6">
         <PageHeader eyebrow="الرئيسية" title="لوحة التحكم" />
+        <SetupChecklistCard />
         <EmptyState
           icon={<Shirt className="h-10 w-10" />}
           title="لم تبدأ بيانات المعرض بعد"
@@ -90,6 +93,7 @@ export function DashboardPage() {
             </div>
           }
         />
+        <AboutSupportCard />
       </div>
     );
   }
@@ -100,6 +104,8 @@ export function DashboardPage() {
         eyebrow="الرئيسية"
         title="لوحة التحكم"
       />
+
+      <SetupChecklistCard />
 
       {/* Money that has not been collected is the first thing the owner must see. */}
       {money.outstandingCount > 0 && (
@@ -280,6 +286,8 @@ export function DashboardPage() {
           </div>
         </Section>
       </div>
+
+      <AboutSupportCard />
     </div>
   );
 }

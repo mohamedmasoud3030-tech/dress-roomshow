@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { DatabaseBackup, Download, HardDrive, RotateCcw, Save, Upload } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Cloud, DatabaseBackup, Download, HardDrive, RefreshCw, RotateCcw, Save, Upload } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { StorageCapacityIndicator } from '../../components/shared/StorageCapacityIndicator';
@@ -14,11 +14,40 @@ import {
 import { ShowroomProfileEditor } from './ShowroomProfileEditor';
 import { AccountSettings } from './AccountSettings';
 import { AccountManagement } from '../auth/AccountManagement';
+import { SystemErrorsSummary } from '../observability/SystemErrorsSummary';
 import { DevicePinSettings } from '../device-lock/DevicePinSettings';
 import { getAppBuildInfo } from '@platform/app-update';
+import { downloadJson } from '@platform/download';
+import {
+  downloadCloudBackupCopy,
+  listCloudBackupCopies,
+  type CloudBackupCopy,
+} from '@platform/backups';
+import {
+  classifySnapshotSize,
+  readSnapshotSizeReading,
+  SHOWROOM_SNAPSHOT_MAX_BYTES,
+} from '../sync/snapshotSizeMetrics';
 import { MessageTemplatesEditor } from './MessageTemplatesEditor';
 import { PrintSettingsEditor } from './PrintSettingsEditor';
-import { exportBackupForDownload } from './backupExport.service';
+import { describeCloudCopyStatus, exportBackupForDownload } from './backupExport.service';
+
+type CloudCopiesState =
+  | { status: 'loading' }
+  | { status: 'unavailable' }
+  | { status: 'ready'; copies: CloudBackupCopy[] };
+
+// Restoring means JSON.parse of the whole file in memory; a multi-GB hostile
+// or accidental file would freeze the counter device. 100 MiB mirrors the
+// backups bucket per-file ceiling and is far above any real showroom backup.
+const MAX_BACKUP_IMPORT_BYTES = 100 * 1024 * 1024;
+
+function formatCopyBytes(bytes: number | null): string {
+  if (bytes === null) return '—';
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  if (bytes >= 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${bytes} B`;
+}
 
 const preferenceFieldClassName = 'mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
 
@@ -28,14 +57,32 @@ export function PreferencesPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [cloudCopies, setCloudCopies] = useState<CloudCopiesState>({ status: 'loading' });
+  const [busyCopy, setBusyCopy] = useState<string | null>(null);
+  const [snapshotReading] = useState(() => readSnapshotSizeReading());
+  const snapshotLevel = classifySnapshotSize(snapshotReading?.bytes ?? null);
+  const snapshotPercent = snapshotReading
+    ? Math.min(100, Math.round((snapshotReading.bytes / SHOWROOM_SNAPSHOT_MAX_BYTES) * 100))
+    : null;
   const importInput = useRef<HTMLInputElement>(null);
+
+  const refreshCloudCopies = async () => {
+    setCloudCopies({ status: 'loading' });
+    const copies = await listCloudBackupCopies();
+    setCloudCopies(copies === null ? { status: 'unavailable' } : { status: 'ready', copies });
+  };
+
+  useEffect(() => {
+    void refreshCloudCopies();
+  }, []);
 
   const exportBackup = async () => {
     setIsExporting(true);
     try {
-      await exportBackupForDownload({ source: 'manual' });
-      setFeedback('تم تجهيز النسخة الاحتياطية الكاملة للتحميل. احتفظي بها في مكان آمن.');
+      const { cloudCopy } = await exportBackupForDownload({ source: 'manual' });
+      setFeedback(`تم تجهيز النسخة الاحتياطية الكاملة للتحميل. احتفظي بها في مكان آمن.${describeCloudCopyStatus(cloudCopy)}`);
       setError(null);
+      if (cloudCopy === 'saved') void refreshCloudCopies();
     } catch (reason: unknown) {
       setError(reason);
       setFeedback(null);
@@ -44,8 +91,48 @@ export function PreferencesPage() {
     }
   };
 
+  const restoreCloudCopy = async (name: string) => {
+    if (!window.confirm('سيتم استبدال بيانات التطبيق الحالية بالكامل بنسخة الخادم المختارة. هل أنتِ متأكدة؟')) return;
+    setBusyCopy(name);
+    try {
+      const parsed = await downloadCloudBackupCopy(name);
+      if (parsed === null) throw new Error('تعذر تنزيل نسخة الخادم أو قراءتها.');
+      await importDatabaseBackupCommand(parsed);
+      setPreferences(getAppPreferences());
+      setFeedback('تمت الاستعادة من نسخة الخادم بنجاح. أعيدي تحميل الصفحة عند الحاجة لمراجعة جميع الأقسام.');
+      setError(null);
+    } catch (reason: unknown) {
+      setError(reason);
+      setFeedback(null);
+    } finally {
+      setBusyCopy(null);
+    }
+  };
+
+  const downloadCloudCopy = async (name: string) => {
+    setBusyCopy(name);
+    try {
+      const parsed = await downloadCloudBackupCopy(name);
+      if (parsed === null) throw new Error('تعذر تنزيل نسخة الخادم أو قراءتها.');
+      downloadJson(name, parsed);
+      setFeedback('تم تنزيل نسخة الخادم إلى هذا الجهاز.');
+      setError(null);
+    } catch (reason: unknown) {
+      setError(reason);
+      setFeedback(null);
+    } finally {
+      setBusyCopy(null);
+    }
+  };
+
   const importBackup = async (file?: File) => {
     if (!file) return;
+    if (file.size > MAX_BACKUP_IMPORT_BYTES) {
+      setError(`ملف النسخة أكبر من الحد المسموح (${formatCopyBytes(MAX_BACKUP_IMPORT_BYTES)}). تجاهلي هذا الملف واستخدمي نسخة سليمة.`);
+      setFeedback(null);
+      if (importInput.current) importInput.current.value = '';
+      return;
+    }
     try {
       const parsed: unknown = JSON.parse(await file.text());
       if (!window.confirm('سيتم استبدال بيانات التطبيق الحالية بالكامل بالنسخة المختارة. هل أنتِ متأكدة؟')) return;
@@ -119,6 +206,65 @@ export function PreferencesPage() {
           <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void importBackup(event.target.files?.[0])} />
 
         </div>
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center gap-3">
+          <Cloud aria-hidden="true" className="h-6 w-6 text-amber-700" />
+          <div><h2 className="text-lg font-bold">نسخ الخادم الاحتياطية</h2><p className="mt-1 text-sm text-slate-500">كل نسخة تُصدَّر تُحفظ أيضًا على الخادم بحجمها الكامل، فيبقى بإمكانك الرجوع إلى نقطة زمنية سابقة حتى لو فُقد الجهاز.</p></div>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-slate-600">يحتفظ الخادم بآخر ٢٠ نسخة تلقائيًا. الاستعادة من هنا تستبدل البيانات الحالية بعد تأكيد صريح، وهي محمية بنفس تحقق الاستيراد وتراجعه.</p>
+        <div className="mt-4">
+          <button type="button" onClick={() => void refreshCloudCopies()} disabled={cloudCopies.status === 'loading'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60"><RefreshCw aria-hidden="true" className="h-4 w-4" />{cloudCopies.status === 'loading' ? 'جارٍ التحميل...' : 'تحديث القائمة'}</button>
+        </div>
+        {cloudCopies.status === 'unavailable' && (
+          <p className="mt-4 rounded-xl bg-stone-50 p-3 text-sm text-slate-600">قائمة نسخ الخادم غير متاحة الآن. تحققي من الاتصال بالإنترنت ثم أعيدي التحميل.</p>
+        )}
+        {cloudCopies.status === 'ready' && cloudCopies.copies.length === 0 && (
+          <p className="mt-4 rounded-xl bg-stone-50 p-3 text-sm text-slate-600">لا توجد نسخ محفوظة على الخادم بعد. ستظهر هنا تلقائيًا بعد أول تصدير أو إقفال يومية.</p>
+        )}
+        {cloudCopies.status === 'ready' && cloudCopies.copies.length > 0 && (
+          <ul className="mt-4 space-y-3">
+            {cloudCopies.copies.map((copy) => (
+              <li key={copy.name} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 p-4 text-sm">
+                <div>
+                  <p className="font-bold text-slate-900">{copy.createdAt ? new Date(copy.createdAt).toLocaleString('ar-OM') : copy.name}</p>
+                  <p className="mt-1 text-xs text-slate-500">الحجم: {formatCopyBytes(copy.bytes)}</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => void downloadCloudCopy(copy.name)} disabled={busyCopy !== null} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60"><Download aria-hidden="true" className="h-4 w-4" />تنزيل</button>
+                  <button type="button" onClick={() => void restoreCloudCopy(copy.name)} disabled={busyCopy !== null} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"><RotateCcw aria-hidden="true" className="h-4 w-4" />{busyCopy === copy.name ? 'جارٍ التنفيذ...' : 'استعادة'}</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </article>
+
+      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-bold">حجم قاعدة البيانات المركزية</h2>
+        <p className="mt-1 text-sm text-slate-500">تُقاس تلقائيًا عند فتح التطبيق وبعد كل حفظ ناجٍ، ويقبل الخادم حتى {formatCopyBytes(SHOWROOM_SNAPSHOT_MAX_BYTES)} كحد أقصى.</p>
+        {snapshotLevel === 'unknown' || snapshotPercent === null || !snapshotReading ? (
+          <p className="mt-4 rounded-xl bg-stone-50 p-3 text-sm text-slate-600">لا توجد قراءة بعد. افتحي التطبيق باتصال بالإنترنت ليُسجَّل القياس الأول.</p>
+        ) : (
+          <div className="mt-4">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
+              <p className={`font-bold ${snapshotLevel === 'critical' ? 'text-rose-800' : snapshotLevel === 'warning' ? 'text-amber-800' : 'text-emerald-800'}`}>
+                {formatCopyBytes(snapshotReading.bytes)} من {formatCopyBytes(SHOWROOM_SNAPSHOT_MAX_BYTES)} ({snapshotPercent}٪)
+              </p>
+              <p className="text-xs text-slate-500">آخر قياس: {new Date(snapshotReading.measuredAt).toLocaleString('ar-OM')}</p>
+            </div>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-100" role="img" aria-label={`نسبة امتلاء قاعدة البيانات المركزية ${snapshotPercent} بالمئة`}>
+              <div className={`h-full rounded-full ${snapshotLevel === 'critical' ? 'bg-rose-500' : snapshotLevel === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.max(2, snapshotPercent)}%` }} />
+            </div>
+            {snapshotLevel === 'warning' && (
+              <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm font-bold text-amber-900">المساحة تجاوزت النصف. راجعي الدعم لترشيق بيانات الصور القديمة قبل الاقتراب من الحد.</p>
+            )}
+            {snapshotLevel === 'critical' && (
+              <p role="alert" className="mt-3 rounded-xl bg-rose-50 p-3 text-sm font-bold text-rose-900">المساحة قاربت الامتلاء. عندها سيتوقف حفظ أي عملية جديدة حتى تُرشَّق البيانات — تواصلي مع الدعم الآن.</p>
+            )}
+          </div>
+        )}
       </article>
 
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -241,6 +387,8 @@ export function PreferencesPage() {
       <AccountSettings />
 
       <AccountManagement />
+
+      <SystemErrorsSummary />
 
       <DevicePinSettings />
 

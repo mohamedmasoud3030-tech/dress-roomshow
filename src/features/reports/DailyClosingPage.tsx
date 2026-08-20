@@ -9,7 +9,7 @@ import { DailyClosingBreakdown } from './DailyClosingBreakdown';
 import { formatReportMoney, getDayClosings } from './report.service';
 import { closeDayCommand, reopenDayCommand } from '../workflows';
 import type { DayCloseRecord } from './report.types';
-import { exportBackupForDownload } from '../preferences/backupExport.service';
+import { describeCloudCopyStatus, exportBackupForDownload } from '../preferences/backupExport.service';
 import { useAuth } from '../auth/AuthContext';
 
 export function DailyClosingPage() {
@@ -29,10 +29,10 @@ export function DailyClosingPage() {
 
   const exportClosingBackup = async (closing: DayCloseRecord) => {
     try {
-      await exportBackupForDownload({ businessDate: closing.businessDate, source: 'daily-close' });
+      const { cloudCopy } = await exportBackupForDownload({ businessDate: closing.businessDate, source: 'daily-close' });
       setBackupWarning(null);
       setBackupRetry(null);
-      setFeedback(`تم إقفال يومية ${closing.businessDate}. تم تجهيز النسخة الاحتياطية الكاملة للتحميل.`);
+      setFeedback(`تم إقفال يومية ${closing.businessDate}. تم تجهيز النسخة الاحتياطية الكاملة للتحميل.${describeCloudCopyStatus(cloudCopy)}`);
     } catch {
       setBackupRetry(closing);
       setBackupWarning('تم إقفال اليومية، لكن تعذر تجهيز النسخة الاحتياطية. نزّليها الآن قبل متابعة العمل.');

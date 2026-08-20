@@ -332,6 +332,10 @@ Analysis: `docs/MEASUREMENTS_AND_PRINTING.md`.
     cause was not a missing indicator but raw 4-6MB camera photos stored as base64 data URLs; Phase 13 compresses
     every image to a 1280px WebP before it is persisted, typically an order of magnitude smaller. The indicator and
     the PIN remain deferred, the PIN by explicit instruction.
+  - **Status follow-up (2026-08-20, owner-directed session):** PIN shipped in 11.08 and the capacity indicator in
+    11.09. The server-side backup target is now wired by the cloud-backup-copies slice (copies on every export,
+    retention 20, admin restore) — see the session section below. Still open here: *unattended scheduled* backups
+    (pg_cron/Edge Function, an owner/infra decision).
 
 ## Phase 13 — Operational gaps found by reading the code
 
@@ -442,3 +446,220 @@ excluded by explicit instruction. Full reasoning in `docs/PHASE_13_OPERATIONAL_G
 | Phase 11 conduct, attribution, liability, waitlist | PR #117 / `b535f6e5bd2e9c957dfd1bee722b79b283d69b25` | Build #266 + Verify #238 | Derived customer conduct with authored notes, central audit attribution, deposit liability on the dashboard, waiting list with live availability | Complete |
 | Phase 12 measurements, contacts, printing | PR #119 / `3f5220c4caaea6139565eb991b83971a2c24cdb0` | Build #270 + Verify #242 | Structured measurements with honest size suggestion, contact details on documents, configurable paper/margins/colour/sections, print test page | Complete |
 | Phase 13 operational gaps | PR #121 | Build + Verify per commit | Arabic-aware search, reverse availability search, condition photo evidence, image compression, configurable late-fee policy, periodic stocktake, batch labels, editable reminder templates, prompted updates with a visible version, CSV export for every ledger; 176 new tests plus 6 ui-contract and 2 pwa-build-contract, all wired into the default gate. Two real defects caught before merge: an unrecognised late-fee mode invented a charge, and `@vite-ignore` left the service worker silently unregistered | Complete (device confirmation remains 4.02) |
+
+## Owner-directed product strategy session (2026-08-20)
+
+The owner commissioned a repository-wide capability-gap analysis and one safe vertical slice, outside the queue
+order (queue items NEXT 4.02 and PENDING 4.04/4.05 remain device-blocked and unchanged). Analysis and sequence:
+`FEATURE_GAP_STRATEGY.md` (Now/Next/Later/Do-Not-Build). Implemented slice spec: `CLOUD_BACKUP_COPIES_SPEC.md`.
+
+- [ ] **T1 — Cloud backup copies (owner-directed, IN PROGRESS on `arena/01a01f12-lenadress`):**
+  - Every manual/daily-close export now also stores a dated copy in the provisioned private `backups` bucket
+    (best-effort; failures never block export or close), retention keeps the newest 20, and the admin can list,
+    download, and restore server copies in `/preferences` through the existing validated import with explicit
+    confirmation.
+  - Evidence: `tests/cloud-backup-copies.test.mjs` (12 tests: naming/pruning/download-guard behavior with an
+    injected storage seam plus source-contract wiring and migration cross-checks); wired into the default gate as
+    `test:cloud-backup-copies`. Local gate after the change: **710/710 tests pass, typecheck PASS, lint PASS,
+    build PASS** (PWA 140 precache entries). Baseline before the change was 698/698.
+  - Outstanding (unchanged discipline): merge to `main`, green CI, and a live restore drill against the real
+    bucket recorded in `docs/RUNTIME_QA.md` before this can be marked `[x]`.
+- [ ] **NEXT (unchanged): 4.02 phone evidence at 390×844 and 360×740** remains the first queued item and still
+  requires the owner’s real devices.
+- Docs-only simplification batch proposed in `FEATURE_GAP_STRATEGY.md` §7–8 (retire dead `windows-release.yml`,
+  archive historical audit docs) intentionally NOT bundled into this slice to keep the diff reviewable per AGENTS.md §14.
+
+### Follow-up executed 2026-08-20 (same session, bounded fix batch)
+
+- **Retired `.github/workflows/windows-release.yml`** (dead Tauri line pushing to the stale
+  `feature/supabase-auth` branch, contradicting ADR 0001). Hidden coupling found by the gate, as designed:
+  `tests/runtime-env.test.mjs` read the retired file as a third Node-22 witness; updated to keep asserting the two
+  live workflows (`build.yml`, `verify.yml`) with the retirement recorded inline. `src-tauri/` itself untouched for
+  historical recovery.
+- **Removed duplicate `postcss.config.cjs`** (kept the native-ESM `.mjs` under `"type": "module"`). Evidence of
+  safety: production CSS byte-identical before/after (`index-Blp2SYr9.css`, md5 `b2f5ba2748345c32863ff3ef903276f8`).
+- **Runtime smoke over the live preview build** (sandbox, `vite preview`): `/`, `/landing`, `/login`,
+  `/manifest.webmanifest`, `/sw.js`, `/favicon.svg` all HTTP 200 with correct types; `html lang="ar" dir="rtl"`,
+  safe-area viewport, PWA manifest Arabic/RTL/standalone. Sandbox limits unchanged: no browser (Playwright CDN
+  blocked) and no live Supabase (TLS blocked), so on-device journeys remain per queue items 4.02+.
+- Gate after all of the above: typecheck PASS, lint PASS, **710/710 tests PASS** (exit 0), build PASS.
+
+### Technical assessment milestones (same owner-directed session, 2026-08-20)
+
+- **M2 — snapshot size guard:** client gauge + 50/80% thresholds + pre-commit guard mapped to
+  the server cap (`LENA_SNAPSHOT_TOO_LARGE`, 20 MiB) + admin card in `/preferences` + one-per-day
+  critical telemetry. Evidence: `tests/snapshot-size-guard.test.mjs` (7), pinned to migration 0016.
+- **M3 — landing fetch timeout:** 12s AbortController, fail-closed Arabic error.
+  Evidence: two behavioral tests in `tests/landing-inventory.test.mjs` (suite 14/14).
+- **Hardening:** observability window-check ordering (non-browser runtimes can no longer
+  produce an unhandled rejection through `reportClientError`).
+- Gate after M1+M2+M3+hardening: **719/719 tests, typecheck PASS, lint PASS, build PASS.**
+- Records: `TECHNICAL_HEALTH_REPORT.md`, `TECHNICAL_DECISIONS.md`, `TECHNICAL_REMEDIATION_PLAN.md`.
+
+### File & media system ownership (same owner-directed session, 2026-08-20)
+
+- **Content verification floor:** magic-byte sniffing (JPEG/PNG/WebP only) enforced before any
+  decode in `compressImageFile` — covers catalogue and condition-evidence uploads alike;
+  SVG/active content and renamed executable decoys rejected with specific Arabic messages.
+  Evidence: `src/platform/images/imageContentGuard.ts`, `tests/file-media-controls.test.mjs` (10).
+- **Orphan control:** `deriveCatalogueImagePath` (strict, traversal-proof) +
+  `deleteCatalogueImageByUrl`; guarded hard-delete of a piece now reclaims its hosted public
+  objects best-effort after the audited deletion (`dress.service.ts`).
+- **Intake guard:** backup restore rejects files > 100 MiB before parsing (Preferences).
+- **Root-hardening:** `isSupabaseConfigured()` treats a missing env container as
+  "not configured" instead of TypeError (safe outside the Vite runtime).
+- **Policy record:** `FILE_MEDIA_SYSTEM_SPEC.md` — resource matrix, access policy, lifecycle,
+  limits, UX states, retention/orphans, cost controls, test matrix. No production bucket-policy
+  change, no destructive live cleanup, no paid provider: none were needed (see spec §6/§8).
+- Gate after all of the above: **729/729 tests, typecheck PASS, lint PASS, build PASS.**
+
+### Device-PIN abuse throttle + admin system-errors card (same owner-directed session, 2026-08-20)
+
+- **M11 — PIN guess throttle:** 5 consecutive wrong attempts now trigger a temporary,
+  exponentially escalating lock (30s → 60s → 120s → 240s → cap 480s); locked attempts are
+  refused *before* key derivation (no free oracle); success clears the failure counter while
+  the escalation level persists (bounded by the 8-minute cap — a borrower cannot farm short
+  locks; `configureDevicePin` resets everything). The throttle record is device-local,
+  never enters backups/imports, and survives reset — the same semantics as the PIN verifier
+  itself. Lock screen: live amber countdown (`role="alert"`), submit disabled while locked,
+  attempts-remaining warning only at ≤2 left; review-pass fix: lockout text no longer
+  lingers as a stale red banner after expiry. Evidence: `devicePin.ts`,
+  `DeviceLockGate.tsx`, `tests/device-pin.test.mjs` (suite 4→9).
+- **M7 — errors visibility:** read-only «أخطاء النظام» count card for the admin on
+  `/preferences` (route verified admin-only) — one round trip (`count:'exact'` + newest
+  timestamp only, no row payloads), calm "unavailable" degradation, manual refresh; RLS
+  contract re-pinned against migration 0016. Evidence:
+  `src/features/observability/SystemErrorsSummary.tsx`,
+  `tests/system-errors-summary.test.mjs` (3).
+- Docs updated with actual results: `TECHNICAL_DECISIONS.md` (D8, D9),
+  `TECHNICAL_REMEDIATION_PLAN.md` (M7/M11 → VERIFIED COMPLETE with evidence; M10 checklist
+  absorbs the on-device confirmations), `TECHNICAL_HEALTH_REPORT.md` (R6 partially fixed,
+  baseline truth updated).
+- Gate after all of the above: **737/737 tests, typecheck PASS, lint PASS, build PASS.**
+- Still BLOCKED-EXTERNAL (owner yes/no or devices): M4 retention deletes on live data,
+  M5 scheduled backups, M6 MFA/account lifecycle, M10 real-device session (now also
+  confirms: M1 restore drill, M2 gauge, M7 card, M11 lockout UX, login throttling).
+
+### Product/domain review + safe UX improvements (owner-directed stage, 2026-08-20)
+
+- Fresh stage audit re-verified the 2026-08-17 rendered findings against current code: every
+  prior High (PX-01..PX-04) and the quick wins (PX-06/PX-10/PX-11 bulk/PX-13) remain closed.
+  Domain research confirms the canonical model matches boutique rental industry practice
+  (buffer days, inspection-before-availability, deposit hold/release, utilization reporting).
+- Executed (safe, reversible): glossary unification «العميلات» in the 3 leaking surfaces;
+  click-to-insert placeholder chips in message templates with caret-aware insert
+  (`insertTemplateToken` + last-focused tracking + feedback); «نوع العنصر» boundary helper
+  copy in the add-dress form (PX-09 entry point).
+- Docs: `PRODUCT_DOMAIN_REVIEW.md`, `PRODUCT_EXPERIENCE_SCORECARD.md`, `PRODUCT_DECISIONS.md`,
+  `PRODUCT_UX_ROADMAP.md`. Evidence: `tests/product-ux-copy.test.mjs` (4).
+
+### Performance & tech-debt audit (read-only stage, 2026-08-20)
+
+- `05_PERFORMANCE_TECH_DEBT_AUDIT.md`: measured build baseline (entry+react+lucide+css ≈164 kB
+  gzip; scanner's 444 kB chunk verified lazy via in-page `React.lazy`; precache 2.8 MB incl.
+  444 kB fonts), dependency/support register (0 vulnerabilities; `date-fns` verified unused;
+  `@zxing` Node-24-vs-22 watch), debt register D1–D7 ranked, quick wins listed, unjustified-
+  complexity warnings, 3-phase no-rewrite roadmap. **No code changed in this stage.**
+
+### Localization & content governance (owner-directed stage, 2026-08-20)
+
+- `LOCALIZATION_CONTENT_SYSTEM.md`: ar-OM single-locale policy (no i18n framework — deliberate),
+  binding glossary, currency/date/timezone/digit/plural/bidi rules, RTL physical-property freeze
+  (logical-forward policy), content ownership (no CMS — owner edits in-app), copy workflow, QA matrix.
+- Executed (safe): fixed the single `ar-EG` locale leak in `DeliveryReturnPage.formatDateTime`;
+  hardened the contract with `tests/localization-policy.test.mjs` (4) incl. behavioral
+  currency check (٤٥٫٠٠٠ ر.ع., 3-decimal OMR) and bidi-isolation pins.
+- Gate after all three stages: **745/745 tests, typecheck PASS, lint PASS, build PASS**;
+  preview verified serving the fresh bundle (`dist/index.html` hash == HTTP-served hash).
+- Still BLOCKED-EXTERNAL (unchanged): M4 retention deletes (owner yes/no), M5, M6, M10
+  device session — now also absorbing UX ◔ rows (landing mobile, checklist visuals,
+  runtime performance profiling per audit §P4).
+
+### Roadmap NOW items + full operational walkthrough (owner-directed closing stage, 2026-08-20)
+
+- **Owner decision recorded (binding):** M4 retention deletion is DEFERRED — no record deletion
+  without a clear operational reason and a written owner-approved retention policy; backups are
+  explicitly not a deletion justification (`TECHNICAL_REMEDIATION_PLAN.md` M4).
+- **UX-M1 shipped:** «جاهزية المعرض» three-step checklist derived live from stores, deep-linked
+  pending steps, device-local dismissal persisting across reloads, self-retiring at 3/3.
+  Evidence: `tests/dashboard-setup.test.mjs` (3) + DOM walkthrough.
+- **UX-M3 shipped:** staff-visible «عن التطبيق والدعم» card with real build identity and
+  in-house escalation; invents no contact channel.
+- **Real defect found & fixed by the walkthrough:** template chip-insert would prepend a token
+  into a settled message on fresh focus; focus now rests the caret at the message end
+  (`MessageTemplatesEditor`), contract pinned.
+- **New verification layer (engine substitute):** `tests/helpers/jsdom-react.mjs` shared harness
+  (jsdom globals installed before react-dom evaluates — documented why) + `tests/walkthrough-dom.test.mjs`
+  (6): NotFound actions, navigation shape/role boundaries (20 items, 1 admin-gated, 4 counter
+  actions), dashboard empty→dismiss→reload-persistence, partial→complete progression,
+  caret-aware chip insert with last-focus tracking, errors-card calm degradation.
+  jsdom added as devDependency (0 vulnerabilities; test-only).
+- **HTTP & static verification:** preview serves the fresh bundle (hash-matched); 131/131
+  precached assets 200; PWA icons + `/login` + `/landing` 200; viewport-fit=cover; two safe-area
+  kinds; mobile-first breakpoints present; SW has zero API runtime caching.
+- **Gate after everything:** **754/754 tests, typecheck PASS, lint PASS, build PASS.**
+- **Honesty register:** pixel-level layout, camera, printing, live-Supabase journeys remain
+  BLOCKED-EXTERNAL (no browser/camera/printer/TLS in sandbox; Playwright CDN re-verified blocked
+  2026-08-20) → `LAUNCH_CLOSING_REPORT.md` §4 lists every assumption-based item with its closure action.
+
+### Consolidated remediation plan + safe milestones (owner-directed, 2026-08-20)
+
+- **Corpus reality check:** of `01_…`–`06_…` only `05_PERFORMANCE_TECH_DEBT_AUDIT.md` exists; the
+  real audit corpus (FULL_PROJECT, FUNCTIONAL_CORRECTNESS FC-01..13, TECH_DEBT, PROJECT_DEFECTS,
+  PRODUCT_EXPERIENCE PX-01..16, session docs) was consolidated with duplicates merged into one
+  register: `REMEDIATION_PLAN.md` (A/B/C/D/E/F classes, four-label statuses).
+- **RM-1 VERIFIED COMPLETE:** bounded cloud wait — manual AbortController (15 s) on both hydrate
+  and commit, aborts mapped to `LENA_CLOUD_TIMEOUT` with idempotency-honest retry copy; suite
+  `tests/cloud-timeout.test.mjs` (3). Closes audit 05/D1.
+- **RM-2 VERIFIED COMPLETE:** `date-fns` (zero-import) removed; bundle grep-clean; chain 757/757.
+- **RM-3 VERIFIED COMPLETE (docs):** `docs/OPERATIONS_GUIDE.md` §9 account lifecycle + honest MFA
+  status. Evidence correction: DEF-009 stale (in-app activation panel exists); "console MFA"
+  claim corrected (TOTP needs app UI — future task, no shortcut claimed).
+- **RM-4 VERIFIED COMPLETE:** 7 stale audits/phase reports → `docs/archive/` with banners +
+  index; active docs repointed; no test referenced moved files (verified).
+- **RM-5 VERIFIED COMPLETE (baseline):** native per-suite coverage convention recorded
+  (`docs/TEST_COVERAGE_BASELINE.md`, first row workflow-commands 60.22% lines); single-process
+  rejected by harness-isolation design; never gating.
+- **Gate after RM-1…5:** **757/757 tests, typecheck PASS, lint PASS, build PASS.**
+- **Owner approvals carried:** supervised application of migration **0019** (A1+A2: audit
+  append-only restore + snapshot validation) to the live project during the device session,
+  backup-copy first — single yes/no pending. M4 stays owner-DEFERRED. M10 session unchanged.
+
+## DB closure session (2026-08-20, second)
+
+- [x] Reviewed full working tree: 74 files, zero temp/scratch artifacts; 7 root audit docs are
+      git renames into `docs/archive/` (RM-4), not deletions. Only ignored build artifacts
+      (`dist/`, tsbuildinfo) remain untracked.
+- [x] Final gate run once: **757 pass / 0 fail**, `tsc -b` clean, `eslint .` clean,
+      `vite build` OK (141 precache entries).
+- [x] Checkpoint commit `6ebc3dc` created and pushed to `arena/01a01f12-lenadress`;
+      working tree clean afterwards (0 changes).
+- [x] Static verification of migration 0019: full-SQL read; destructive scan clean (no
+      DROP TABLE/DELETE/TRUNCATE/ALTER-DROP; only its own trigger re-create); scope = A1+A2
+      only (one function body + one new trigger + RPC grants); 0016 literal match confirmed
+      byte-for-byte; `private` schema exists (0011); RPC signature match; fail-closed drift
+      guard confirmed; `is_lena_admin` null-safe; RPC requires active auth user (shaped the
+      A1 proof probe design).
+- [ ] Live Supabase inspection/apply/proof: **BLOCKED** from sandbox (TLS blocked, verified
+      again 2026-08-20; no supabase CLI; no migration CI — official path = dashboard SQL
+      editor with the migrations file). Instrument prepared:
+      `docs/MIGRATION_0019_APPLICATION_RUNBOOK.md` (pre-flight Q1.1–Q1.5, verbatim apply,
+      proofs P0/P-A1/P-A2a/P-A2b/P-RLS, rollback, sign-off). Awaiting owner yes/no for the
+      ~15-minute supervised dashboard session.
+
+## Handoff-closure session (2026-08-20, third)
+
+- [x] Sandbox git-ref rollback detected and repaired: local refs/objects restored to
+      d7dd78f while working tree kept all session content; pushed commits `6ebc3dc`/`806d9ec`
+      confirmed alive on origin via `git ls-remote` and per-file SHA-256 content compare
+      (4/4 key files identical to the pushed tip). No work lost; nothing discarded.
+- [x] Fresh full gate on the exact handoff content: **757 pass / 0 fail**, `tsc -b` clean,
+      `eslint .` clean, `vite build` OK.
+- [x] Session-diff sweep: zero debug artifacts (no console.log/debugger additions); only
+      durable docs/code from the milestone series.
+- [x] Durable handoff written: `AGENT_HANDOFF.md` + `SESSION_REPORT.md`.
+- [x] Owner decision recorded: supervised 0019 session deferred ("later") — A1/A2 stay BLOCKED.
+- [!] Environment warnings for future sessions: node_modules evaporates between turns (run
+      `npm ci`); local git refs may roll back (remote is source of truth — verify with
+      `git ls-remote`); a divergent parallel branch `arena/01a00fc5-lenadress` exists
+      (ahead 3 / behind 3 vs this session tip) — coordination needed before any merge.
