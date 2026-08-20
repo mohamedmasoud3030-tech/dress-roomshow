@@ -92,3 +92,5 @@ formatter alias) · TECH_DEBT_AUDIT low-priority rows. **All NOT STARTED by deli
   VERIFIED COMPLETE label. Recovery position per standing rule: M1 cloud copy confirmed first,
   as recovery only, never as a risk license. Recommended: **YES** — a ~15-minute dashboard
   session, no device needed; M10 stays an independent stage after it.
+  **Owner decision 2026-08-20: deferred ("لاحقًا")** — instrument and plan stay ready;
+  A1/A2 remain BLOCKED until the supervised session runs.

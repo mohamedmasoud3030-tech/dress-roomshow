@@ -646,3 +646,20 @@ order (queue items NEXT 4.02 and PENDING 4.04/4.05 remain device-blocked and unc
       `docs/MIGRATION_0019_APPLICATION_RUNBOOK.md` (pre-flight Q1.1–Q1.5, verbatim apply,
       proofs P0/P-A1/P-A2a/P-A2b/P-RLS, rollback, sign-off). Awaiting owner yes/no for the
       ~15-minute supervised dashboard session.
+
+## Handoff-closure session (2026-08-20, third)
+
+- [x] Sandbox git-ref rollback detected and repaired: local refs/objects restored to
+      d7dd78f while working tree kept all session content; pushed commits `6ebc3dc`/`806d9ec`
+      confirmed alive on origin via `git ls-remote` and per-file SHA-256 content compare
+      (4/4 key files identical to the pushed tip). No work lost; nothing discarded.
+- [x] Fresh full gate on the exact handoff content: **757 pass / 0 fail**, `tsc -b` clean,
+      `eslint .` clean, `vite build` OK.
+- [x] Session-diff sweep: zero debug artifacts (no console.log/debugger additions); only
+      durable docs/code from the milestone series.
+- [x] Durable handoff written: `AGENT_HANDOFF.md` + `SESSION_REPORT.md`.
+- [x] Owner decision recorded: supervised 0019 session deferred ("later") — A1/A2 stay BLOCKED.
+- [!] Environment warnings for future sessions: node_modules evaporates between turns (run
+      `npm ci`); local git refs may roll back (remote is source of truth — verify with
+      `git ls-remote`); a divergent parallel branch `arena/01a00fc5-lenadress` exists
+      (ahead 3 / behind 3 vs this session tip) — coordination needed before any merge.
