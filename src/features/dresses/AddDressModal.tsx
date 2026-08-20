@@ -173,6 +173,10 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
                 <option key={itemType} value={itemType}>{INVENTORY_ITEM_TYPE_LABELS[itemType]}</option>
               ))}
             </select>
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              هنا تُسجَّل القطع الرئيسية التي تُؤجر أو تُباع منفردة وتحتاج صورة ومقاسًا وحالة فيزيائية.
+              الطرح والتيجان والأحزمة المرافقة للحجوزات تُضاف من صفحة «الملحقات».
+            </p>
           </div>
           <div>
             <label htmlFor={`${fieldId}-category`} className={FORM_LABEL_CLASS_NAME}>الفئة</label>

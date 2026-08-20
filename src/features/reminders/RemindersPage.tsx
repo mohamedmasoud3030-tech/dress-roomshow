@@ -146,7 +146,7 @@ export function RemindersPage() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <PageHeader
           eyebrow="المتابعة"
-          title="تذكيرات العملاء"
+          title="تذكيرات العميلات"
         />
         <button
           type="button"

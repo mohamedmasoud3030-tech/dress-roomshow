@@ -66,7 +66,7 @@ export const navigationGroups: readonly NavigationGroup[] = [
     ],
   },
   {
-    label: 'العملاء والحجوزات',
+    label: 'العميلات والحجوزات',
     items: [
       { to: '/customers', label: 'العميلات', icon: UsersRound },
       { to: '/reservations', label: 'الحجوزات', shortLabel: 'حجوزات', icon: CalendarDays, mobileQuick: true },

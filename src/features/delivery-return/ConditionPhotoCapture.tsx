@@ -87,8 +87,8 @@ export function ConditionPhotoCapture({
         ...photos,
         ...compressed.map((result) => ({ id: generatePhotoId(), dataUrl: result.dataUrl, capturedAt })),
       ]);
-    } catch {
-      setError('تعذر إرفاق الصور. حاولي مرة أخرى.');
+    } catch (error) {
+      setError(error instanceof Error && error.message ? error.message : 'تعذر إرفاق الصور. حاولي مرة أخرى.');
     } finally {
       setIsProcessing(false);
     }

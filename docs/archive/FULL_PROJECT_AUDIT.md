@@ -1,3 +1,8 @@
+> 🗄️ **ARCHIVED — 2026-08-20.** Historical audit kept for provenance only; it is NOT a
+> source of truth. Active consolidated status lives in `REMEDIATION_PLAN.md` (with
+> `TECHNICAL_HEALTH_REPORT.md`, `TECHNICAL_REMEDIATION_PLAN.md`,
+> `05_PERFORMANCE_TECH_DEBT_AUDIT.md`, and the `PRODUCT_*` / content-system docs).
+
 # التدقيق المستقل الكامل لمشروع LENA
 
 > تاريخ التدقيق: 2026-08-17  

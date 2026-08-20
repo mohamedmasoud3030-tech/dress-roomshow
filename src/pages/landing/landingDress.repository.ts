@@ -82,18 +82,28 @@ const CATALOGUE_COLUMNS = [
   'is_for_sale', 'images',
 ].join(',');
 
+export const LANDING_FETCH_TIMEOUT_MS = 12_000;
+
 export async function fetchAvailableDressesFromSupabase({
   getConfig = getSupabaseConfig,
   fetcher = globalThis.fetch,
+  timeoutMs = LANDING_FETCH_TIMEOUT_MS,
 }: Partial<{
   getConfig: typeof getSupabaseConfig;
   fetcher: typeof fetch;
+  timeoutMs: number;
 }> = {}): Promise<Dress[]> {
   const { url, publishableKey } = getConfig();
   const endpoint = new URL('/rest/v1/catalogue_items', url);
   endpoint.searchParams.set('select', CATALOGUE_COLUMNS);
   endpoint.searchParams.set('status', 'eq.available');
   endpoint.searchParams.set('order', 'updated_at.desc');
+
+  // A public visitor on weak mobile data must get the honest error state, not
+  // a spinner that can hang for minutes on a stalled connection. Manual
+  // AbortController keeps compatibility with older WebKit (no AbortSignal.timeout).
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetcher(endpoint, {
@@ -102,6 +112,7 @@ export async function fetchAvailableDressesFromSupabase({
         apikey: publishableKey,
         Authorization: `Bearer ${publishableKey}`,
       },
+      signal: controller.signal,
     });
     if (!response.ok) {
       throw new Error(`Catalogue request failed with status ${response.status}.`);
@@ -111,6 +122,8 @@ export async function fetchAvailableDressesFromSupabase({
     return (data as SupabaseDressRow[]).map(mapSupabaseRowToDress);
   } catch (error) {
     throw new LandingInventoryError('تعذر تحميل المعروض الحالي من الخادم.', error);
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

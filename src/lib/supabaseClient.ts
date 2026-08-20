@@ -27,7 +27,10 @@ export function getSupabaseClient(): SupabaseClient {
 /** True once the project URL and a publishable (or legacy anon) key are both set. */
 export function isSupabaseConfigured(env: Record<string, string | undefined> = import.meta.env): boolean {
   try {
-    getSupabaseConfig(env);
+    // `env ?? {}`: outside a Vite runtime (plain Node tests, tooling) there is
+    // no import.meta.env at all. Missing configuration must read as
+    // "not configured", never as a TypeError.
+    getSupabaseConfig(env ?? {});
     return true;
   } catch (error) {
     if (error instanceof MissingRuntimeConfigError) return false;

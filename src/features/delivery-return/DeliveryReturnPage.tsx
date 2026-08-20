@@ -44,7 +44,9 @@ const statusLabels: Record<DeliveryReturnStatus, string> = {
 function formatDateTime(dateTime?: string): string {
   if (!dateTime) return '—';
 
-  return new Date(dateTime).toLocaleString('ar-EG', {
+  // Canonical locale is ar-OM everywhere (LOCALIZATION_CONTENT_SYSTEM.md);
+  // the previous locale constant shaped digits differently from every other screen.
+  return new Date(dateTime).toLocaleString('ar-OM', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { RotateCcw, Save } from 'lucide-react';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
@@ -9,6 +9,7 @@ import {
   TEMPLATE_PLACEHOLDERS,
   buildTemplateVariables,
   getMessageTemplates,
+  insertTemplateToken,
   renderTemplate,
   type MessageTemplates,
 } from '../reminders/messageTemplates';
@@ -44,6 +45,24 @@ export function MessageTemplatesEditor() {
   const [templates, setTemplates] = useState<MessageTemplates>(() => getMessageTemplates());
   const [error, setError] = useState<unknown>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  // The chips insert into whichever message was focused last (default: the first).
+  const [activeKind, setActiveKind] = useState<ReminderKind>(KINDS[0]);
+  const textareaRefs = useRef<Partial<Record<ReminderKind, HTMLTextAreaElement | null>>>({});
+
+  const insertPlaceholder = (placeholder: (typeof TEMPLATE_PLACEHOLDERS)[number]) => {
+    const field = textareaRefs.current[activeKind];
+    const { text, caret } = insertTemplateToken(templates[activeKind], placeholder.token, field ? field.selectionStart : null);
+    setTemplates((current) => ({ ...current, [activeKind]: text }));
+    setError(null);
+    setFeedback(`أُدرج رمز «${placeholder.label}» في رسالة «${REMINDER_KIND_LABELS[activeKind]}». لا تنسي الحفظ.`);
+    requestAnimationFrame(() => {
+      const target = textareaRefs.current[activeKind];
+      if (target) {
+        target.focus();
+        target.setSelectionRange(caret, caret);
+      }
+    });
+  };
 
   const handleSave = () => {
     setError(null);
@@ -78,10 +97,18 @@ export function MessageTemplatesEditor() {
 
       <div className="mt-3 rounded-xl bg-stone-50 p-3">
         <p className="text-xs font-bold text-slate-700">الرموز المتاحة</p>
+        <p className="mt-1 text-xs text-slate-500">اضغطي أي رمز لإدراجه مكان المؤشر في الرسالة التي تعملين عليها — لا حاجة لكتابة الرمز يدويًا.</p>
         <ul className="mt-2 flex flex-wrap gap-2">
           {TEMPLATE_PLACEHOLDERS.map((placeholder) => (
-            <li key={placeholder.token} className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
-              <span dir="ltr">{`{{${placeholder.token}}}`}</span> — {placeholder.label}
+            <li key={placeholder.token}>
+              <button
+                type="button"
+                onClick={() => insertPlaceholder(placeholder)}
+                aria-label={`إدراج رمز ${placeholder.label}`}
+                className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200 transition hover:bg-amber-50 hover:ring-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+              >
+                <span dir="ltr">{`{{${placeholder.token}}}`}</span> — {placeholder.label}
+              </button>
             </li>
           ))}
         </ul>
@@ -93,9 +120,23 @@ export function MessageTemplatesEditor() {
             <label className="block text-sm font-bold text-slate-700">
               {REMINDER_KIND_LABELS[kind]}
               <textarea
+                ref={(element) => {
+                  textareaRefs.current[kind] = element;
+                }}
                 rows={5}
                 value={templates[kind]}
                 maxLength={MAX_TEMPLATE_LENGTH}
+                onFocus={(event) => {
+                  setActiveKind(kind);
+                  // Chip-insert happens at the caret; a fresh focus reports 0 and
+                  // would prepend the token instead of extending the sentence.
+                  // Rest the caret at the end of a never-edited message; an
+                  // explicit click still repositions it anywhere afterwards.
+                  const target = event.currentTarget;
+                  if (target.value.length > 0 && target.selectionStart === 0 && target.selectionEnd === 0) {
+                    target.setSelectionRange(target.value.length, target.value.length);
+                  }
+                }}
                 onChange={(event) => setTemplates((current) => ({ ...current, [kind]: event.target.value }))}
                 className="mt-1.5 min-h-11 w-full rounded-xl border border-slate-300 bg-stone-50 px-3 py-2 text-sm leading-6 text-slate-950 transition focus-visible:border-amber-500 focus-visible:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/30"
               />

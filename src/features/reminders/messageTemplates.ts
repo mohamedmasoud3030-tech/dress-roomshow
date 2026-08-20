@@ -125,6 +125,25 @@ export function renderTemplate(template: string, variables: Partial<MessageTempl
   });
 }
 
+/**
+ * Inserts a `{{token}}` into a template at the caret (or the end when unknown)
+ * and reports where the caret should land afterwards. The owner edits these
+ * messages with no technical background, so the insert path is a pure,
+ * testable function rather than ad-hoc string surgery inside the component.
+ */
+export function insertTemplateToken(
+  template: string,
+  token: string,
+  caret: number | null | undefined,
+): { text: string; caret: number } {
+  const safeCaret =
+    typeof caret === 'number' && Number.isInteger(caret) && caret >= 0 && caret <= template.length
+      ? caret
+      : template.length;
+  const snippet = `{{${token}}}`;
+  return { text: template.slice(0, safeCaret) + snippet + template.slice(safeCaret), caret: safeCaret + snippet.length };
+}
+
 /** Builds the variable set for one reservation. */
 export function buildTemplateVariables(input: {
   customerName: string;

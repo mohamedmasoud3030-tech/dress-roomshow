@@ -14,7 +14,9 @@ function classify(reason: unknown): string {
 }
 
 export async function reportClientError(category: string, reason: unknown): Promise<void> {
-  if (!isSupabaseConfigured() || typeof window === 'undefined') return;
+  // Order matters: probe the browser/global context first so non-browser
+  // runtimes return before touching build-time env (import.meta.env).
+  if (typeof window === 'undefined' || !isSupabaseConfigured()) return;
   try {
     const client = getSupabaseClient();
     const { data } = await client.auth.getSession();

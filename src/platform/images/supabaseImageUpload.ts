@@ -134,3 +134,31 @@ export async function deleteSupabaseImage(path: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Recovers the storage object path from a catalogue public URL.
+ * Strict by design: any URL that is not exactly our bucket layout (wrong
+ * origin, other bucket, traversal attempts, unexpected depth) maps to null so
+ * cleanup code can never delete an object it did not create.
+ */
+export function deriveCatalogueImagePath(publicUrl: string): string | null {
+  if (typeof publicUrl !== 'string' || !publicUrl.startsWith('https://')) return null;
+  const withoutQuery = publicUrl.split(/[?#]/, 1)[0];
+  const marker = `/storage/v1/object/public/${CATALOGUE_BUCKET}/`;
+  const markerIndex = withoutQuery.indexOf(marker);
+  if (markerIndex < 0) return null;
+  const suffix = withoutQuery.slice(markerIndex + marker.length);
+  if (!suffix || suffix.includes('..')) return null;
+  const segments = suffix.split('/');
+  if (segments.length !== 2 || segments.some((segment) => !SAFE_STORAGE_SEGMENT.test(segment.replace(/\.(webp|png|jpg)$/, '')))) {
+    return null;
+  }
+  return suffix;
+}
+
+/** Best-effort orphan cleanup for catalogue images a record no longer references. */
+export async function deleteCatalogueImageByUrl(publicUrl: string): Promise<boolean> {
+  const path = deriveCatalogueImagePath(publicUrl);
+  if (!path) return false;
+  return deleteSupabaseImage(path);
+}

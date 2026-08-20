@@ -29,6 +29,8 @@
  *     this exists to remove. The showroom never needs print-resolution masters.
  */
 
+import { verifyImageFileContent } from './imageContentGuard';
+
 export type CompressionOptions = {
   /** Longest edge in CSS pixels after downscaling. */
   maxDimension?: number;
@@ -121,6 +123,10 @@ export async function compressImageFile(
   const maxDimension = options.maxDimension ?? DEFAULT_MAX_DIMENSION;
   const quality = options.quality ?? DEFAULT_QUALITY;
   const preferredType = options.mimeType ?? 'image/webp';
+
+  // Content verification happens before any decode: an SVG script payload or a
+  // renamed executable must never reach canvas, an <img>, or a stored record.
+  await verifyImageFileContent(file);
 
   const originalDataUrl = await readFileAsDataUrl(file);
   const originalBytes = file.size || estimateDataUrlBytes(originalDataUrl);

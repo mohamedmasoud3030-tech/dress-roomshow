@@ -73,6 +73,28 @@ async function syncCreatedDressBestEffort(dress: Dress): Promise<void> {
   }
 }
 
+/**
+ * Best-effort removal of catalogue bucket objects that only the deleted record
+ * referenced. Local data-URL images never reach the bucket and are skipped by
+ * the URL parser, which is also the traversal guard — anything that is not
+ * exactly our bucket layout returns null and is left untouched.
+ */
+async function cleanupHostedDressImages(images: string[]): Promise<void> {
+  const hostedUrls = images.filter((image) => typeof image === 'string' && image.startsWith('https://'));
+  if (hostedUrls.length === 0) return;
+  try {
+    const { deleteCatalogueImageByUrl } = await import('@platform/images/supabaseImageUpload');
+    // Sequential on purpose, mirroring uploads: a few tiny deletes on weak
+    // counter wifi do not need parallelism to finish.
+    for (const url of hostedUrls) {
+      await deleteCatalogueImageByUrl(url);
+    }
+  } catch {
+    // Orphaned objects are a storage-hygiene concern; a failed remote delete
+    // must never fail the audited local deletion that already completed.
+  }
+}
+
 export function getDresses(): Dress[] {
   return getDressesFromStorage();
 }
@@ -321,5 +343,8 @@ export function deleteDress(code: string): boolean {
     summary: `تم حذف العنصر ${dress.code} لعدم وجود أي تاريخ تشغيلي أو مالي مرتبط به.`,
     previousValues: { code: dress.code, name: dress.name, status: dress.status },
   });
+  // Reclaim the public-bucket objects this record used to reference. Runs only
+  // after the audited local delete, is fully best-effort, and never blocks it.
+  void cleanupHostedDressImages(dress.images);
   return true;
 }

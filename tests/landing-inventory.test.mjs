@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { URL } from 'node:url';
+
+// Explicitly bound because the flat ESLint config declares no browser globals for .mjs tests.
+const { AbortSignal, DOMException } = globalThis;
 import {
   fetchAvailableDressesFromSupabase,
+  LANDING_FETCH_TIMEOUT_MS,
   loadLandingInventory,
 } from '../src/pages/landing/landingDress.repository.ts';
 import {
@@ -174,4 +178,41 @@ test('public booking messages identify the exact item and do not promise an unco
   assert.match(booking, /تأكيد الموعد وتوفر القطعة/);
   assert.doesNotMatch(booking, /تم تأكيد|حجز مؤكد/);
   assert.match(inquiry, /D-101/);
+});
+
+test('public catalogue request carries an abort signal and uses the documented timeout budget', async () => {
+  let observed;
+  const dresses = await fetchAvailableDressesFromSupabase({
+    getConfig: () => ({ url: 'https://project.supabase.co', publishableKey: 'public-key' }),
+    fetcher: async (url, options) => {
+      observed = { options };
+      return { ok: true, json: async () => [] };
+    },
+  });
+
+  assert.deepEqual(dresses, []);
+  assert.ok(observed.options.signal instanceof AbortSignal, 'the hung-connection guard must wire an AbortSignal into fetch');
+  assert.equal(LANDING_FETCH_TIMEOUT_MS, 12_000, 'the public-page budget stays explicit and documented');
+});
+
+test('a stalled public catalogue connection fails closed instead of hanging the visitor', async () => {
+  const stalledFetcher = (url, options) => new Promise((resolve, reject) => {
+    options.signal.addEventListener('abort', () => reject(new DOMException('The operation was aborted.', 'AbortError')));
+  });
+
+  const startedAt = Date.now();
+  await assert.rejects(
+    fetchAvailableDressesFromSupabase({
+      getConfig: () => ({ url: 'https://project.supabase.co', publishableKey: 'public-key' }),
+      fetcher: stalledFetcher,
+      timeoutMs: 25,
+    }),
+    (error) => {
+      assert.equal(error.name, 'LandingInventoryError');
+      assert.match(error.message, /تعذر تحميل المعروض الحالي من الخادم/);
+      assert.equal(error.cause?.name, 'AbortError');
+      return true;
+    },
+  );
+  assert.ok(Date.now() - startedAt < 5_000, 'the stalled request must resolve to the error state promptly');
 });
