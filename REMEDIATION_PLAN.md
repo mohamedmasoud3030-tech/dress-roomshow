@@ -17,8 +17,8 @@
 
 | ID | Merged finding | Evidence today | Status | Action |
 | --- | --- | --- | --- | --- |
-| A1 = DEF-004 ∪ FC-13 | Audit trail not append-only for staff sessions | Migration **0019 written** (restores audit protection); cannot reach live DB to confirm application | **BLOCKED — production migration; owner approval required** | Apply 0019 during supervised session with backup-first (M1 copies exist) |
-| A2 = DEF-005 ∪ FC-12 | RPC accepts unvalidated business payloads | Same migration 0019 adds snapshot validation; same application gap | **BLOCKED — same gate as A1** | Same action |
+| A1 = DEF-004 ∪ FC-13 | Audit trail not append-only for staff sessions | Migration **0019 written** (restores audit protection). 2026-08-20 static verification: exact 0016 literal match, `private` schema present (0011), RPC signature match, fail-closed drift guard, destructive-op scan clean (no DROP/DELETE/TRUNCATE; only 0019's own trigger re-create). Live application impossible from sandbox (TLS blocked, no CLI/CI migrator) | **BLOCKED — owner-supervised apply required** | Execute `docs/MIGRATION_0019_APPLICATION_RUNBOOK.md` (prepared 2026-08-20, checkpoint `6ebc3dc`): pre-flight → apply verbatim via dashboard SQL editor → proofs P0/P-A1/P-A2a/P-A2b/P-RLS |
+| A2 = DEF-005 ∪ FC-12 | RPC accepts unvalidated business payloads | Same migration 0019 adds `private.validate_showroom_snapshot()` trigger (financial invariants, `LENA_INVALID_*` codes) on the authoritative `showroom_state` boundary; same application gap | **BLOCKED — same gate as A1** | Same runbook; A2 proofs = P-A2a (malformed rejected) + P-A2b (valid live data accepted) |
 | A3 = DEF-002 residual ∪ FC-11 | Local result shown before server acknowledgment across sync commands | Architectural rewrite risk; deliberately deferred per PROJECT_DEFECTS record | **BLOCKED — architectural decision recorded; revisit only with multi-device pressure evidence (PD register)** | None now |
 | A4 = M4 | Unbounded `showroom_mutations` / `client_error_events` growth | No retention job exists on live project | **BLOCKED — OWNER-DEFERRED (2026-08-20): no deletion without operational reason + written policy; backups are not a justification** | Parked |
 | A5 = M6 | Admin MFA + account lifecycle | **Re-scoped with evidence 2026-08-20:** in-app staff panel + runbook VERIFIED COMPLETE (RM-3); console user-creation walkthrough = owner task from runbook §9.2; **true TOTP MFA needs an app enrollment screen → NOT STARTED (future app task), no console shortcut exists** | **BLOCKED (console walkthrough) / NOT STARTED (MFA screen)** |
@@ -85,5 +85,10 @@ formatter alias) · TECH_DEBT_AUDIT low-priority rows. **All NOT STARTED by deli
 ## Owner approvals pending (single consolidated question, reported in Arabic chat)
 
 - **A1+A2:** approve supervised application of migration **0019** (audit append-only restore +
-  snapshot validation) to the live Supabase project during the M10 device session, with a fresh
-  server backup copy taken immediately before. Recommended: **YES**.
+  snapshot validation) to the live Supabase project. 2026-08-20: checkpoint commit `6ebc3dc`
+  (green gate) pushed; execution instrument ready at
+  `docs/MIGRATION_0019_APPLICATION_RUNBOOK.md` — pre-flight (history/drift/destructive-scan),
+  verbatim apply from the migrations record, then proofs P0/P-A1/P-A2a/P-A2b/P-RLS before the
+  VERIFIED COMPLETE label. Recovery position per standing rule: M1 cloud copy confirmed first,
+  as recovery only, never as a risk license. Recommended: **YES** — a ~15-minute dashboard
+  session, no device needed; M10 stays an independent stage after it.

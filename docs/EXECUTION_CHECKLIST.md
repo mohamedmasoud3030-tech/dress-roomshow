@@ -624,3 +624,25 @@ order (queue items NEXT 4.02 and PENDING 4.04/4.05 remain device-blocked and unc
 - **Owner approvals carried:** supervised application of migration **0019** (A1+A2: audit
   append-only restore + snapshot validation) to the live project during the device session,
   backup-copy first — single yes/no pending. M4 stays owner-DEFERRED. M10 session unchanged.
+
+## DB closure session (2026-08-20, second)
+
+- [x] Reviewed full working tree: 74 files, zero temp/scratch artifacts; 7 root audit docs are
+      git renames into `docs/archive/` (RM-4), not deletions. Only ignored build artifacts
+      (`dist/`, tsbuildinfo) remain untracked.
+- [x] Final gate run once: **757 pass / 0 fail**, `tsc -b` clean, `eslint .` clean,
+      `vite build` OK (141 precache entries).
+- [x] Checkpoint commit `6ebc3dc` created and pushed to `arena/01a01f12-lenadress`;
+      working tree clean afterwards (0 changes).
+- [x] Static verification of migration 0019: full-SQL read; destructive scan clean (no
+      DROP TABLE/DELETE/TRUNCATE/ALTER-DROP; only its own trigger re-create); scope = A1+A2
+      only (one function body + one new trigger + RPC grants); 0016 literal match confirmed
+      byte-for-byte; `private` schema exists (0011); RPC signature match; fail-closed drift
+      guard confirmed; `is_lena_admin` null-safe; RPC requires active auth user (shaped the
+      A1 proof probe design).
+- [ ] Live Supabase inspection/apply/proof: **BLOCKED** from sandbox (TLS blocked, verified
+      again 2026-08-20; no supabase CLI; no migration CI — official path = dashboard SQL
+      editor with the migrations file). Instrument prepared:
+      `docs/MIGRATION_0019_APPLICATION_RUNBOOK.md` (pre-flight Q1.1–Q1.5, verbatim apply,
+      proofs P0/P-A1/P-A2a/P-A2b/P-RLS, rollback, sign-off). Awaiting owner yes/no for the
+      ~15-minute supervised dashboard session.
