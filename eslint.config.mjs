@@ -18,4 +18,13 @@ export default tseslint.config(
     },
     rules: {},
   },
+  {
+    // Secure deployment/schema checks are Node-run tools, not browser bundles.
+    files: ['scripts/**/*.{js,mjs}', 'tests/**/*.{js,mjs}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: { ...globals.node, fetch: 'readonly' },
+    },
+  },
 );
