@@ -6,7 +6,13 @@ import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  PRIMARY_BUTTON_CLASS_NAME,
+  SECONDARY_BUTTON_CLASS_NAME,
+  ALERT_STYLES,
+  ALERT_BASE_CLASS_NAME,
+  CARD_GRID_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import { AddExpenseModal } from './AddExpenseModal';
 import { EXPENSE_CATEGORY_FILTER_OPTIONS, EXPENSE_PAYMENT_METHOD_FILTER_OPTIONS } from './expense.constants';
 import {
@@ -80,7 +86,7 @@ export function ExpensesPage() {
         <button
           type="button"
           onClick={handleExport}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+          className={SECONDARY_BUTTON_CLASS_NAME}
         >
           <Download aria-hidden="true" className="h-5 w-5" />
           تصدير CSV
@@ -88,14 +94,18 @@ export function ExpensesPage() {
         <button
           type="button"
           onClick={() => { setFeedback(null); setShowCreateModal(true); }}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+          className={PRIMARY_BUTTON_CLASS_NAME}
         >
           <Plus aria-hidden="true" className="h-5 w-5" />
           تسجيل مصروف جديد
         </button>
       </div>
 
-      {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
+      {feedback && (
+        <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>
+          {feedback}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
         <SummaryCard label="إجمالي المصروفات" value={formatAmount(summary.totalExpenses)} tone={summary.totalExpenses > 0 ? 'warning' : 'default'} />
@@ -122,7 +132,7 @@ export function ExpensesPage() {
           description={expenses.length === 0 ? 'سجّلي أول مصروف تشغيلي ليظهر هنا وفي تقارير الربحية.' : 'غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.'}
         />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-2">
+        <div className={CARD_GRID_CLASS_NAME}>
           {filteredExpenses.map((expense) => (
             <article key={expense.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3">

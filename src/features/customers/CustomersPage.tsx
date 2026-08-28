@@ -2,7 +2,17 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Archive, CircleAlert, Download, Plus, Search, Trash2 } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  PRIMARY_BUTTON_CLASS_NAME,
+  SECONDARY_BUTTON_CLASS_NAME,
+  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
+  SEARCH_INPUT_CLASS_NAME,
+  SELECT_INPUT_CLASS_NAME,
+  ALERT_STYLES,
+  ALERT_BASE_CLASS_NAME,
+  SUMMARY_GRID_CLASS_NAME,
+  CARD_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import { buildCustomersCsv, ledgerFileName } from '../reports/ledgerExports';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
@@ -201,14 +211,17 @@ export function CustomersPage() {
           eyebrow="العميلات"
           title="إدارة العميلات"
         />
-        <button type="button" onClick={handleExport} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}><Download aria-hidden="true" className="h-5 w-5" />تصدير CSV</button>
+        <button type="button" onClick={handleExport} className={SECONDARY_BUTTON_CLASS_NAME}>
+          <Download aria-hidden="true" className="h-5 w-5" />
+          تصدير CSV
+        </button>
         <button
           type="button"
           onClick={() => {
             setFeedback(null);
             setShowCreateModal(true);
           }}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+          className={PRIMARY_BUTTON_CLASS_NAME}
         >
           <Plus aria-hidden="true" className="h-5 w-5" />
           إضافة عميلة
@@ -216,25 +229,25 @@ export function CustomersPage() {
       </div>
 
       {actionError && (
-        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+        <div role="alert" className={`${ALERT_STYLES.danger} ${ALERT_BASE_CLASS_NAME}`}>
           {actionError}
         </div>
       )}
 
       {feedback && (
-        <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+        <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>
           {feedback}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <div className={SUMMARY_GRID_CLASS_NAME}>
         <SummaryCard label="إجمالي العميلات" value={summary.total} />
         <SummaryCard label="عميلات موثوقات" value={summary.trusted} tone="positive" />
         <SummaryCard label="عليهن متبقي" value={summary.withBalance} tone={summary.withBalance > 0 ? 'warning' : 'default'} />
         <SummaryCard label="تنبيه أو حظر" value={summary.blockedOrWarning} tone={summary.blockedOrWarning > 0 ? 'danger' : 'default'} />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className={CARD_CLASS_NAME}>
         <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px]">
           <label className="relative block">
             <span className="sr-only">البحث في العميلات</span>
@@ -244,7 +257,7 @@ export function CustomersPage() {
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
               placeholder="ابحثي بالاسم أو الهاتف أو العنوان"
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SEARCH_INPUT_CLASS_NAME}
             />
           </label>
 
@@ -253,7 +266,7 @@ export function CustomersPage() {
             <select
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as CustomerFilters['status'] }))}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SELECT_INPUT_CLASS_NAME}
             >
               {statuses.map((status) => (
                 <option key={status} value={status}>
@@ -268,7 +281,7 @@ export function CustomersPage() {
             <select
               value={filters.balance}
               onChange={(event) => setFilters((current) => ({ ...current, balance: event.target.value as CustomerFilters['balance'] }))}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SELECT_INPUT_CLASS_NAME}
             >
               <option value="all">كل الأرصدة</option>
               <option value="with_balance">عليهن متبقي</option>
@@ -323,7 +336,7 @@ export function CustomersPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+              className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
             >
               <Plus aria-hidden="true" className="h-4 w-4" />
               إضافة أول عميلة

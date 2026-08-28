@@ -19,6 +19,10 @@ import { Section } from '../../components/shared/Section';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  COMPACT_SECONDARY_BUTTON_CLASS_NAME,
+  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_STYLES } from '../../shared/domain/reservationConstants';
 import { formatTimeLabel } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
@@ -82,11 +86,11 @@ export function DashboardPage() {
           description="أضيفي أول فستان إلى المخزون، ثم أضيفي عميلة، ثم أنشئي أول حجز. ستمتلئ هذه اللوحة تلقائياً بمهام اليوم والمبالغ المستحقة."
           action={
             <div className="flex flex-wrap justify-center gap-3">
-              <Link to="/inventory" className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white ${AMBER_FOCUS_RING_CLASS_NAME}`}>
+              <Link to="/inventory" className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}>
                 <Plus aria-hidden="true" className="h-4 w-4" />
                 إضافة أول عنصر
               </Link>
-              <Link to="/customers" className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}>
+              <Link to="/customers" className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}>
                 <UsersRound aria-hidden="true" className="h-4 w-4" />
                 إضافة أول عميلة
               </Link>
@@ -126,7 +130,7 @@ export function DashboardPage() {
             </div>
             <Link
               to="/payments"
-              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white ${AMBER_FOCUS_RING_CLASS_NAME}`}
+              className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
             >
               تحصيل الآن
               <ArrowLeft aria-hidden="true" className="h-4 w-4" />
@@ -161,7 +165,7 @@ export function DashboardPage() {
           </div>
           <Link
             to="/reminders"
-            className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-amber-300 bg-white px-4 text-sm font-bold text-amber-900 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}
           >
             فتح التذكيرات
           </Link>
@@ -173,7 +177,7 @@ export function DashboardPage() {
           <p className="text-sm font-extrabold text-rose-900">
             {reservations.overdue} حجز تجاوز موعد الإرجاع ولم يُسترجع بعد.
           </p>
-          <Link to="/delivery-return" className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 text-sm font-bold text-rose-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}>
+          <Link to="/delivery-return" className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}>
             تسجيل الاسترجاع
           </Link>
         </div>
@@ -201,7 +205,7 @@ export function DashboardPage() {
           </div>
           <Link
             to="/reports"
-            className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-sky-300 bg-white px-4 text-sm font-bold text-sky-900 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}
           >
             تفاصيل الالتزامات
           </Link>

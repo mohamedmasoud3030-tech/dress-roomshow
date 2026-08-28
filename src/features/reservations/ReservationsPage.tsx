@@ -2,7 +2,18 @@ import { useMemo, useState } from 'react';
 import { CalendarCheck, CircleAlert, Download, Plus, Printer, Search, Shirt, UserRound, XCircle } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { downloadCsv } from '@platform/download';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  PRIMARY_BUTTON_CLASS_NAME,
+  SECONDARY_BUTTON_CLASS_NAME,
+  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
+  SEARCH_INPUT_CLASS_NAME,
+  SELECT_INPUT_CLASS_NAME,
+  ALERT_STYLES,
+  ALERT_BASE_CLASS_NAME,
+  SUMMARY_GRID_CLASS_NAME,
+  CARD_GRID_CLASS_NAME,
+  CARD_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import { buildReservationsCsv, ledgerFileName } from '../reports/ledgerExports';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -187,27 +198,100 @@ export function ReservationsPage() {
   };
 
   return <section className="space-y-6">
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between"><PageHeader eyebrow="الحجوزات" title="إدارة الحجوزات" /><button type="button" onClick={openCreateModal} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"><Plus aria-hidden="true" className="h-5 w-5" />حجز جديد</button><button type="button" onClick={handleExport} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}><Download aria-hidden="true" className="h-5 w-5" />تصدير CSV</button></div>
-    {feedback && <div role="status" className={`rounded-xl border px-4 py-3 text-sm font-bold ${feedback.tone === 'success' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}>{feedback.message}</div>}
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4"><SummaryCard label="إجمالي الحجوزات" value={summary.total} /><SummaryCard label="الحجوزات النشطة" value={summary.active} tone="positive" /><SummaryCard label="عمليات اليوم" value={summary.today} hint="استلام أو إرجاع" /><SummaryCard label="متأخرة" value={summary.overdue} tone={summary.overdue > 0 ? 'danger' : 'default'} /></div>
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">
-      <label className="relative block"><span className="sr-only">البحث في الحجوزات</span><Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" /><input type="search" value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder="ابحثي برقم الحجز أو العميلة أو العنصر" className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30" /></label>
-      <label><span className="sr-only">حالة الحجز</span><select value={filters.status} onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))} className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"><option value="all">كل الحالات</option>{Object.entries(RESERVATION_STATUS_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
-      <label><span className="sr-only">توقيت الحجز</span><select value={filters.timing} onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))} className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"><option value="all">كل المواعيد</option><option value="today">اليوم</option><option value="upcoming">القادمة</option><option value="overdue">المتأخرة</option></select></label>
-    </div></div>
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <PageHeader eyebrow="الحجوزات" title="إدارة الحجوزات" />
+      <button type="button" onClick={openCreateModal} className={PRIMARY_BUTTON_CLASS_NAME}>
+        <Plus aria-hidden="true" className="h-5 w-5" />
+        حجز جديد
+      </button>
+      <button type="button" onClick={handleExport} className={SECONDARY_BUTTON_CLASS_NAME}>
+        <Download aria-hidden="true" className="h-5 w-5" />
+        تصدير CSV
+      </button>
+    </div>
+    {feedback && (
+      <div
+        role="status"
+        className={`${ALERT_BASE_CLASS_NAME} ${feedback.tone === 'success' ? ALERT_STYLES.success : ALERT_STYLES.danger}`}
+      >
+        {feedback.message}
+      </div>
+    )}
+    <div className={SUMMARY_GRID_CLASS_NAME}>
+      <SummaryCard label="إجمالي الحجوزات" value={summary.total} />
+      <SummaryCard label="الحجوزات النشطة" value={summary.active} tone="positive" />
+      <SummaryCard label="عمليات اليوم" value={summary.today} hint="استلام أو إرجاع" />
+      <SummaryCard label="متأخرة" value={summary.overdue} tone={summary.overdue > 0 ? 'danger' : 'default'} />
+    </div>
+    <div className={CARD_CLASS_NAME}>
+      <div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">
+        <label className="relative block">
+          <span className="sr-only">البحث في الحجوزات</span>
+          <Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <input
+            type="search"
+            value={filters.search}
+            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
+            placeholder="ابحثي برقم الحجز أو العميلة أو العنصر"
+            className={SEARCH_INPUT_CLASS_NAME}
+          />
+        </label>
+        <label>
+          <span className="sr-only">حالة الحجز</span>
+          <select
+            value={filters.status}
+            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))}
+            className={SELECT_INPUT_CLASS_NAME}
+          >
+            <option value="all">كل الحالات</option>
+            {Object.entries(RESERVATION_STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span className="sr-only">توقيت الحجز</span>
+          <select
+            value={filters.timing}
+            onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))}
+            className={SELECT_INPUT_CLASS_NAME}
+          >
+            <option value="all">كل المواعيد</option>
+            <option value="today">اليوم</option>
+            <option value="upcoming">القادمة</option>
+            <option value="overdue">المتأخرة</option>
+          </select>
+        </label>
+      </div>
+    </div>
     <ReservationCalendar reservations={reservations} onOpenReservation={handleOpenFromCalendar} />
-    {filteredReservations.length > 0 ? <div className="grid gap-4 xl:grid-cols-2">{filteredReservations.map((reservation) => <ReservationCard key={reservation.id} reservation={reservation} onCancel={handleCancel} onPrint={handlePrint} />)}</div> : reservations.length === 0
-      ? <EmptyState
+    {filteredReservations.length > 0 ? (
+      <div className={CARD_GRID_CLASS_NAME}>
+        {filteredReservations.map((reservation) => (
+          <ReservationCard key={reservation.id} reservation={reservation} onCancel={handleCancel} onPrint={handlePrint} />
+        ))}
+      </div>
+    ) : reservations.length === 0
+      ? (
+        <EmptyState
           icon={<CalendarCheck className="h-10 w-10" />}
           title="لا توجد حجوزات حتى الآن"
           description="ابدئي بإنشاء أول حجز وربطه بعميلة وقطعة وفترة واضحة."
-          action={<button type="button" onClick={openCreateModal} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white"><Plus aria-hidden="true" className="h-4 w-4" />إنشاء أول حجز</button>}
+          action={
+            <button type="button" onClick={openCreateModal} className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}>
+              <Plus aria-hidden="true" className="h-4 w-4" />
+              إنشاء أول حجز
+            </button>
+          }
         />
-      : <EmptyState
+      )
+      : (
+        <EmptyState
           icon={<CircleAlert className="h-10 w-10" />}
           title="لا توجد حجوزات مطابقة"
           description="غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى."
-        />}
+        />
+      )}
     <CreateReservationModal open={showCreateModal} onClose={closeCreateModal} onCreated={handleCreated} prefill={createPrefill} />
   </section>;
 }

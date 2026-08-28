@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
 import { ClipboardList, Download } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  SECONDARY_BUTTON_CLASS_NAME,
+  CARD_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import { buildAuditCsv, ledgerFileName } from '../reports/ledgerExports';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { filterAuditLog, getAuditLog } from './audit.service';
@@ -63,9 +66,15 @@ export function AuditLogPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3"><PageHeader eyebrow="الرقابة" title="سجل التدقيق" /><button type="button" onClick={handleExport} className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}><Download aria-hidden="true" className="h-5 w-5" />تصدير CSV</button></div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <PageHeader eyebrow="الرقابة" title="سجل التدقيق" />
+        <button type="button" onClick={handleExport} className={SECONDARY_BUTTON_CLASS_NAME}>
+          <Download aria-hidden="true" className="h-5 w-5" />
+          تصدير CSV
+        </button>
+      </div>
 
-      <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-[1fr_190px_190px]">
+      <div className={`grid gap-3 md:grid-cols-[1fr_190px_190px] ${CARD_CLASS_NAME}`}>
         <input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder="ابحثي في ملخص الحركة أو رقم السجل" className={field} />
         <select value={filters.entityType} onChange={(event) => setFilters((current) => ({ ...current, entityType: event.target.value as AuditLogFilters['entityType'] }))} className={field}>
           <option value="all">كل الأقسام</option>

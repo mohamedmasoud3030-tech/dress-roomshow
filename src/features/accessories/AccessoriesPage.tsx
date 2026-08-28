@@ -11,6 +11,15 @@ import {
   ACCESSORY_STATUS_STYLES,
 } from '../../shared/domain/accessoryConstants';
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  PRIMARY_BUTTON_CLASS_NAME,
+  SECONDARY_BUTTON_CLASS_NAME,
+  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
+  ALERT_STYLES,
+  ALERT_BASE_CLASS_NAME,
+  SUMMARY_GRID_CLASS_NAME,
+  CARD_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { retireAccessoryCommand } from '../workflows';
 import { AccessoryBarcodeCard } from './AccessoryBarcodeCard';
@@ -154,7 +163,7 @@ export function AccessoriesPage() {
           <button
             type="button"
             onClick={() => { setFeedback(null); setError(null); setShowScanner(true); }}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className={SECONDARY_BUTTON_CLASS_NAME}
           >
             <Barcode aria-hidden="true" className="h-5 w-5" />
             مسح باركود ملحق
@@ -162,7 +171,7 @@ export function AccessoriesPage() {
           <button
             type="button"
             onClick={() => { setFeedback(null); setError(null); setShowCreateModal(true); }}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className={PRIMARY_BUTTON_CLASS_NAME}
           >
             <Plus aria-hidden="true" className="h-5 w-5" />
             ملحق جديد
@@ -170,17 +179,21 @@ export function AccessoriesPage() {
         </div>
       </div>
 
-      {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
+      {feedback && (
+        <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>
+          {feedback}
+        </div>
+      )}
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر تنفيذ العملية على الملحق." />}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <div className={SUMMARY_GRID_CLASS_NAME}>
         <SummaryCard label="إجمالي الملحقات" value={summary.total} />
         <SummaryCard label="متاحة" value={summary.available} tone="positive" />
         <SummaryCard label="محجوزة أو مسلّمة" value={summary.out} />
         <SummaryCard label="خارج الخدمة" value={summary.unavailable} tone={summary.unavailable > 0 ? 'warning' : 'default'} />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className={CARD_CLASS_NAME}>
         <div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">
           <label className="relative block">
             <span className="sr-only">البحث في الملحقات</span>
@@ -273,7 +286,7 @@ export function AccessoriesPage() {
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white ${AMBER_FOCUS_RING_CLASS_NAME}`}
+              className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
             >
               <Plus aria-hidden="true" className="h-4 w-4" />
               إضافة أول ملحق
