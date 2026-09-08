@@ -23,6 +23,38 @@ async function collectFiles(directory, predicate) {
 
 const isComponent = (name) => name.endsWith('.tsx');
 
+/**
+ * The shared design-system constants hold the real class strings, so a page
+ * that uses `PRIMARY_BUTTON_CLASS_NAME` has no inline classes left to read.
+ * Without resolving them these checks would only ever pass on pages that
+ * duplicate the primitives by hand — which is the drift they exist to prevent.
+ * Returns the page source with every known constant inlined.
+ */
+let designSystemConstants = null;
+async function loadDesignSystemConstants() {
+  if (designSystemConstants) return designSystemConstants;
+  const entries = {};
+  try {
+    const source = await readFile(join(sourceRoot, 'shared/domain/uiConstants.ts'), 'utf8');
+    for (const match of source.matchAll(/export const (\w+)\s*=\s*(?:'([^']*)'|"([^"]*)")/gs)) {
+      entries[match[1]] = match[2] ?? match[3] ?? '';
+    }
+  } catch {
+    // No shared design system yet: pages must still carry their classes inline.
+  }
+  designSystemConstants = entries;
+  return entries;
+}
+
+async function resolveClasses(content) {
+  const constants = await loadDesignSystemConstants();
+  let resolved = content;
+  for (const [name, value] of Object.entries(constants)) {
+    resolved = resolved.replaceAll(new RegExp(`\\b${name}\\b`, 'g'), value);
+  }
+  return resolved;
+}
+
 test('the document shell is Arabic-first and RTL', async () => {
   const html = await readFile(join(repositoryRoot, 'index.html'), 'utf8');
   assert.match(html, /<html lang="ar" dir="rtl">/);
@@ -364,7 +396,7 @@ test('every list page uses the shared page header, cards, filters and empty stat
   ];
 
   for (const relative of listPages) {
-    const content = await readFile(join(sourceRoot, relative), 'utf8');
+    const content = await resolveClasses(await readFile(join(sourceRoot, relative), 'utf8'));
     assert.match(content, /<PageHeader/, `${relative} must use the shared page header`);
     assert.match(content, /<SummaryCard/, `${relative} must use the shared summary card`);
     assert.match(content, /<FilterBar>/, `${relative} must use the shared filter bar`);
@@ -409,10 +441,11 @@ test('summary tiles are 2-up on phones on every page that has them', async () =>
   for (const file of pages) {
     // The component's own definition is not a page that renders a grid of them.
     if (file.endsWith('SummaryCard.tsx')) continue;
-    const content = await readFile(file, 'utf8');
+    const content = await resolveClasses(await readFile(file, 'utf8'));
     if (!content.includes('<SummaryCard')) continue;
     // A summary grid that is not 2-up collapses to one tall column on a phone.
-    const grids = content.match(/className="grid[^"]*"/g) ?? [];
+    // A grid may be written inline or come from the shared design system.
+    const grids = content.match(/className=(?:"[^"]*"|\{[^}]*\})/g) ?? [];
     const hasTwoUp = grids.some((grid) => /grid-cols-2/.test(grid));
     if (!hasTwoUp) offenders.push(file.replace(repositoryRoot, ''));
   }

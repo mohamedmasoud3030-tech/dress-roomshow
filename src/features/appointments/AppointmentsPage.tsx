@@ -6,7 +6,9 @@ import type { Appointment } from './appointment.types';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Section } from '../../components/shared/Section';
 import { EmptyState } from '../../components/shared/StateViews';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  COMPACT_SECONDARY_BUTTON_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 
 const APPOINTMENT_STATUS_BADGES: Record<string, string> = {
   confirmed: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
@@ -54,7 +56,7 @@ export function AppointmentsPage() {
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}
           >
             <Plus aria-hidden="true" className="h-4 w-4" />
             حجز موعد

@@ -14,6 +14,18 @@ import { EmptyState, LoadingState } from '../../components/shared/StateViews';
 import { ViewModeToggle, useViewMode } from '../../components/shared/ViewModeToggle';
 import { printLabelsForItems } from './barcodeLabelBatch';
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
+import {
+  PRIMARY_BUTTON_CLASS_NAME,
+  SECONDARY_BUTTON_CLASS_NAME,
+  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
+  COMPACT_SECONDARY_BUTTON_CLASS_NAME,
+  SEARCH_INPUT_CLASS_NAME,
+  SELECT_INPUT_CLASS_NAME,
+  ALERT_STYLES,
+  ALERT_BASE_CLASS_NAME,
+  SUMMARY_GRID_CLASS_NAME,
+  CARD_CLASS_NAME,
+} from '../../shared/domain/uiConstants';
 import type { DressDesign } from './design.types';
 import type { SaleInvoice } from './salesLedger.service';
 import type { Dress, DressFilters } from './dress.types';
@@ -296,7 +308,7 @@ export function DressesPage() {
               setHighlightedDressCode(null);
               setShowScanner(true);
             }}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            className={SECONDARY_BUTTON_CLASS_NAME}
           >
             <Barcode aria-hidden="true" className="h-5 w-5" />
             مسح باركود
@@ -307,7 +319,7 @@ export function DressesPage() {
               setFeedback(null);
               setShowSaleModal(true);
             }}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            className={SECONDARY_BUTTON_CLASS_NAME}
           >
             <Banknote aria-hidden="true" className="h-5 w-5" />
             بيع عنصر
@@ -318,7 +330,7 @@ export function DressesPage() {
               setFeedback(null);
               setShowCreateModal(true);
             }}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+            className={PRIMARY_BUTTON_CLASS_NAME}
           >
             <Plus aria-hidden="true" className="h-5 w-5" />
             إضافة عنصر مخزون
@@ -326,7 +338,7 @@ export function DressesPage() {
           <button
             type="button"
             onClick={() => { setFeedback(null); setShowDesignModal(true); }}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className={SECONDARY_BUTTON_CLASS_NAME}
           >
             <Layers aria-hidden="true" className="h-5 w-5" />
             تصميم بمقاسات وألوان
@@ -335,19 +347,19 @@ export function DressesPage() {
       </div>
 
       {feedback && (
-        <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">
+        <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>
           {feedback}
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      <div className={SUMMARY_GRID_CLASS_NAME}>
         <SummaryCard label="إجمالي المخزون" value={summary.total} />
         <SummaryCard label="متاحة الآن" value={summary.available} tone="positive" />
         <SummaryCard label="مؤجرة حالياً" value={summary.rented} />
         <SummaryCard label="مغسلة أو تعديل" value={summary.inService} tone={summary.inService > 0 ? 'warning' : 'default'} />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className={`${CARD_CLASS_NAME}`}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_180px_180px_180px_180px]">
           <label className="relative block">
             <span className="sr-only">البحث في المخزون</span>
@@ -357,7 +369,7 @@ export function DressesPage() {
               value={filters.search}
               onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
               placeholder="ابحثي بالكود أو الاسم أو اللون أو المقاس"
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 pr-11 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SEARCH_INPUT_CLASS_NAME}
             />
           </label>
 
@@ -366,7 +378,7 @@ export function DressesPage() {
             <select
               value={filters.status}
               onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as DressFilters['status'] }))}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SELECT_INPUT_CLASS_NAME}
             >
               {statuses.map((status) => (
                 <option key={status} value={status}>
@@ -381,7 +393,7 @@ export function DressesPage() {
             <select
               value={filters.itemType}
               onChange={(event) => setFilters((current) => ({ ...current, itemType: event.target.value as DressFilters['itemType'] }))}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SELECT_INPUT_CLASS_NAME}
             >
               {itemTypes.map((itemType) => (
                 <option key={itemType} value={itemType}>
@@ -396,7 +408,7 @@ export function DressesPage() {
             <select
               value={filters.category}
               onChange={(event) => setFilters((current) => ({ ...current, category: event.target.value as DressFilters['category'] }))}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SELECT_INPUT_CLASS_NAME}
             >
               {categories.map((category) => (
                 <option key={category} value={category}>
@@ -411,7 +423,7 @@ export function DressesPage() {
             <select
               value={filters.usage}
               onChange={(event) => setFilters((current) => ({ ...current, usage: event.target.value as DressFilters['usage'] }))}
-              className="h-12 w-full rounded-xl border border-slate-200 bg-stone-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30"
+              className={SELECT_INPUT_CLASS_NAME}
             >
               <option value="all">كل الاستخدامات</option>
               <option value="rent">للإيجار</option>
@@ -447,7 +459,7 @@ export function DressesPage() {
             <button
               type="button"
               onClick={handlePrintLabels}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+              className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}
             >
               <Printer aria-hidden="true" className="h-4 w-4" />
               طباعة ملصقات ({filteredDresses.length})
@@ -473,7 +485,7 @@ export function DressesPage() {
               <button
                 type="button"
                 onClick={() => setShowDesignModal(true)}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
               >
                 <Layers aria-hidden="true" className="h-4 w-4" />
                 إضافة أول تصميم
