@@ -46,15 +46,17 @@ export function LandingHero({ profile, total, rentableCount, saleCount }: { prof
             {profile.heroDescription}
           </p>
           <div className="mt-7 flex flex-wrap gap-3">
-            <a
-              href={appointmentLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800"
-            >
-              <CalendarDays className="h-4 w-4" />
-              اطلبي موعد تجربة
-            </a>
+            {appointmentLink ? (
+              <a
+                href={appointmentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800"
+              >
+                <CalendarDays className="h-4 w-4" />
+                اطلبي موعد تجربة
+              </a>
+            ) : null}
             <a
               href="#available-dresses"
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-800 transition hover:bg-stone-100"

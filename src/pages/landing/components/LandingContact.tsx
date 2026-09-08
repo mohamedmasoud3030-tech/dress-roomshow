@@ -21,10 +21,16 @@ export function LandingContact({ profile }: { profile: LandingProfile }) {
               <a key={phone} href={`tel:${phone.replace(/\s+/g, '')}`} className="mt-1 block text-sm text-slate-600 underline-offset-2 hover:underline" dir="ltr">{phone}</a>
             ))}
           </div>
-          <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-600">واتساب</p>
-            <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-2 block font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.whatsapp}</a>
-          </div>
+          {profile.contact.whatsapp ? (
+            <div className="rounded-xl bg-stone-50 p-4">
+              <p className="text-xs font-semibold text-slate-600">واتساب</p>
+              {appointmentLink ? (
+                <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-2 block font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.whatsapp}</a>
+              ) : (
+                <p className="mt-2 block font-bold text-slate-900" dir="ltr">{profile.contact.whatsapp}</p>
+              )}
+            </div>
+          ) : null}
           <div className="rounded-xl bg-stone-50 p-4">
             <p className="text-xs font-semibold text-slate-600">البريد الإلكتروني</p>
             <a href={primaryEmailHref} className="mt-2 block break-all font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.email}</a>
@@ -55,7 +61,11 @@ export function LandingContact({ profile }: { profile: LandingProfile }) {
           <div>
             <h3 className="text-lg font-black text-slate-950">الحجز والاستفسار</h3>
             <p className="mt-2 text-sm leading-7 text-slate-600">أرسلي طلب الموعد عبر واتساب، وسنؤكد لكِ الوقت وتوفر القطعة.</p>
-            <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">طلب موعد عبر واتساب</a>
+            {appointmentLink ? (
+              <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">طلب موعد عبر واتساب</a>
+            ) : (
+              <p className="mt-4 text-sm font-bold text-slate-600">أضيفي رقم واتساب من إعدادات المعرض ليظهر زر الحجز هنا.</p>
+            )}
           </div>
         </div>
         <div className="mt-6 flex items-start gap-3">

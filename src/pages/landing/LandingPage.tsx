@@ -91,6 +91,7 @@ export function LandingPage() {
 
   const rentableCount = dresses.filter((dress) => dress.isForRent).length;
   const saleCount = dresses.filter((dress) => dress.isForSale).length;
+  const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
 
   return (
     <div className="min-h-screen bg-stone-50 pb-20 text-slate-900 lg:pb-0" dir="rtl">
@@ -124,14 +125,16 @@ export function LandingPage() {
       </main>
 
       <LandingFooter profile={profile} />
-      <a
-        href={buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage())}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-xl lg:hidden"
-      >
-        طلب موعد عبر واتساب
-      </a>
+      {appointmentLink ? (
+        <a
+          href={appointmentLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-xl lg:hidden"
+        >
+          طلب موعد عبر واتساب
+        </a>
+      ) : null}
     </div>
   );
 }

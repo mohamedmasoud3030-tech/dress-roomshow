@@ -33,28 +33,32 @@ export function LandingHeader({ profile }: { profile: LandingProfile }) {
           {navLinks.map((link) => (
             <a key={link.href} href={link.href} className="rounded-full px-3 py-2 transition hover:bg-stone-100">{link.label}</a>
           ))}
-          <a
-            href={appointmentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mr-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-          >
-            <CalendarDays aria-hidden="true" className="h-4 w-4" />
-            اطلبي موعد
-          </a>
+          {appointmentLink ? (
+            <a
+              href={appointmentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mr-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+            >
+              <CalendarDays aria-hidden="true" className="h-4 w-4" />
+              اطلبي موعد
+            </a>
+          ) : null}
         </nav>
 
         {/* Mobile: compact appointment button + menu button */}
         <div className="flex items-center gap-2 lg:hidden">
-          <a
-            href={appointmentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="اطلبي موعد تجربة"
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white transition hover:bg-slate-800"
-          >
-            <CalendarDays aria-hidden="true" className="h-5 w-5" />
-          </a>
+          {appointmentLink ? (
+            <a
+              href={appointmentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="اطلبي موعد تجربة"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white transition hover:bg-slate-800"
+            >
+              <CalendarDays aria-hidden="true" className="h-5 w-5" />
+            </a>
+          ) : null}
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}

@@ -64,10 +64,14 @@ function InventoryCard({ dress, profile }: { dress: Dress; profile: LandingProfi
           {dress.isForRent && <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">للإيجار</span>}
           {dress.isForSale && <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">للبيع</span>}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">طلب موعد للتجربة</a>
-          <a href={inquiryLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100">استفسار سريع</a>
-        </div>
+        {appointmentLink ? (
+          <div className="grid gap-2 sm:grid-cols-2">
+            <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-slate-800">طلب موعد للتجربة</a>
+            <a href={inquiryLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100">استفسار سريع</a>
+          </div>
+        ) : (
+          <p className="rounded-xl bg-stone-50 px-4 py-3 text-center text-xs font-semibold text-slate-500">أضيفي رقم واتساب في إعدادات المعرض لتفعيل أزرار الحجز والاستفسار.</p>
+        )}
         <p className="text-center text-xs leading-5 text-slate-500">يؤكد المعرض الموعد وتوفر القطعة بعد استلام الطلب.</p>
       </div>
     </article>
@@ -94,10 +98,12 @@ export function LandingInventory({ profile, dresses, loading, loadError, search,
           <h2 className="mt-1 text-2xl font-black text-slate-950">المعروض الآن</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">تصفحي الفساتين والإكسسوارات والحقائب والملحقات، ثم أرسلي طلب الموعد للقطعة التي أعجبتك.</p>
         </div>
-        <a href={headerAppointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100">
-          <HeartHandshake className="h-4 w-4" />
-          طلب موعد عبر واتساب
-        </a>
+        {headerAppointmentLink ? (
+          <a href={headerAppointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100">
+            <HeartHandshake className="h-4 w-4" />
+            طلب موعد عبر واتساب
+          </a>
+        ) : null}
       </div>
 
       {loadError && (
@@ -150,7 +156,9 @@ export function LandingInventory({ profile, dresses, loading, loadError, search,
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
           <p className="text-lg font-semibold text-slate-900">لا توجد عناصر مطابقة حالياً</p>
           <p className="mt-2 text-sm text-slate-500">جرّبي تغيير البحث أو الفلاتر، أو انتقلي لحجز موعد للاستفسار عن المتاح من بقية الفئات والخدمات.</p>
-          <a href={emptyStateAppointmentLink} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">إرسال استفسار</a>
+          {emptyStateAppointmentLink ? (
+            <a href={emptyStateAppointmentLink} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">إرسال استفسار</a>
+          ) : null}
         </div>
       ) : typeEntries.length === 1 ? (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">

@@ -1,4 +1,4 @@
-import { buildWhatsAppLink } from '../../platform/messaging/whatsapp';
+import { buildWhatsAppLink, MessagingError } from '../../platform/messaging/whatsapp';
 import type { LandingProfile } from './components/types';
 
 type LandingBookingItem = {
@@ -21,8 +21,22 @@ type LandingBookingItem = {
  * already uses for customer contact: a prepared WhatsApp message the
  * showroom owner receives and replies to directly.
  */
-export function buildLandingWhatsAppLink(profile: LandingProfile, message: string): string {
-  return buildWhatsAppLink(profile.contact.whatsapp, message);
+/**
+ * Returns `null` when the showroom has not published a usable WhatsApp number.
+ *
+ * The public storefront is the one screen a visitor sees before any staff
+ * member has signed in, and it renders before the owner has necessarily
+ * filled in her contact details. Building the link unconditionally meant a
+ * profile with an empty number threw during render and took the entire
+ * storefront down — so the call to action must be optional, not fatal.
+ */
+export function buildLandingWhatsAppLink(profile: LandingProfile, message: string): string | undefined {
+  try {
+    return buildWhatsAppLink(profile.contact.whatsapp, message);
+  } catch (error) {
+    if (error instanceof MessagingError) return undefined;
+    throw error;
+  }
 }
 
 export function buildAppointmentInquiryMessage(item?: LandingBookingItem): string {
