@@ -57,10 +57,20 @@ export function MessageTemplatesEditor() {
     setFeedback(`أُدرج رمز «${placeholder.label}» في رسالة «${REMINDER_KIND_LABELS[activeKind]}». لا تنسي الحفظ.`);
     requestAnimationFrame(() => {
       const target = textareaRefs.current[activeKind];
-      if (target) {
-        target.focus();
-        target.setSelectionRange(caret, caret);
-      }
+      if (!target) return;
+      // The caret restore is deferred so it lands after React has committed the
+      // new value. That delay is also a hazard: the owner may have moved on to
+      // another message while the frame was pending. Pulling focus back here
+      // would silently send the *next* chip into the wrong message, so only
+      // another message field can veto the restore — a chip button or an empty
+      // focus (Safari does not focus buttons on click) must not stop it.
+      const active = document.activeElement;
+      const movedToAnotherMessage = active instanceof HTMLElement
+        && active !== target
+        && Object.values(textareaRefs.current).includes(active as HTMLTextAreaElement);
+      if (movedToAnotherMessage) return;
+      target.focus();
+      target.setSelectionRange(caret, caret);
     });
   };
 
