@@ -68,9 +68,19 @@ export function getDressDesignByCode(code: string): DressDesign | undefined {
   return getDressDesigns().find((design) => design.code.toUpperCase() === normalized);
 }
 
-/** Physical pieces belonging to a design, excluding sold and retired ones. */
+/**
+ * Physical pieces belonging to a design, excluding sold and retired ones.
+ *
+ * Pieces added directly from the inventory screen — and anything imported from
+ * an older backup — carry no design at all. Comparing `designId` strictly
+ * against an empty string dropped every one of them, which made the entire
+ * stock unbookable: the reservation screen reported "no eligible dresses" even
+ * though the pieces were available. A missing design is therefore treated as
+ * the "no design" bucket rather than as a mismatch.
+ */
 export function getDesignPieces(designId: string, includeRetired = false): Dress[] {
-  return getDresses().filter((dress) => dress.designId === designId
+  const wanted = designId ?? '';
+  return getDresses().filter((dress) => (dress.designId ?? '') === wanted
     && (includeRetired || (!dress.archivedAt && !RETIRED_PIECE_STATUSES.has(dress.status))));
 }
 
