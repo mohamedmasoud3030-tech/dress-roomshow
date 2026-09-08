@@ -647,6 +647,14 @@ order (queue items NEXT 4.02 and PENDING 4.04/4.05 remain device-blocked and unc
       proofs P0/P-A1/P-A2a/P-A2b/P-RLS, rollback, sign-off). Awaiting owner yes/no for the
       ~15-minute supervised dashboard session.
 
+## Security authority remediation (2026-08-22, owner-directed stop-line)
+
+- [ ] **IN PROGRESS — SEC-01:** Secure account bootstrap, authoritative write boundary, and deployed public-profile schema drift on branch `arena/security-authority-remediation-20260822`.
+  - Scope is intentionally bounded to audit findings A-01, A-02, and A-03: migrations `0021`–`0024`, cloud command transport, authority/migration regression fixtures, deployment verification, and no unrelated product redesign.
+  - Local evidence must include the complete Web/PWA gate plus `npm run test:supabase-authority` against a clean disposable PostgreSQL database.
+  - The linked Supabase project still requires a controlled migration deployment, Auth public-signup disablement, and the two post-deploy read-only smoke checks before this item can be marked complete. No production SQL was applied from this workspace.
+- [ ] **NEXT after controlled deployment:** Execute `docs/SUPABASE_AUTHORITY_REMEDIATION_DEPLOYMENT.md`, record the linked migration list and post-deploy results, then open the bounded PR. Do not mark complete from local green tests alone.
+
 ## Handoff-closure session (2026-08-20, third)
 
 - [x] Sandbox git-ref rollback detected and repaired: local refs/objects restored to

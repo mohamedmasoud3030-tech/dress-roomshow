@@ -94,7 +94,7 @@ test('the commit path pre-checks size and maps the server rejection to the same 
   assert.match(cloudState, /measureSnapshotBytes\(prepared\)[\s\S]*?isSnapshotWithinServerLimit[\s\S]*?rpc\(/, 'the guard runs before the RPC round-trip');
   assert.match(cloudState, /SNAPSHOT_TOO_LARGE_MESSAGE[\s\S]*?'LENA_SNAPSHOT_TOO_LARGE'/, 'the pre-check throws the same code the server would raise');
   assert.match(cloudState, /error\.message\.includes\('LENA_SNAPSHOT_TOO_LARGE'\)/, 'a server-side rejection maps to the readable message, not the generic one');
-  assert.match(cloudState, /recordSnapshotSize\(snapshotBytes, 'commit'\)/, 'an accepted commit refreshes the gauge');
+  assert.match(cloudState, /recordSnapshotSize\(measureSnapshotBytes\(snapshot\), 'commit'\)/, 'the server-confirmed commit refreshes the gauge');
   assert.match(cloudState, /recordSnapshotSize\(measureSnapshotBytes\(row\.snapshot\), 'hydration'\)/, 'hydration refreshes the gauge too');
   assert.match(cloudState, /import \{[\s\S]*?SNAPSHOT_TOO_LARGE_MESSAGE[\s\S]*?\} from '\.\/snapshotSizeMetrics'/, 'shared wording import present');
 });

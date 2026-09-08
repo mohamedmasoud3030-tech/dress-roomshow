@@ -12,6 +12,7 @@ import {
   DATABASE_APPLICATION_ID,
   type LocalDatabaseBackup,
 } from '@engines/persistence';
+import { buildShowroomCommandPatch } from './showroomCommandPatch';
 
 type ShowroomStateRow = {
   snapshot: unknown;
@@ -139,30 +140,39 @@ export async function fetchShowroomState(): Promise<RemoteShowroomState> {
   return { snapshot: normalizeSnapshot(row.snapshot), revision: Number(row.revision), updatedAt: row.updated_at };
 }
 
+export type ShowroomCommandCommit = {
+  revision: number;
+  /** The server-reconstructed state, including its actor-bound audit record. */
+  snapshot: LocalDatabaseBackup;
+};
+
 export async function commitShowroomState(input: {
   expectedRevision: number;
+  before: LocalDatabaseBackup;
   snapshot: LocalDatabaseBackup;
   idempotencyKey: string;
   commandName: string;
-}): Promise<number> {
-  const prepared = prepareSnapshotForCloud(input.snapshot);
-  // Fail before the doomed round-trip with a message the operator can act on.
-  // The server enforces the same cap (migration 0016); this guard turns a raw
-  // RPC rejection into a clear, safe, nothing-was-written outcome.
-  const snapshotBytes = measureSnapshotBytes(prepared);
+}): Promise<ShowroomCommandCommit> {
+  const preparedBefore = prepareSnapshotForCloud(input.before);
+  const preparedAfter = prepareSnapshotForCloud(input.snapshot);
+  // Keep the existing capacity guard. The patch is normally much smaller, but
+  // a condition-evidence image can still make the local command impossible for
+  // the authoritative state to accept.
+  const snapshotBytes = measureSnapshotBytes(preparedAfter);
   if (!isSnapshotWithinServerLimit(snapshotBytes)) {
     throw new ShowroomCloudError(SNAPSHOT_TOO_LARGE_MESSAGE, 'LENA_SNAPSHOT_TOO_LARGE');
   }
 
+  const patch = buildShowroomCommandPatch(preparedBefore, preparedAfter);
   const timeout = createCloudCallTimeout();
   let data: unknown;
   let error: { code?: string; message: string } | null = null;
   try {
-    ({ data, error } = await getSupabaseClient().rpc('apply_showroom_snapshot', {
+    ({ data, error } = await getSupabaseClient().rpc('apply_showroom_command', {
       p_expected_revision: input.expectedRevision,
-      p_snapshot: prepared,
-      p_idempotency_key: input.idempotencyKey,
       p_command_name: input.commandName,
+      p_idempotency_key: input.idempotencyKey,
+      p_patch: patch,
     }).abortSignal(timeout.signal));
   } catch (reason) {
     if (isAbortLike(reason) || timeout.signal.aborted) {
@@ -172,26 +182,90 @@ export async function commitShowroomState(input: {
   } finally {
     timeout.done();
   }
-  if (error) {
-    if (error.message.includes('LENA_SNAPSHOT_TOO_LARGE')) {
-      throw new ShowroomCloudError(SNAPSHOT_TOO_LARGE_MESSAGE, 'LENA_SNAPSHOT_TOO_LARGE', error);
-    }
-    const code = error.message.includes('LENA_REVISION_CONFLICT') ? 'LENA_REVISION_CONFLICT' : error.code;
-    throw new ShowroomCloudError(
-      code === 'LENA_REVISION_CONFLICT'
-        ? 'تغيّرت البيانات من جهاز آخر. أُعيد تحميل أحدث نسخة لحمايتها من الكتابة فوقها.'
-        : 'تعذر حفظ العملية. لم يُسجل أي تغيير.',
-      code,
-      error,
-    );
-  }
+  if (error) throwCommitError(error);
+  return parseCommittedSnapshot(data);
+}
+
+function parseCommittedSnapshot(data: unknown): ShowroomCommandCommit {
   const result = Array.isArray(data) ? data[0] : data;
-  if (!isRecord(result) || typeof result.revision !== 'number') {
+  if (!isRecord(result) || typeof result.revision !== 'number' || !('snapshot' in result)) {
     throw new ShowroomCloudError('لم يكتمل تأكيد حفظ العملية. أعيدي المحاولة.', 'LENA_INVALID_COMMIT_RESPONSE');
   }
-  // The accepted size is the freshest possible gauge: record it post-commit.
-  recordSnapshotSize(snapshotBytes, 'commit');
-  return result.revision;
+  const snapshot = normalizeSnapshot(result.snapshot);
+  recordSnapshotSize(measureSnapshotBytes(snapshot), 'commit');
+  return { revision: result.revision, snapshot };
+}
+
+function throwCommitError(error: { code?: string; message: string }): never {
+  if (error.message.includes('LENA_SNAPSHOT_TOO_LARGE')) {
+    throw new ShowroomCloudError(SNAPSHOT_TOO_LARGE_MESSAGE, 'LENA_SNAPSHOT_TOO_LARGE', error);
+  }
+  const code = error.message.includes('LENA_REVISION_CONFLICT') ? 'LENA_REVISION_CONFLICT' : error.code;
+  throw new ShowroomCloudError(
+    code === 'LENA_REVISION_CONFLICT'
+      ? 'تغيّرت البيانات من جهاز آخر. أُعيد تحميل أحدث نسخة لحمايتها من الكتابة فوقها.'
+      : 'تعذر حفظ العملية. لم يُسجل أي تغيير.',
+    code,
+    error,
+  );
+}
+
+/** Explicit admin recovery RPC; normal command patches may never replace all state. */
+export async function restoreShowroomBackup(input: {
+  expectedRevision: number;
+  snapshot: LocalDatabaseBackup;
+  idempotencyKey: string;
+}): Promise<ShowroomCommandCommit> {
+  const prepared = prepareSnapshotForCloud(input.snapshot);
+  const snapshotBytes = measureSnapshotBytes(prepared);
+  if (!isSnapshotWithinServerLimit(snapshotBytes)) {
+    throw new ShowroomCloudError(SNAPSHOT_TOO_LARGE_MESSAGE, 'LENA_SNAPSHOT_TOO_LARGE');
+  }
+
+  const timeout = createCloudCallTimeout();
+  let data: unknown;
+  let error: { code?: string; message: string } | null = null;
+  try {
+    ({ data, error } = await getSupabaseClient().rpc('restore_showroom_backup', {
+      p_expected_revision: input.expectedRevision,
+      p_idempotency_key: input.idempotencyKey,
+      p_snapshot: prepared,
+    }).abortSignal(timeout.signal));
+  } catch (reason) {
+    if (isAbortLike(reason) || timeout.signal.aborted) {
+      throw new ShowroomCloudError(CLOUD_COMMIT_TIMEOUT_MESSAGE, 'LENA_CLOUD_TIMEOUT', reason);
+    }
+    throw reason;
+  } finally {
+    timeout.done();
+  }
+  if (error) throwCommitError(error);
+  return parseCommittedSnapshot(data);
+}
+
+/** Explicit admin reset RPC; the server constructs the empty collection state. */
+export async function resetShowroomState(input: {
+  expectedRevision: number;
+  idempotencyKey: string;
+}): Promise<ShowroomCommandCommit> {
+  const timeout = createCloudCallTimeout();
+  let data: unknown;
+  let error: { code?: string; message: string } | null = null;
+  try {
+    ({ data, error } = await getSupabaseClient().rpc('reset_showroom_state', {
+      p_expected_revision: input.expectedRevision,
+      p_idempotency_key: input.idempotencyKey,
+    }).abortSignal(timeout.signal));
+  } catch (reason) {
+    if (isAbortLike(reason) || timeout.signal.aborted) {
+      throw new ShowroomCloudError(CLOUD_COMMIT_TIMEOUT_MESSAGE, 'LENA_CLOUD_TIMEOUT', reason);
+    }
+    throw reason;
+  } finally {
+    timeout.done();
+  }
+  if (error) throwCommitError(error);
+  return parseCommittedSnapshot(data);
 }
 
 export function subscribeToShowroomChanges(onChange: () => void): RealtimeChannel {

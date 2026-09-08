@@ -21,30 +21,40 @@ test('commands publish complete before/after snapshots and roll back rejected co
   assert.match(gate, /revisionRef\.current/);
 });
 
-test('the database migration enforces atomic revisions, grants, RLS, and deposit-safe totals', async () => {
-  const migration = await read('supabase/migrations/0016_centralized_showroom_state.sql');
+test('the database preserves revisions but moves authenticated writes to the constrained command boundary', async () => {
+  const [migration, authority] = await Promise.all([
+    read('supabase/migrations/0016_centralized_showroom_state.sql'),
+    read('supabase/migrations/0022_constrain_authoritative_command_writes.sql'),
+  ]);
   assert.match(migration, /create table if not exists public\.showroom_state/);
   assert.match(migration, /for update/);
   assert.match(migration, /LENA_REVISION_CONFLICT/);
   assert.match(migration, /force row level security/);
-  assert.match(migration, /revoke all on function public\.apply_showroom_snapshot[\s\S]*from public, anon/);
-  assert.match(migration, /grant execute on function public\.apply_showroom_snapshot[\s\S]*to authenticated/);
   assert.match(migration, /payment_type in \('rental_payment', 'rental', 'booking_advance'\)/);
   assert.doesNotMatch(migration, /payment_type in \([^)]*security_deposit_collection[^)]*\) then amount/);
+
+  assert.match(authority, /create or replace function public\.apply_showroom_command/);
+  assert.match(authority, /grant execute on function public\.apply_showroom_command\(bigint, text, text, jsonb\) to authenticated/);
+  assert.match(authority, /LENA_LEGACY_SNAPSHOT_WRITE_DISABLED/);
+  assert.match(authority, /revoke all on function public\.apply_showroom_snapshot\(bigint, jsonb, text, text\)[\s\S]*authenticated, service_role/);
 });
 
-test('hardening migrations protect audit rows, validate snapshots, and expose only the public profile projection', async () => {
-  const hardening = await read('supabase/migrations/0019_audit_and_snapshot_validation.sql');
-  const publicProfile = await read('supabase/migrations/0020_public_showroom_profile.sql');
+test('hardening migrations protect audit rows and the final forward repair exposes only an allowlisted public profile', async () => {
+  const [hardening, initialPublicProfile, repairedProfile] = await Promise.all([
+    read('supabase/migrations/0019_audit_and_snapshot_validation.sql'),
+    read('supabase/migrations/0020_public_showroom_profile.sql'),
+    read('supabase/migrations/0023_repair_public_showroom_profile_projection.sql'),
+  ]);
 
   assert.match(hardening, /audit-log[\s\S]*audit[\s\S]*daily-closings/);
   assert.match(hardening, /showroom_state_validate_snapshot/);
   assert.match(hardening, /LENA_INVALID_PAYMENT/);
   assert.match(hardening, /LENA_DUPLICATE_ENTITY/);
-  assert.match(publicProfile, /create table if not exists public\.showroom_public_profile/);
-  assert.match(publicProfile, /to anon, authenticated/);
-  assert.match(publicProfile, /sync_showroom_public_profile/);
-  assert.doesNotMatch(publicProfile, /grant select on table public\.showroom_state to anon/);
+  assert.match(initialPublicProfile, /create table if not exists public\.showroom_public_profile/);
+  assert.match(repairedProfile, /project_lena_public_showroom_profile/);
+  assert.match(repairedProfile, /'brandName'/);
+  assert.match(repairedProfile, /to anon, authenticated/);
+  assert.doesNotMatch(repairedProfile, /grant select on table public\.showroom_state to anon/);
 });
 
 test('public catalogue is a narrow anonymous projection and Vercel serves SPA deep links securely', async () => {

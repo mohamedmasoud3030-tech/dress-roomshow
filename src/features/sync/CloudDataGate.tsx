@@ -12,6 +12,8 @@ import { RouteLoadingFallback } from '@app/router/RouteLoadingFallback';
 import {
   commitShowroomState,
   fetchShowroomState,
+  resetShowroomState,
+  restoreShowroomBackup,
   subscribeToShowroomChanges,
   unsubscribeFromShowroomChanges,
 } from './showroomCloudState';
@@ -64,12 +66,28 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
         committingRef.current = true;
         publishStatus({ state: 'syncing', message: 'جارٍ حفظ العملية…', updatedAt: new Date().toISOString() });
         try {
-          revisionRef.current = await commitShowroomState({
-            expectedRevision: revisionRef.current,
-            snapshot: detail.after,
-            idempotencyKey: detail.idempotencyKey,
-            commandName: detail.commandName,
-          });
+          const committed = detail.commandName === 'database.import'
+            ? await restoreShowroomBackup({
+                expectedRevision: revisionRef.current,
+                snapshot: detail.after,
+                idempotencyKey: detail.idempotencyKey,
+              })
+            : detail.commandName === 'database.reset'
+              ? await resetShowroomState({
+                  expectedRevision: revisionRef.current,
+                  idempotencyKey: detail.idempotencyKey,
+                })
+              : await commitShowroomState({
+                  expectedRevision: revisionRef.current,
+                  before: detail.before,
+                  snapshot: detail.after,
+                  idempotencyKey: detail.idempotencyKey,
+                  commandName: detail.commandName,
+                });
+          // Never keep a browser-authored version after a successful command.
+          // The returned snapshot is reconstructed and audited by PostgreSQL.
+          importDatabaseBackup(committed.snapshot);
+          revisionRef.current = committed.revision;
           document.documentElement.dataset.cloudCommit = 'ready';
           publishStatus({ state: 'synced', message: 'تم حفظ العملية بنجاح.', updatedAt: new Date().toISOString() });
         } catch (reason) {

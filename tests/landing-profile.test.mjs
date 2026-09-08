@@ -15,6 +15,22 @@ test('the public profile deep-merges contact defaults without exposing the priva
   assert.equal(merged.brandName, 'المعرض المحدث');
   assert.equal(merged.contact.whatsapp, '+968 9000 0000');
   assert.equal(merged.contact.email, landingShowroomProfile.contact.email);
+  const hardened = mergePublicShowroomProfile({
+    brandName: 'المعرض المحدث',
+    internalSecret: 'must-not-survive',
+    contact: { whatsapp: '+968 9000 0000', internalToken: 'must-not-survive' },
+  });
+  assert.equal('internalSecret' in hardened, false);
+  assert.equal('internalToken' in hardened.contact, false);
+
+  const nested = mergePublicShowroomProfile({
+    categories: [{ name: 'سهرة', description: 'علنية', internalCategoryToken: 'must-not-survive' }],
+    services: [{ title: 'إيجار', description: 'علنية', internalServiceToken: 'must-not-survive' }],
+    faq: [{ question: 'سؤال', answer: 'جواب', internalFaqToken: 'must-not-survive' }],
+  });
+  assert.deepEqual(nested.categories, [{ name: 'سهرة', description: 'علنية' }]);
+  assert.deepEqual(nested.services, [{ title: 'إيجار', description: 'علنية' }]);
+  assert.deepEqual(nested.faq, [{ question: 'سؤال', answer: 'جواب' }]);
 });
 
 test('an anonymous landing visitor reads only the public profile projection', async () => {

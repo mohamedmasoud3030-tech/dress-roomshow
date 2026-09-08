@@ -1,0 +1,66 @@
+name: Supabase schema authority
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      verify_deployed_public_profile:
+        description: Run the read-only post-deploy public-profile schema smoke test
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  clean-schema-authority:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      LENA_PG_TEST_DB: lena_authority_schema_ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install --yes postgresql-client
+      - name: Apply clean migrations and run authority regressions
+        run: scripts/verify-clean-supabase-schema.sh
+
+  deployed-public-profile-smoke:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.verify_deployed_public_profile }}
+    needs: clean-schema-authority
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify deployed Auth hardening and anonymous public-profile projection
+        env:
+          LENA_SUPABASE_URL: ${{ secrets.LENA_SUPABASE_URL }}
+          LENA_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.LENA_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          npm run verify:deployed-auth-hardening
+          npm run verify:deployed-public-profile

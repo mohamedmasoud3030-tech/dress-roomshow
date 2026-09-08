@@ -148,19 +148,29 @@ npm run preview -- --host 0.0.0.0 --port 4173
 ```text
 supabase/migrations/0001_initial_schema.sql
 ...
-supabase/migrations/0018_advisor_cleanup.sql
+supabase/migrations/0024_lock_legacy_authority_surfaces.sql
 ```
 
-لا يوجد `supabase/config.toml` ولا npm script لتطبيق migrations في هذا checkout، ولم يثبت وجود Supabase CLI محلي. لذلك **لا يوجد أمر deploy migration مؤكد من المستودع**. لا تطبق SQL يدويًا على production قبل تحديد المشروع، النسخة الحالية، backup وrollback.
+فحص clean PostgreSQL الإلزامي لسطح السلطة (ينشئ قاعدة مؤقتة، يثبت bypass التاريخي قبل الإصلاح، ثم يثبت المنع بعد الإصلاح):
+
+```bash
+# عند تشغيل PostgreSQL محلياً كخدمة نظام:
+LENA_PG_TEST_USE_SUDO=1 npm run test:supabase-authority
+```
+
+الاختبار لا يتصل بمشروع Supabase المنشور ولا يحتاج credentials للمشروع. في CI يجب توفير PostgreSQL disposable؛ workflow `Supabase schema authority` يفعله تلقائياً.
+
+لا يوجد `supabase/config.toml` ولا npm script لتطبيق migrations على production في هذا checkout. لذلك لا تطبق SQL يدويًا على production. استخدم سلسلة migration الطبيعية وrunbook [`docs/SUPABASE_AUTHORITY_REMEDIATION_DEPLOYMENT.md`](docs/SUPABASE_AUTHORITY_REMEDIATION_DEPLOYMENT.md) مع backup وrollback ومراجعة `supabase migration list --linked`.
 
 فحص contract دون backend حي:
 
 ```bash
 npm run test:auth
 npm run test:cloud-source-of-truth
+npm run test:authority-surface
 ```
 
-هذا يتحقق من code/migration text، وليس من schema المنشور.
+هذا يتحقق من code/migration text؛ أما `test:supabase-authority` فيتحقق من schema وسلوك PostgreSQL النظيف.
 
 ## 8. البناء والنشر
 
