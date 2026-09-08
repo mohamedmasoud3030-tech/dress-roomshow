@@ -305,7 +305,15 @@ export function summarizeAllDesigns(period?: AvailabilityPeriod): DressDesignSum
 export function getBookablePieces(designId: string, period: AvailabilityPeriod, size?: string, color?: string): Dress[] {
   const reservations = getReservations();
 
-  return getDesignPieces(designId)
+  // An empty design id means "any design". The reservation screen asks for
+  // every piece that can be rented over the period; routing that question
+  // through getDesignPieces() made it mean "only the pieces that carry no
+  // design", which is why the picker stayed empty for a full stock.
+  const pieces = designId
+    ? getDesignPieces(designId)
+    : getDresses().filter((dress) => !dress.archivedAt && !RETIRED_PIECE_STATUSES.has(dress.status));
+
+  return pieces
     .filter((piece) => (!size || piece.size === size) && (!color || piece.color === color))
     .filter((piece) => piece.isForRent && piece.status !== 'damaged' && piece.status !== 'sold')
     .filter((piece) => findItemConflicts({
