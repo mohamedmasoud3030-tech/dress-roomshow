@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Archive, ArrowRight, Link2, Plus, Shirt } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Section } from '../../components/shared/Section';
 import { SummaryCard } from '../../components/shared/SummaryCard';
@@ -99,30 +100,18 @@ export function DesignDetailsPage() {
           description={design.description || 'مراجعة المقاسات والألوان المتوفرة والقطع المرتبطة بهذا التصميم.'}
         />
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => { setFeedback(null); setShowVariants(true); }}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" onClick={() => { setFeedback(null); setShowVariants(true); }}>
             <Plus aria-hidden="true" className="h-4 w-4" />
             إضافة مقاس أو لون
-          </button>
-          <button
-            type="button"
-            onClick={() => { setFeedback(null); setShowAssign(true); }}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => { setFeedback(null); setShowAssign(true); }}>
             <Link2 aria-hidden="true" className="h-4 w-4" />
             ربط قطعة قائمة
-          </button>
-          <button
-            type="button"
-            onClick={handleArchive}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 py-2 text-sm font-bold text-rose-700 transition hover:bg-rose-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          </Button>
+          <Button type="button" variant="danger" onClick={handleArchive}>
             <Archive aria-hidden="true" className="h-4 w-4" />
             أرشفة
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Archive, ArrowRight, Image as ImageIcon, Layers, Link2, Trash2 } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_STATUS_LABELS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
@@ -98,21 +99,13 @@ export function DressDetailsPage() {
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
             العودة إلى المخزون
           </Link>
-          <button
-            type="button"
-            onClick={() => { setActionError(null); setShowEdit(true); }}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800"
-          >
+          <Button type="button" onClick={() => { setActionError(null); setShowEdit(true); }}>
             تعديل بيانات القطعة
-          </button>
-          <button
-            type="button"
-            onClick={handleArchive}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-amber-300 bg-white px-4 py-2 text-sm font-bold text-amber-700 shadow-sm transition hover:bg-amber-50"
-          >
+          </Button>
+          <Button type="button" variant="secondary" onClick={handleArchive} className="border-amber-300 text-amber-700 hover:bg-amber-50">
             <Archive aria-hidden="true" className="h-4 w-4" />
             أرشفة العنصر
-          </button>
+          </Button>
           {isAdmin && (
             <button
               type="button"
@@ -156,14 +149,10 @@ export function DressDetailsPage() {
             <p className="min-w-0 flex-1 text-sm text-slate-600">
               هذه القطعة غير مرتبطة بتصميم. اربطيها لتظهر مع بقية المقاسات والألوان.
             </p>
-            <button
-              type="button"
-              onClick={() => { setAssignFeedback(null); setShowAssign(true); }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-            >
+            <Button type="button" variant="secondary" onClick={() => { setAssignFeedback(null); setShowAssign(true); }}>
               <Link2 aria-hidden="true" className="h-4 w-4" />
               ربط بتصميم
-            </button>
+            </Button>
           </>
         )}
       </div>
@@ -220,14 +209,10 @@ export function DressDetailsPage() {
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={() => setShowImages(true)}
-            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
-          >
+          <Button type="button" variant="secondary" onClick={() => setShowImages(true)} className="mt-4">
             <ImageIcon aria-hidden="true" className="h-4 w-4" />
             {primaryImage ? 'تغيير صور العنصر' : 'إضافة صور للعنصر'}
-          </button>
+          </Button>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>

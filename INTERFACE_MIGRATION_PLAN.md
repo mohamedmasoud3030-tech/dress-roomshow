@@ -72,6 +72,8 @@
 8. Added `DataTable` and `KeyValueList` primitives with a deliberate desktop-table to phone-card transformation; adopted them in payments, expenses, audit, and inventory-performance surfaces.
 9. Added a compatibility-preserving `/customers/:id` detail route linked from the customer index for identity, conduct, measurements, and reservation history.
 10. Added daily-close idempotency-key protection and canonical loading action semantics without changing the close/reopen commands.
+11. Added an explicit camera fallback path for condition evidence: camera capture remains the default and manual device selection is visible when permission or hardware access is unavailable.
+12. Continued inventory detail action migration to canonical `Button` semantics for dress and design detail operations.
 
 ### Changed files
 
@@ -100,8 +102,11 @@
 - `src/features/preferences/PreferencesPage.tsx`
 - `src/features/audit/AuditLogPage.tsx`
 - `src/features/dresses/SalesLedgerPage.tsx`
+- `src/features/dresses/DressDetailsPage.tsx`
+- `src/features/dresses/DesignDetailsPage.tsx`
 - `src/features/reports/DailyClosingPage.tsx`
 - `src/features/reports/InventoryPerformancePage.tsx`
+- `src/features/delivery-return/ConditionPhotoCapture.tsx`
 - `src/features/customers/CustomerDetailsPage.tsx`
 - `src/app/router/AppRoutes.tsx`
 - `src/app/router/routePages.ts`

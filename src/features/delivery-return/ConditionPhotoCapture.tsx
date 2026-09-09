@@ -57,6 +57,7 @@ export function ConditionPhotoCapture({
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const inputId = `condition-photos-${label.replace(/\s+/g, '-')}`;
+  const libraryInputId = `${inputId}-library`;
 
   const handleFiles = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -155,6 +156,25 @@ export function ConditionPhotoCapture({
             <Camera aria-hidden="true" className="h-4 w-4" />
             تصوير حالة القطعة
           </label>
+          <input
+            id={libraryInputId}
+            type="file"
+            accept="image/*"
+            multiple
+            disabled={disabled || isProcessing}
+            onChange={(event) => {
+              void handleFiles(event.target.files);
+              event.currentTarget.value = '';
+            }}
+            className="sr-only"
+          />
+          <label
+            htmlFor={libraryInputId}
+            className={`inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-stone-50 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+          >
+            اختيار صورة من الجهاز
+          </label>
+          <p className="basis-full text-xs text-slate-500">إذا منع الهاتف فتح الكاميرا، استخدمي اختيار صورة من الجهاز كبديل يدوي.</p>
         </>
       )}
     </div>

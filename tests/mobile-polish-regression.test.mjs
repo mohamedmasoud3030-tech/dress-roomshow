@@ -62,6 +62,7 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   const dataTable = await readFile(join(sourceRoot, 'components/shared/DataTable.tsx'), 'utf8');
   const customerDetailsPage = await readFile(join(sourceRoot, 'features/customers/CustomerDetailsPage.tsx'), 'utf8');
   const appRoutes = await readFile(join(sourceRoot, 'app/router/AppRoutes.tsx'), 'utf8');
+  const conditionCapture = await readFile(join(sourceRoot, 'features/delivery-return/ConditionPhotoCapture.tsx'), 'utf8');
 
   assert.match(pageContainer, /safe-area-inset-bottom/);
   assert.match(pageHeader, /actions\?: ReactNode/);
@@ -93,6 +94,9 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   assert.match(customerDetailsPage, /MeasurementsPanel/);
   assert.match(customerDetailsPage, /سجل الحجوزات/);
   assert.match(appRoutes, /path="customers\/:id"/);
+  assert.match(conditionCapture, /capture="environment"/);
+  assert.match(conditionCapture, /اختيار صورة من الجهاز/);
+  assert.match(conditionCapture, /بديل يدوي/);
 
   const markup = renderToStaticMarkup(
     React.createElement(
