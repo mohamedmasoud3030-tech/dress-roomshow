@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing, CheckCircle2, Clock, MessageCircle, Plus, XCircle } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Section } from '../../components/shared/Section';
 import { SummaryCard } from '../../components/shared/SummaryCard';
@@ -90,20 +91,16 @@ export function WaitlistPage() {
 
   return (
     <section className="min-w-0 space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="قائمة الانتظار"
-          title="طلبات بانتظار التوفر"
-        />
-        <button
-          type="button"
-          onClick={() => { setFeedback(null); setShowAdd(true); }}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          إضافة طلب انتظار
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="قائمة الانتظار"
+        title="طلبات بانتظار التوفر"
+        actions={
+          <Button type="button" onClick={() => { setFeedback(null); setShowAdd(true); }}>
+            <Plus aria-hidden="true" className="h-5 w-5" />
+            إضافة طلب انتظار
+          </Button>
+        }
+      />
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر تنفيذ العملية." />}

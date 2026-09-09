@@ -55,6 +55,7 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   const deliveryModal = await readFile(join(sourceRoot, 'features/delivery-return/DeliveryReturnModal.tsx'), 'utf8');
   const customersPage = await readFile(join(sourceRoot, 'features/customers/CustomersPage.tsx'), 'utf8');
   const accessoriesPage = await readFile(join(sourceRoot, 'features/accessories/AccessoriesPage.tsx'), 'utf8');
+  const preferencesPage = await readFile(join(sourceRoot, 'features/preferences/PreferencesPage.tsx'), 'utf8');
 
   assert.match(pageContainer, /safe-area-inset-bottom/);
   assert.match(pageHeader, /actions\?: ReactNode/);
@@ -71,6 +72,9 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   assert.match(customersPage, /actions=\{/);
   assert.match(accessoriesPage, /actions=\{/);
   assert.match(accessoriesPage, /<Button/);
+  assert.match(preferencesPage, /aria-label="أقسام الإعدادات"/);
+  assert.match(preferencesPage, /id="data-backup"/);
+  assert.match(preferencesPage, /id="danger-zone"/);
 
   const markup = renderToStaticMarkup(
     React.createElement(

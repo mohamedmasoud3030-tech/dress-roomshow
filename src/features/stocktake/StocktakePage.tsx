@@ -1,5 +1,6 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
 import { ClipboardCheck, PlayCircle, ScanLine, Trash2, XCircle } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Section } from '../../components/shared/Section';
 import { SummaryCard } from '../../components/shared/SummaryCard';
@@ -158,14 +159,10 @@ export function StocktakePage() {
                 className={FORM_FIELD_CLASS_NAME}
               />
             </label>
-            <button
-              type="button"
-              onClick={handleStart}
-              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-            >
+            <Button type="button" onClick={handleStart}>
               <PlayCircle aria-hidden="true" className="h-5 w-5" />
               بدء الجرد
-            </button>
+            </Button>
           </div>
         </Section>
       ) : (

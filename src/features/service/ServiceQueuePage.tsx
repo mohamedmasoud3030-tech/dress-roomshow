@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Plus, Wrench } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
@@ -67,20 +68,16 @@ export function ServiceQueuePage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageHeader
-          eyebrow="الخدمة والتشغيل"
-          title="طابور الخدمة"
-        />
-        <button
-          type="button"
-          onClick={() => setOpenModal(true)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-        >
-          <Plus className="h-4 w-4" />
-          فتح عمل خدمة
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="الخدمة والتشغيل"
+        title="طابور الخدمة"
+        actions={
+          <Button type="button" onClick={() => setOpenModal(true)}>
+            <Plus aria-hidden="true" className="h-4 w-4" />
+            فتح عمل خدمة
+          </Button>
+        }
+      />
 
       {feedback ? (
         <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-800">{feedback}</p>

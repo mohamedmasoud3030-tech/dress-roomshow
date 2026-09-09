@@ -2,11 +2,11 @@ import { useMemo, useState } from 'react';
 import { Download, Plus } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
 import { buildPaymentsCsv, ledgerFileName } from '../reports/ledgerExports';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { AddPaymentModal } from './AddPaymentModal';
 import {
   PAYMENT_DIRECTION_FILTER_OPTIONS,
@@ -107,6 +107,7 @@ export function PaymentsPage() {
     () => summarizePayments(payments),
     [payments],
   );
+  const hasActiveFilters = filters.search !== '' || filters.type !== 'all' || filters.method !== 'all' || filters.direction !== 'all';
 
   const handleCreated = (payment: PaymentRecord) => {
     setPayments((current) => [payment, ...current]);
@@ -119,28 +120,22 @@ export function PaymentsPage() {
 
   return (
     <section className="min-w-0 space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="المدفوعات"
-          title="إدارة المدفوعات"
-        />
-        <button
-          type="button"
-          onClick={handleExport}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
-          <Download aria-hidden="true" className="h-5 w-5" />
-          تصدير CSV
-        </button>
-        <button
-          type="button"
-          onClick={() => { setFeedback(null); setShowCreateModal(true); }}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          تسجيل دفعة جديدة
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="المدفوعات"
+        title="إدارة المدفوعات"
+        actions={(
+          <>
+            <Button type="button" variant="secondary" onClick={handleExport}>
+              <Download aria-hidden="true" className="h-5 w-5" />
+              تصدير CSV
+            </Button>
+            <Button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="min-h-11">
+              <Plus aria-hidden="true" className="h-5 w-5" />
+              تسجيل دفعة جديدة
+            </Button>
+          </>
+        )}
+      />
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
@@ -164,6 +159,11 @@ export function PaymentsPage() {
         <SelectFilter label="نوع الحركة" value={filters.type} onChange={(type) => setFilters((current) => ({ ...current, type }))} options={PAYMENT_TYPE_FILTER_OPTIONS} />
         <SelectFilter label="وسيلة الدفع" value={filters.method} onChange={(method) => setFilters((current) => ({ ...current, method }))} options={PAYMENT_METHOD_FILTER_OPTIONS} />
         <SelectFilter label="اتجاه الحركة" value={filters.direction} onChange={(direction) => setFilters((current) => ({ ...current, direction }))} options={PAYMENT_DIRECTION_FILTER_OPTIONS} />
+        {hasActiveFilters ? (
+          <Button type="button" variant="quiet" size="sm" onClick={() => setFilters({ search: '', type: 'all', method: 'all', direction: 'all' })} className="justify-self-start text-slate-600 hover:bg-stone-100 xl:justify-self-end">
+            مسح الفلاتر
+          </Button>
+        ) : null}
       </FilterBar>
 
       {filteredPayments.length === 0 ? (

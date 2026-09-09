@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing, Check, Copy, MessageCircle } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -143,20 +144,20 @@ export function RemindersPage() {
 
   return (
     <section className="min-w-0 space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="المتابعة"
-          title="تذكيرات العميلات"
-        />
-        <button
-          type="button"
-          onClick={() => setShowHandled((current) => !current)}
-          aria-pressed={showHandled}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
-          {showHandled ? 'إخفاء ما تمت متابعته' : 'عرض ما تمت متابعته'}
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="المتابعة"
+        title="تذكيرات العميلات"
+        actions={
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => setShowHandled((current) => !current)}
+            aria-pressed={showHandled}
+          >
+            {showHandled ? 'إخفاء ما تمت متابعته' : 'عرض ما تمت متابعته'}
+          </Button>
+        }
+      />
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر إرسال التذكير." />}

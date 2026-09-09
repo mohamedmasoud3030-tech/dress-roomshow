@@ -3,12 +3,10 @@ import { Plus, Clock } from 'lucide-react';
 import { AddAppointmentModal } from './AddAppointmentModal';
 import { getTodaysAppointments, getUpcomingAppointments } from './appointment.service';
 import type { Appointment } from './appointment.types';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Section } from '../../components/shared/Section';
 import { EmptyState } from '../../components/shared/StateViews';
-import {
-  COMPACT_SECONDARY_BUTTON_CLASS_NAME,
-} from '../../shared/domain/uiConstants';
 
 const APPOINTMENT_STATUS_BADGES: Record<string, string> = {
   confirmed: 'bg-emerald-50 text-emerald-800 ring-emerald-200',
@@ -53,14 +51,10 @@ export function AppointmentsPage() {
         title="مواعيد اليوم"
         description="مواعيد التجربة والقياسات المقررة اليوم."
         action={
-          <button
-            type="button"
-            onClick={() => setShowAddModal(true)}
-            className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}
-          >
+          <Button type="button" variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
             <Plus aria-hidden="true" className="h-4 w-4" />
             حجز موعد
-          </button>
+          </Button>
         }
       >
         {todayAppointments.length === 0 ? (

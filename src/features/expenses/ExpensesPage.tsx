@@ -2,13 +2,12 @@ import { useMemo, useState } from 'react';
 import { Download, Plus } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
 import { buildExpensesCsv, ledgerFileName } from '../reports/ledgerExports';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
 import {
-  PRIMARY_BUTTON_CLASS_NAME,
-  SECONDARY_BUTTON_CLASS_NAME,
   ALERT_STYLES,
   ALERT_BASE_CLASS_NAME,
   CARD_GRID_CLASS_NAME,
@@ -62,6 +61,7 @@ export function ExpensesPage() {
 
   const filteredExpenses = useMemo(() => filterExpenses(expenses, filters), [expenses, filters]);
   const summary = useMemo(() => summarizeExpenses(expenses), [expenses]);
+  const hasActiveFilters = filters.search !== '' || filters.category !== 'all' || filters.paymentMethod !== 'all';
 
   const handleCreated = (expense: ExpenseRecord) => {
     setExpenses((current) => [expense, ...current]);
@@ -78,28 +78,22 @@ export function ExpensesPage() {
 
   return (
     <section className="min-w-0 space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageHeader
-          eyebrow="المصروفات"
-          title="إدارة المصروفات"
-        />
-        <button
-          type="button"
-          onClick={handleExport}
-          className={SECONDARY_BUTTON_CLASS_NAME}
-        >
-          <Download aria-hidden="true" className="h-5 w-5" />
-          تصدير CSV
-        </button>
-        <button
-          type="button"
-          onClick={() => { setFeedback(null); setShowCreateModal(true); }}
-          className={PRIMARY_BUTTON_CLASS_NAME}
-        >
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          تسجيل مصروف جديد
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="المصروفات"
+        title="إدارة المصروفات"
+        actions={(
+          <>
+            <Button type="button" variant="secondary" onClick={handleExport}>
+              <Download aria-hidden="true" className="h-5 w-5" />
+              تصدير CSV
+            </Button>
+            <Button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="min-h-11">
+              <Plus aria-hidden="true" className="h-5 w-5" />
+              تسجيل مصروف جديد
+            </Button>
+          </>
+        )}
+      />
 
       {feedback && (
         <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>
@@ -124,6 +118,11 @@ export function ExpensesPage() {
         />
         <SelectFilter label="فئة المصروف" value={filters.category} onChange={(category) => setFilters((current) => ({ ...current, category }))} options={EXPENSE_CATEGORY_FILTER_OPTIONS} />
         <SelectFilter label="وسيلة الدفع" value={filters.paymentMethod} onChange={(paymentMethod) => setFilters((current) => ({ ...current, paymentMethod }))} options={EXPENSE_PAYMENT_METHOD_FILTER_OPTIONS} />
+        {hasActiveFilters ? (
+          <Button type="button" variant="quiet" size="sm" onClick={() => setFilters({ search: '', category: 'all', paymentMethod: 'all' })} className="justify-self-start text-slate-600 hover:bg-stone-100 xl:justify-self-end">
+            مسح الفلاتر
+          </Button>
+        ) : null}
       </FilterBar>
 
       {filteredExpenses.length === 0 ? (

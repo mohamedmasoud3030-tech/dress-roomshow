@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
@@ -434,20 +435,17 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
         )}
 
         <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={close}
-            className={`min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" variant="secondary" onClick={close}>
             إلغاء
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
+            loading={isSubmitting}
+            loadingLabel="جارٍ التسجيل…"
             disabled={reservations.length === 0 || isSubmitting}
-            className={`min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
           >
             تسجيل الحركة
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

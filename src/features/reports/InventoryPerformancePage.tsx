@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Printer } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -137,32 +138,22 @@ export function InventoryPerformancePage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="التقارير"
-          title="أداء المخزون والربحية"
-        />
-        <div className="no-print flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={!report}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-sm transition hover:bg-stone-100 disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
-            <Download aria-hidden="true" className="h-5 w-5" />
-            تصدير CSV
-          </button>
-          <button
-            type="button"
-            onClick={printReport}
-            disabled={!report}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
-            <Printer aria-hidden="true" className="h-5 w-5" />
-            طباعة أو PDF
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="التقارير"
+        title="أداء المخزون والربحية"
+        actions={(
+          <>
+            <Button type="button" variant="secondary" onClick={exportCsv} disabled={!report} className="no-print">
+              <Download aria-hidden="true" className="h-5 w-5" />
+              تصدير CSV
+            </Button>
+            <Button type="button" onClick={printReport} disabled={!report} className="no-print">
+              <Printer aria-hidden="true" className="h-5 w-5" />
+              طباعة أو PDF
+            </Button>
+          </>
+        )}
+      />
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر بناء التقرير." />}

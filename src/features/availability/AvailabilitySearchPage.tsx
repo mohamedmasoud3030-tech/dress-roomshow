@@ -94,13 +94,11 @@ export function AvailabilitySearchPage() {
 
   return (
     <div className="min-w-0 space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <PageHeader
-          eyebrow="البحث بالتاريخ"
-          title="المتاح في فترة"
-        />
-        <ViewModeToggle mode={viewMode} onChange={setViewMode} />
-      </div>
+      <PageHeader
+        eyebrow="البحث بالتاريخ"
+        title="المتاح في فترة"
+        actions={<ViewModeToggle mode={viewMode} onChange={setViewMode} />}
+      />
 
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر تنفيذ البحث." />}
 

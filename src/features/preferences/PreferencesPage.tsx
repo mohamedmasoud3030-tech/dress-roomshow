@@ -188,12 +188,26 @@ export function PreferencesPage() {
   return (
     <section className="space-y-6">
       <PageHeader eyebrow="الإعدادات" title="النسخ الاحتياطي وإعدادات التشغيل" />
+      <nav aria-label="أقسام الإعدادات" className="flex gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        {[
+          ['data-backup', 'النسخ والاستعادة'],
+          ['storage-capacity', 'السعة'],
+          ['image-storage', 'الصور'],
+          ['operations', 'قواعد التشغيل'],
+          ['about', 'عن التطبيق'],
+          ['danger-zone', 'منطقة الخطر'],
+        ].map(([id, label]) => (
+          <a key={id} href={`#${id}`} className="min-h-10 shrink-0 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500">
+            {label}
+          </a>
+        ))}
+      </nav>
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
       {error !== null && <UserFacingErrorAlert error={error} fallback="تعذر إكمال عملية البيانات." />}
 
       <StorageCapacityIndicator />
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article id="data-backup" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
           <DatabaseBackup aria-hidden="true" className="h-6 w-6 text-amber-700" />
           <div><h2 className="text-lg font-bold">النسخ الاحتياطي والاستعادة</h2><p className="mt-1 text-sm text-slate-500">احتفظي بنسخة آمنة قبل استبدال البيانات أو تصفيرها.</p></div>
@@ -207,7 +221,7 @@ export function PreferencesPage() {
         </div>
       </article>
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article id="cloud-backups" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
           <Cloud aria-hidden="true" className="h-6 w-6 text-amber-700" />
           <div><h2 className="text-lg font-bold">نسخ الخادم الاحتياطية</h2><p className="mt-1 text-sm text-slate-500">كل نسخة تُصدَّر تُحفظ أيضًا على الخادم بحجمها الكامل، فيبقى بإمكانك الرجوع إلى نقطة زمنية سابقة حتى لو فُقد الجهاز.</p></div>
@@ -240,7 +254,7 @@ export function PreferencesPage() {
         )}
       </article>
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article id="storage-capacity" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">حجم قاعدة البيانات المركزية</h2>
         <p className="mt-1 text-sm text-slate-500">تُقاس تلقائيًا عند فتح التطبيق وبعد كل حفظ ناجٍ، ويقبل الخادم حتى {formatCopyBytes(SHOWROOM_SNAPSHOT_MAX_BYTES)} كحد أقصى.</p>
         {snapshotLevel === 'unknown' || snapshotPercent === null || !snapshotReading ? (
@@ -266,7 +280,7 @@ export function PreferencesPage() {
         )}
       </article>
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article id="image-storage" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-center gap-3">
           <HardDrive aria-hidden="true" className="h-6 w-6 text-amber-700" />
           <div><h2 className="text-lg font-bold">تحسين حفظ الصور</h2><p className="mt-1 text-sm text-slate-500">نقل الصور القديمة إلى مساحة أكثر ملاءمة داخل الجهاز.</p></div>
@@ -283,7 +297,7 @@ export function PreferencesPage() {
         </div>
       </article>
 
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article id="operations" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">قواعد التشغيل</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
           <label className="text-sm font-bold text-slate-700">مدة التجهيز قبل التسليم (أيام)<input type="number" min="0" max="14" value={preferences.preparationDaysBeforePickup} onChange={(event) => setPreferences((current) => ({ ...current, preparationDaysBeforePickup: Number(event.target.value) }))} className={preferenceFieldClassName} /></label>
@@ -390,7 +404,7 @@ export function PreferencesPage() {
 
       {/* Named here because support is impossible while the operator cannot
           answer "which version are you on?". */}
-      <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article id="about" className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">عن التطبيق</h2>
         <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
           <div>
@@ -413,7 +427,7 @@ export function PreferencesPage() {
 
       <ShowroomProfileEditor />
 
-      <article className="rounded-2xl border-2 border-rose-300 bg-rose-50 p-5 shadow-sm">
+      <article id="danger-zone" className="scroll-mt-24 rounded-2xl border-2 border-rose-300 bg-rose-50 p-5 shadow-sm">
         <h2 className="text-lg font-black text-rose-900">منطقة الخطر</h2>
         <p className="mt-2 text-sm leading-6 text-rose-800">تصفير البيانات يمسح سجلات التشغيل من مساحة المعرض. نزّلي نسخة احتياطية حديثة وتحققي من حفظها قبل المتابعة.</p>
         <button type="button" onClick={resetAllData} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-500 bg-white px-4 py-2 text-sm font-bold text-rose-800 hover:bg-rose-100"><RotateCcw aria-hidden="true" className="h-4 w-4" />تصفير جميع البيانات</button>

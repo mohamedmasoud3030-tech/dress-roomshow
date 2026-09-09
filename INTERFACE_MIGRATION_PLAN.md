@@ -15,7 +15,7 @@
 
 | Priority | Milestone | Status | User-visible outcome | Scope | Acceptance |
 |---:|---|---|---|---|---|
-| 0 | Restore phone touch and basic public contact reliability | VERIFIED COMPLETE | forms scroll/tap on phone; public actions no longer depend on hover; contact data is consistent | `Modal`, public inventory controls, profile defaults/legacy repair, targeted tests | mobile regression, profile/print tests, `786/786`, typecheck/lint/build |
+| 0 | Restore phone touch and basic public contact reliability | VERIFIED COMPLETE | forms scroll/tap on phone; public actions no longer depend on hover; contact data is consistent | `Modal`, public inventory controls, profile defaults/legacy repair, targeted tests | mobile regression, profile/print tests, `787/787`, typecheck/lint/build |
 | 1 | Establish canonical page foundations | IMPLEMENTED BUT NOT VERIFIED | the app shell and representative inventory page now share a consistent frame, header action slot, button semantics, and recoverable state action without behavior change | `PageContainer`, PageHeader action/status slots, Button/IconButton, FormActions, ErrorState, Modal close action, representative inventory header | typecheck/lint/full test/build passed; browser/device rendered pass remains external |
 | 2 | Migrate representative reservation journey end-to-end | IMPLEMENTED BUT NOT VERIFIED | reservation index and wizard now use the shared filter/action/error foundations with ordered validation and recovery | reservation index, `CreateReservationModal`, `Stepper`, `SearchableSelect`, `ValidationSummary`, `Button` | reservation happy/blocked/idempotency/rollback + DOM/static render passed; browser/device journey remains external |
 | 3 | Migrate delivery/return/service risk path | NOT STARTED | daily high-risk physical workflow is a clear queue and safe detail sheet | delivery-return, condition photos, service queue, late fee/deposit status | delivery/return/service/finance/audit/rollback + mobile camera fallback |
@@ -48,7 +48,7 @@
 
 ### Evidence
 
-- `npm test`: 786 tests passed, 0 failed.
+- `npm test`: 787 tests passed, 0 failed.
 - `npm run typecheck`: passed.
 - `npm run lint`: passed.
 - `npm run build`: passed.
@@ -66,8 +66,9 @@
 2. Extended `PageHeader` with backwards-compatible `actions` and `status` slots.
 3. Added forwarded-ref `Button` and `IconButton` primitives with variants, touch-safe sizes, focus ring, disabled/loading semantics, and accessible icon labels.
 4. Migrated shared `FormActions`, `ErrorState`, and the `Modal` close action to the canonical button semantics.
-5. Migrated inventory, delivery/return, customers, and accessories page action groups to the `PageHeader` action slot without changing commands, routes, permissions, or data writes.
-6. Added regression coverage for the shell frame, action/status slots, loading semantics, form action usage, reservation and operational action surfaces, and safe-area behavior.
+5. Migrated inventory, delivery/return, customers, accessories, appointments, availability, payments, expenses, reminders, inventory performance, service, stocktake, and waitlist action surfaces to canonical `Button`/`PageHeader` semantics without changing commands, routes, permissions, or data writes.
+6. Added URL-safe settings section navigation for backup, storage, images, operations, about, and danger-zone areas while preserving `/preferences`.
+7. Added regression coverage for the shell frame, action/status slots, loading semantics, form action usage, reservation and operational action surfaces, settings navigation, and safe-area behavior.
 
 ### Changed files
 
@@ -83,6 +84,17 @@
 - `src/features/delivery-return/DeliveryReturnModal.tsx`
 - `src/features/customers/CustomersPage.tsx`
 - `src/features/accessories/AccessoriesPage.tsx`
+- `src/features/appointments/AppointmentsPage.tsx`
+- `src/features/availability/AvailabilitySearchPage.tsx`
+- `src/features/expenses/ExpensesPage.tsx`
+- `src/features/payments/PaymentsPage.tsx`
+- `src/features/payments/AddPaymentModal.tsx`
+- `src/features/reminders/RemindersPage.tsx`
+- `src/features/reports/InventoryPerformancePage.tsx`
+- `src/features/service/ServiceQueuePage.tsx`
+- `src/features/stocktake/StocktakePage.tsx`
+- `src/features/waitlist/WaitlistPage.tsx`
+- `src/features/preferences/PreferencesPage.tsx`
 - `tests/mobile-polish-regression.test.mjs`
 
 ### Evidence
