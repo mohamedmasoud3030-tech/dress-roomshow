@@ -45,6 +45,14 @@ export function LandingFooter({ profile }: { profile: LandingProfile }) {
                   </a>
                 </li>
               ))}
+              <li>
+                <a
+                  href="/login"
+                  className="mt-1 inline-block text-sm font-semibold text-slate-500 transition hover:text-white"
+                >
+                  دخول إدارة المعرض
+                </a>
+              </li>
             </ul>
           </nav>
 

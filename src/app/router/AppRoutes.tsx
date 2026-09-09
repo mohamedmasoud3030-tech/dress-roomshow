@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '@app/shell/AppShell';
 import { LoginPage } from '../../features/auth/LoginPage';
 import { RequireAuth } from './RequireAuth';
+import { RootGate } from './RootGate';
 import { CloudDataGate } from '../../features/sync/CloudDataGate';
 import { RouteLoadingFallback } from './RouteLoadingFallback';
 import { RequireAdmin } from './RequireAdmin';
@@ -39,6 +40,12 @@ export function AppRoutes() {
     <Routes>
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/" element={<RootGate />}>
+        <Route element={<AppShell />}>
+          <Route index element={<DashboardWithClosingAlertPage />} />
+        </Route>
+      </Route>
+
       <Route
         element={
           <RequireAuth>
@@ -48,7 +55,6 @@ export function AppRoutes() {
           </RequireAuth>
         }
       >
-        <Route index element={<DashboardWithClosingAlertPage />} />
         <Route path="inventory" element={<DressesPage />} />
         <Route
           path="inventory/:code"
