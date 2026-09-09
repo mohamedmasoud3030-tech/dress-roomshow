@@ -8,6 +8,7 @@ import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/dom
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
+import { getDressEffectiveSalePrice } from './dress.types';
 import { createSubmissionKey } from '../../shared/utils/submissionKey';
 import { SearchableSelect, type SearchableOption } from '../../components/shared/SearchableSelect';
 import { BASIC_PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from '../payments/payment.constants';
@@ -63,7 +64,7 @@ export function CreateSaleInvoiceModal({ open, onClose, onCreated }: Props) {
 
   const selectDress = (index: number, dressCode: string) => {
     const dress = dresses.find((item) => item.code === dressCode);
-    updateLine(index, { dressCode, amount: dress ? String(dress.salePrice) : '' });
+    updateLine(index, { dressCode, amount: dress ? String(getDressEffectiveSalePrice(dress)) : '' });
   };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {

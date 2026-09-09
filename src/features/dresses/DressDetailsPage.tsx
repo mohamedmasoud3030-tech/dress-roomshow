@@ -13,6 +13,7 @@ import { getDressDeletionBlockers, getDresses } from './dress.service';
 import { archiveDressCommand, deleteDressCommand } from '../workflows';
 import { AssignToDesignModal } from './AssignToDesignModal';
 import { EditDressImagesModal } from './EditDressImagesModal';
+import { EditDressModal } from './EditDressModal';
 import { useAuth } from '../auth/AuthContext';
 
 export function DressDetailsPage() {
@@ -26,6 +27,7 @@ export function DressDetailsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [showAssign, setShowAssign] = useState(false);
   const [showImages, setShowImages] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [assignFeedback, setAssignFeedback] = useState<string | null>(null);
   void refreshKey;
   const deletionBlockers = dress ? getDressDeletionBlockers(dress.code) : [];
@@ -96,6 +98,13 @@ export function DressDetailsPage() {
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
             العودة إلى المخزون
           </Link>
+          <button
+            type="button"
+            onClick={() => { setActionError(null); setShowEdit(true); }}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800"
+          >
+            تعديل بيانات القطعة
+          </button>
           <button
             type="button"
             onClick={handleArchive}
@@ -171,6 +180,18 @@ export function DressDetailsPage() {
           dress={dress}
           onClose={() => setShowImages(false)}
           onSaved={() => setRefreshKey((current) => current + 1)}
+        />
+      ) : null}
+
+      {showEdit && dress ? (
+        <EditDressModal
+          dress={dress}
+          onClose={() => setShowEdit(false)}
+          onSaved={(updated) => {
+            setShowEdit(false);
+            setRefreshKey((current) => current + 1);
+            setAssignFeedback(`تم حفظ بيانات القطعة ${updated.code}.`);
+          }}
         />
       ) : null}
 

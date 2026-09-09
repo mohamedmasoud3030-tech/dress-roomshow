@@ -5,7 +5,7 @@ import {
   calculateReservationRemainingAmount,
 } from '../../shared/utils/financialCalculations.js';
 import { getDresses } from '../dresses/dress.service';
-import { getDressSecurityDepositAmount } from '../dresses/dress.types';
+import { getDressEffectiveRentalPrice, getDressSecurityDepositAmount } from '../dresses/dress.types';
 import {
   findItemConflicts,
 } from './reservationConflicts';
@@ -45,8 +45,11 @@ export function buildLineFromInput(
     throw new Error(`العنصر ${dress.code} غير مؤهل للإيجار حالياً.`);
   }
 
+  // The list price is the reference; a piece on sale is rented at its
+  // discounted price unless the owner agrees something else with the customer.
+  // The contract then prints list price, agreed price and the discount.
   const listRentalPrice = dress.rentalPrice;
-  const agreedRentalPrice = input.rentalPrice ?? listRentalPrice;
+  const agreedRentalPrice = input.rentalPrice ?? getDressEffectiveRentalPrice(dress);
   if (!Number.isFinite(agreedRentalPrice) || agreedRentalPrice < 0) {
     throw new Error('قيمة الإيجار المتفق عليها غير صالحة.');
   }

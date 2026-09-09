@@ -1,6 +1,8 @@
 import { escapeHtml, isSectionVisible, printDocument, PrintDocumentError } from '@platform/printing';
 import { getShowroomProfile } from '../preferences/showroomProfile.service';
-import { formatMoneyOMR } from '../../shared/utils/format.js';
+import { formatMoneyOMR, formatPercentOMR } from '../../shared/utils/format';
+import { getDressByCode } from './dress.service';
+import { getDressDiscountPercent } from './dress.types';
 import type { SaleInvoice } from './salesLedger.service';
 import { getPrintSettings } from '../preferences/printSettings.service';
 
@@ -17,7 +19,14 @@ export class PrintSaleInvoiceError extends Error {
 
 export function printSaleInvoice(invoice: SaleInvoice): void {
   const lines = invoice.lines
-    .map((line) => `<tr><td>${escapeHtml(line.dressCode)}</td><td>${escapeHtml(line.dressName)}</td><td>${escapeHtml(formatMoneyOMR(line.amount))}</td></tr>`)
+    .map((line) => {
+      const dress = getDressByCode(line.dressCode);
+      const percent = dress ? getDressDiscountPercent(dress) : 0;
+      const value = percent > 0 && dress
+        ? `${escapeHtml(formatMoneyOMR(line.amount))}<br><span class="muted">بدلاً من ${escapeHtml(formatMoneyOMR(dress.salePrice))} · خصم ${escapeHtml(formatPercentOMR(percent))}</span>`
+        : escapeHtml(formatMoneyOMR(line.amount));
+      return `<tr><td>${escapeHtml(line.dressCode)}</td><td>${escapeHtml(line.dressName)}</td><td>${value}</td></tr>`;
+    })
     .join('');
 
   const settings = getPrintSettings();

@@ -37,6 +37,7 @@ type SupabaseDressRow = {
   rental_price: number | null;
   sale_price: number | null;
   security_deposit_amount: number | null;
+  discount_percent: number | null;
   status: string;
   is_for_rent: boolean;
   is_for_sale: boolean;
@@ -69,6 +70,7 @@ function mapSupabaseRowToDress(row: SupabaseDressRow): LandingDress {
     rentalPrice: row.rental_price ?? 0,
     salePrice: row.sale_price ?? 0,
     depositAmount: row.security_deposit_amount ?? 0, // legacy compat
+    discountPercent: row.discount_percent ?? 0,
     status: row.status === 'available' ? 'available' : 'inactive',
     isForRent: row.is_for_rent,
     isForSale: row.is_for_sale,
@@ -88,7 +90,7 @@ export class LandingInventoryError extends Error {
 
 const CATALOGUE_COLUMNS = [
   'id', 'code', 'name', 'description', 'category', 'color', 'size', 'item_type',
-  'rental_price', 'sale_price', 'security_deposit_amount', 'status', 'is_for_rent',
+  'rental_price', 'sale_price', 'security_deposit_amount', 'discount_percent', 'status', 'is_for_rent',
   'is_for_sale', 'images', 'updated_at',
 ].join(',');
 

@@ -24,7 +24,9 @@ import {
   addDress,
   archiveDress,
   deleteDress,
+  updateDressDetails,
   type AddDressServiceInput,
+  type UpdateDressInput,
 } from '../dresses/dress.service';
 import type { Dress } from '../dresses/dress.types';
 import {
@@ -93,6 +95,10 @@ function atomicAsync<T>(
 export function addDressCommand(input: AddDressServiceInput & { idempotencyKey?: string }): Dress {
   const { idempotencyKey, ...payload } = input;
   return atomic('inventory.create', 'inventory.create:after-write', idempotencyKey, () => addDress(payload), (dress) => dress.code);
+}
+
+export function updateDressCommand(code: string, updates: UpdateDressInput, idempotencyKey?: string): Dress {
+  return atomic('inventory.update', 'inventory.update:after-write', idempotencyKey, () => updateDressDetails(code, updates), (dress) => dress.code);
 }
 
 export function archiveDressCommand(code: string, idempotencyKey?: string): Dress {

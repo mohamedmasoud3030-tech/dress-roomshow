@@ -1,5 +1,5 @@
 import { escapeHtml, isSectionVisible, printDocument, PrintDocumentError } from '@platform/printing';
-import { formatMoneyOMR } from '../../shared/utils/format.js';
+import { formatMoneyOMR } from '../../shared/utils/format';
 import { formatTimeLabel } from '../../shared/utils/date';
 import { getAccessoriesForReservation } from '../accessories/reservationAccessory.service';
 import { getReservationAccessorySecurityDeposit } from '../accessories/accessory.types';

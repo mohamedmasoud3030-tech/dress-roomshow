@@ -1,9 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
 import { isLastOfCategory } from '../landingFlags';
-import { getDressSecurityDepositAmount, type Dress } from '../../../features/dresses/dress.types';
+import {
+  getDressDiscountPercent,
+  getDressEffectiveRentalPrice,
+  getDressEffectiveSalePrice,
+  getDressSecurityDepositAmount,
+  type Dress,
+} from '../../../features/dresses/dress.types';
 import { INVENTORY_ITEM_TYPE_LABELS } from '../../../shared/domain/dressConstants';
-import { formatMoneyOMR } from '../../../shared/utils/format';
+import { formatMoneyOMR, formatPercentOMR } from '../../../shared/utils/format';
 import {
   buildAppointmentInquiryMessage,
   buildLandingWhatsAppLink,
@@ -25,6 +31,35 @@ function getLandingDressPriceLabel(dress: Dress): string {
   if (dress.isForRent) return `إيجار ${formatMoneyOMR(dress.rentalPrice)}`;
   if (dress.isForSale) return `بيع ${formatMoneyOMR(dress.salePrice)}`;
   return 'السعر يحدد عند المعاينة';
+}
+
+/**
+ * The price a visitor actually pays. A piece on sale shows the list price
+ * struck through beside the discounted one — the one number a customer wants
+ * is the one she will pay, and hiding the old price only looks like a trick.
+ */
+function LandingPrice({ dress, size = 'sm' }: { dress: Dress; size?: 'sm' | 'lg' }) {
+  const percent = getDressDiscountPercent(dress);
+  const mainClass = size === 'lg' ? 'text-base font-black text-slate-950' : 'text-sm font-black text-slate-950';
+
+  if (percent <= 0) {
+    return <p className={mainClass}>{getLandingDressPriceLabel(dress)}</p>;
+  }
+
+  const parts: string[] = [];
+  if (dress.isForRent) parts.push(`إيجار ${formatMoneyOMR(getDressEffectiveRentalPrice(dress))}`);
+  if (dress.isForSale) parts.push(`بيع ${formatMoneyOMR(getDressEffectiveSalePrice(dress))}`);
+
+  return (
+    <div>
+      <p className={mainClass}>{parts.join(' · ') || getLandingDressPriceLabel(dress)}</p>
+      <p className="mt-0.5 text-[0.7rem] text-slate-500">
+        <span className="line-through">{getLandingDressPriceLabel(dress)}</span>
+        {' · '}
+        <span className="font-bold text-rose-700">خصم {formatPercentOMR(percent)}</span>
+      </p>
+    </div>
+  );
 }
 
 function rentValue(dress: Dress): number {
@@ -157,9 +192,7 @@ function InventoryCard({
           <div className="mt-auto flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
             <div>
               <p className="text-[0.65rem] font-bold text-slate-500">السعر</p>
-              <p className="mt-1 text-sm font-black text-slate-950">
-                {getLandingDressPriceLabel(dress)}
-              </p>
+              <LandingPrice dress={dress} />
               {dress.isForRent && getDressSecurityDepositAmount(dress) > 0 ? (
                 <p className="mt-1 text-[0.65rem] text-slate-500">
                   التأمين {formatMoneyOMR(getDressSecurityDepositAmount(dress))}
@@ -281,9 +314,7 @@ function QuickView({
 
             <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <p className="text-[0.7rem] font-bold text-amber-800">السعر</p>
-              <p className="mt-1 text-base font-black text-slate-950">
-                {getLandingDressPriceLabel(dress)}
-              </p>
+              <LandingPrice dress={dress} size="lg" />
               {dress.isForRent && getDressSecurityDepositAmount(dress) > 0 ? (
                 <p className="mt-1 text-xs text-amber-900">
                   التأمين {formatMoneyOMR(getDressSecurityDepositAmount(dress))}

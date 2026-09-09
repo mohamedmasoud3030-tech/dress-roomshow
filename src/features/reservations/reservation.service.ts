@@ -8,7 +8,7 @@ import { getReservationAccessories, releaseAccessoriesForReservation } from '../
 import { recordAudit } from '../audit/audit.service';
 import { getCustomers } from '../customers/customer.service';
 import { getDresses, markDressRented, updateDressStatus } from '../dresses/dress.service';
-import { getDressSecurityDepositAmount } from '../dresses/dress.types';
+import { getDressEffectiveRentalPrice, getDressSecurityDepositAmount } from '../dresses/dress.types';
 import { assertReservationCanBeCancelled } from '../integrity/integrity.service';
 import { getAppPreferences } from '../preferences/preferences.service';
 import {
@@ -281,7 +281,9 @@ export function createReservation(input: CreateReservationInput): Reservation {
   // Central conflict guard
   assertNoConflicts(findItemConflicts({ inventoryItemId: dress.id, dressCode: dress.code, pickupDate: input.pickupDate, returnDate: input.returnDate }, reservations));
   const listRentalPrice = dress.rentalPrice;
-  const agreedRentalPrice = input.rentalPrice ?? listRentalPrice;
+  // A piece on sale is rented at its discounted price unless the owner agrees
+  // something else with the customer; the contract then prints both numbers.
+  const agreedRentalPrice = input.rentalPrice ?? getDressEffectiveRentalPrice(dress);
   if (!Number.isFinite(agreedRentalPrice) || agreedRentalPrice < 0) throw new Error('قيمة الإيجار المتفق عليها غير صالحة.');
   if (agreedRentalPrice > listRentalPrice) throw new Error('قيمة الإيجار المتفق عليها لا يمكن أن تتجاوز السعر المسجل للعنصر.');
 
@@ -603,7 +605,7 @@ export function rescheduleReservation(input: RescheduleReservationInput): Reserv
           inventoryItemId: dress.id,
           dressCodeSnapshot: dress.code,
           dressNameSnapshot: dress.name,
-          rentalPrice: dress.rentalPrice,
+          rentalPrice: getDressEffectiveRentalPrice(dress),
           listRentalPrice: dress.rentalPrice,
           securityDepositAmount: getDressSecurityDepositAmount(dress),
           depositAmount: getDressSecurityDepositAmount(dress), // legacy compat

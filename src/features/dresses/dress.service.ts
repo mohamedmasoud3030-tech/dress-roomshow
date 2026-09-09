@@ -1,4 +1,5 @@
-import { Dress, DressFilters, getDressSecurityDepositAmount } from './dress.types';
+import type { Dress, DressFilters } from './dress.types';
+import { getDressDiscountPercent, getDressSecurityDepositAmount } from './dress.types';
 import { allocateCode, generateId, migrateLegacyInventoryStorage, readCollection, reconcileCounter, writeCollection } from '../../services/localDatabase';
 import { recordAudit } from '../audit/audit.service';
 import { assertDressCanBeArchived, getDressHardDeleteBlockers } from '../integrity/integrity.service';
@@ -165,6 +166,52 @@ function assertValidDress(input: Pick<Dress, 'name' | 'purchasePrice' | 'rentalP
   if (!input.isForRent && !input.isForSale) {
     throw new Error('يجب أن يكون العنصر متاحاً للبيع أو للإيجار على الأقل.');
   }
+
+  const discountPercent = rec['discountPercent'];
+  if (
+    discountPercent !== undefined
+    && (!Number.isFinite(discountPercent as number) || (discountPercent as number) < 0 || (discountPercent as number) > 100)
+  ) {
+    throw new Error('نسبة الخصم يجب أن تكون رقماً بين ٠ و ١٠٠.');
+  }
+}
+
+/**
+ * A piece the showroom already owns stays editable.
+ *
+ * Only the commercial fields move here: identity (id/code/barcode), lifecycle
+ * counters, images, design links and the item status all have their own
+ * commands, and the server refuses them under `inventory.update`.
+ */
+export type UpdateDressInput = Pick<
+  Dress,
+  'name' | 'category' | 'color' | 'size' | 'description' | 'rentalPrice' | 'salePrice' | 'isForRent' | 'isForSale'
+> & {
+  defaultSecurityDepositAmount?: number;
+  discountPercent?: number;
+  notes?: string;
+};
+
+export function updateDressDetails(code: string, updates: UpdateDressInput): Dress {
+  const current = getDressByCode(code);
+  if (!current) throw new Error('العنصر المحدد غير موجود.');
+
+  const updated = updateDress(code, {
+    name: updates.name,
+    category: updates.category,
+    color: updates.color,
+    size: updates.size,
+    description: updates.description,
+    rentalPrice: updates.rentalPrice,
+    salePrice: updates.salePrice,
+    isForRent: updates.isForRent,
+    isForSale: updates.isForSale,
+    defaultSecurityDepositAmount: updates.defaultSecurityDepositAmount ?? getDressSecurityDepositAmount(current),
+    discountPercent: updates.discountPercent ?? getDressDiscountPercent(current),
+    notes: updates.notes,
+  });
+  if (!updated) throw new Error('تعذر حفظ تعديلات العنصر.');
+  return updated;
 }
 
 export function addDress(input: AddDressServiceInput): Dress {

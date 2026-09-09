@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Banknote, Barcode, Layers, Plus, Printer, Search, Shirt } from 'lucide-react';
+import { Banknote, Barcode, Layers, Pencil, Plus, Printer, Search, Shirt } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS, INVENTORY_ITEM_TYPE_OPTIONS } from '../../shared/domain/dressConstants';
@@ -9,6 +9,7 @@ import { AddDressModal } from './AddDressModal';
 import { filterDresses, getDressByCode, getDresses, getDressesAsync, summarizeDresses } from './dress.service';
 import { SellDressModal } from './SellDressModal';
 import { AddDesignModal } from './AddDesignModal';
+import { EditDressModal } from './EditDressModal';
 import { summarizeAllDesigns } from './design.service';
 import { EmptyState, LoadingState } from '../../components/shared/StateViews';
 import { ViewModeToggle, useViewMode } from '../../components/shared/ViewModeToggle';
@@ -28,7 +29,7 @@ import {
 } from '../../shared/domain/uiConstants';
 import type { DressDesign } from './design.types';
 import type { SaleInvoice } from './salesLedger.service';
-import type { Dress, DressFilters } from './dress.types';
+import { getDressEffectiveRentalPrice, hasDressDiscount, type Dress, type DressFilters } from './dress.types';
 
 const categories = ['all', ...DRESS_CATEGORIES] as const;
 const statuses = ['all', ...DRESS_STATUS_OPTIONS] as const;
@@ -120,14 +121,17 @@ function DressCard({ dress }: { dress: Dress }) {
 }
 
 /** Compact row: scanning forty codes should not mean scrolling forty photos. */
-function DressRow({ dress, highlighted }: { dress: Dress; highlighted: boolean }) {
+function DressRow({ dress, highlighted, onEdit }: { dress: Dress; highlighted: boolean; onEdit: (dress: Dress) => void }) {
   return (
-    <Link
-      to={`/inventory/${dress.code}`}
-      className={`flex items-center gap-3 rounded-xl border bg-white p-3 transition hover:bg-stone-50 ${AMBER_FOCUS_RING_CLASS_NAME} ${
+    <div
+      className={`flex items-center gap-2 rounded-xl border bg-white p-3 transition hover:bg-stone-50 ${
         highlighted ? 'border-amber-400 ring-2 ring-amber-300' : 'border-slate-200'
       }`}
     >
+      <Link
+        to={`/inventory/${dress.code}`}
+        className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg ${AMBER_FOCUS_RING_CLASS_NAME}`}
+      >
       {dress.images[0] ? (
         <img src={dress.images[0]} alt="" aria-hidden="true" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
       ) : (
@@ -146,9 +150,26 @@ function DressRow({ dress, highlighted }: { dress: Dress; highlighted: boolean }
         <span className={`block rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${DRESS_STATUS_STYLES[dress.status]}`}>
           {DRESS_STATUS_LABELS[dress.status]}
         </span>
-        <span className="mt-1 block text-xs font-bold text-slate-700">{formatMoneyOMR(dress.rentalPrice)}</span>
+        {hasDressDiscount(dress) ? (
+          <span className="mt-1 block text-xs font-bold text-slate-700">
+            <span className="line-through text-slate-400">{formatMoneyOMR(dress.rentalPrice)}</span>
+            {' '}
+            <span className="text-rose-700">{formatMoneyOMR(getDressEffectiveRentalPrice(dress))}</span>
+          </span>
+        ) : (
+          <span className="mt-1 block text-xs font-bold text-slate-700">{formatMoneyOMR(dress.rentalPrice)}</span>
+        )}
       </span>
-    </Link>
+      </Link>
+      <button
+        type="button"
+        onClick={() => onEdit(dress)}
+        aria-label={`تعديل بيانات ${dress.name}`}
+        className={`inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-stone-100 hover:text-slate-900 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+      >
+        <Pencil aria-hidden="true" className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 
@@ -211,6 +232,7 @@ export function DressesPage() {
   const [groupByDesign, setGroupByDesign] = useState(false);
   const [viewMode, setViewMode] = useViewMode('inventory');
   const [showSaleModal, setShowSaleModal] = useState(false);
+  const [editingDress, setEditingDress] = useState<Dress | null>(null);
   const [showScanner, setShowScanner] = useState(false);
   const [highlightedDressCode, setHighlightedDressCode] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -512,7 +534,12 @@ export function DressesPage() {
         ) : (
           <div className="space-y-2">
             {filteredDresses.map((dress) => (
-              <DressRow key={dress.id} dress={dress} highlighted={highlightedDressCode === dress.code} />
+              <DressRow
+                key={dress.id}
+                dress={dress}
+                highlighted={highlightedDressCode === dress.code}
+                onEdit={(item) => { setFeedback(null); setEditingDress(item); }}
+              />
             ))}
           </div>
         )
@@ -546,6 +573,17 @@ export function DressesPage() {
       <AddDressModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />
       <AddDesignModal open={showDesignModal} onClose={() => setShowDesignModal(false)} onCreated={handleDesignCreated} />
       <SellDressModal open={showSaleModal} onClose={() => setShowSaleModal(false)} onCreated={handleSold} />
+      {editingDress ? (
+        <EditDressModal
+          dress={editingDress}
+          onClose={() => setEditingDress(null)}
+          onSaved={(updated) => {
+            setEditingDress(null);
+            setDresses(getDresses());
+            setFeedback(`تم حفظ بيانات القطعة ${updated.code}.`);
+          }}
+        />
+      ) : null}
     </section>
   );
 }

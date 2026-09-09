@@ -16,7 +16,7 @@ import { getDresses } from '../dresses/dress.service';
 import { AddDressModal } from '../dresses/AddDressModal';
 import { getBookablePieces } from '../dresses/design.service';
 import type { Dress } from '../dresses/dress.types';
-import { getDressSecurityDepositAmount } from '../dresses/dress.types';
+import { getDressEffectiveRentalPrice, getDressSecurityDepositAmount } from '../dresses/dress.types';
 import { SearchableSelect, type SearchableOption } from '../../components/shared/SearchableSelect';
 import { createReservationCommand } from '../workflows';
 import { getReservationTimeDefaults } from './reservation.service';
@@ -211,7 +211,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
         setLines([{
           key: nextLineKey(),
           dressId: prefilledDress.id,
-          rentalPrice: String(prefilledDress.rentalPrice),
+          rentalPrice: String(getDressEffectiveRentalPrice(prefilledDress)),
           securityDepositAmount: String(getDressSecurityDepositAmount(prefilledDress)),
           bookingAdvanceAmount: '0',
         }]);
@@ -234,7 +234,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
       const dress = dresses.find((d) => d.id === entry.dressId);
       if (dress) {
         if (!entry.rentalPrice) {
-          updateLine(entry.key, { rentalPrice: String(dress.rentalPrice) });
+          updateLine(entry.key, { rentalPrice: String(getDressEffectiveRentalPrice(dress)) });
         }
         if (!entry.securityDepositAmount) {
           updateLine(entry.key, { securityDepositAmount: String(getDressSecurityDepositAmount(dress)) });
@@ -447,7 +447,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
                         const dress = dresses.find((d) => d.id === dressId);
                         updateLine(entry.key, {
                           dressId,
-                          rentalPrice: dress ? String(dress.rentalPrice) : '',
+                          rentalPrice: dress ? String(getDressEffectiveRentalPrice(dress)) : '',
                           securityDepositAmount: dress ? String(getDressSecurityDepositAmount(dress)) : '0',
                           bookingAdvanceAmount: '0',
                         });
@@ -630,7 +630,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
       onClose={() => setShowAddDress(false)}
       onCreated={(dress) => {
         setDresses(getReservableDresses());
-        setLines([{ key: nextLineKey(), dressId: dress.id, rentalPrice: String(dress.rentalPrice), securityDepositAmount: String(getDressSecurityDepositAmount(dress)), bookingAdvanceAmount: '0' }]);
+        setLines([{ key: nextLineKey(), dressId: dress.id, rentalPrice: String(getDressEffectiveRentalPrice(dress)), securityDepositAmount: String(getDressSecurityDepositAmount(dress)), bookingAdvanceAmount: '0' }]);
         setShowAddDress(false);
       }}
     />

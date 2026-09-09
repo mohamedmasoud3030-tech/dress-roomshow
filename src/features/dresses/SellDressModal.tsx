@@ -5,8 +5,9 @@ import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/dom
 import { STACKED_FORM_FIELD_CLASS_NAME, STACKED_FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
 import { INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
 import { getTodayISO } from '../../shared/utils/date';
-import { formatMoneyOMR } from '../../shared/utils/format';
+import { formatMoneyOMR, formatPercentOMR } from '../../shared/utils/format';
 import { BASIC_PAYMENT_METHOD_LABELS, PAYMENT_METHODS } from '../payments/payment.constants';
+import { getDressDiscountPercent, getDressEffectiveSalePrice, hasDressDiscount } from './dress.types';
 import { getSaleableDresses, type SalePaymentMethod } from './sale.service';
 import { quickSaleCommand } from '../workflows';
 import type { SaleInvoice } from './salesLedger.service';
@@ -49,13 +50,34 @@ export function SellDressModal({ open, onClose, onCreated }: Props) {
       label="العنصر"
       required
       value={form.dressCode}
-      onChange={(dressCode) => setForm({ ...form, dressCode, amount: dresses.find((dress) => dress.code === dressCode)?.salePrice.toString() ?? '' })}
+      onChange={(dressCode) => {
+        const chosen = dresses.find((dress) => dress.code === dressCode);
+        setForm({ ...form, dressCode, amount: chosen ? String(getDressEffectiveSalePrice(chosen)) : '' });
+      }}
       options={dressOptions}
       placeholder="اختاري العنصر"
       searchPlaceholder="ابحثي بالكود أو الاسم…"
       unavailableText="لا توجد عناصر مؤهلة للبيع حالياً."
     />
-        {selected && <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><p>سعر البيع المسجل: <b>{formatMoneyOMR(selected.salePrice)}</b></p><p className="mt-1">النوع: <b>{INVENTORY_ITEM_TYPE_LABELS[selected.itemType ?? 'dress']}</b> • الفئة: <b>{selected.category}</b></p></div>}
+        {selected && (
+          <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+            <p>
+              سعر البيع المسجل:{" "}
+              <b className={hasDressDiscount(selected) ? "line-through text-slate-500" : undefined}>
+                {formatMoneyOMR(selected.salePrice)}
+              </b>
+              {hasDressDiscount(selected) ? (
+                <>
+                  {" "}
+                  بعد الخصم: <b>{formatMoneyOMR(getDressEffectiveSalePrice(selected))}</b>
+                  {" · "}
+                  <b className="text-rose-700">خصم {formatPercentOMR(getDressDiscountPercent(selected))}</b>
+                </>
+              ) : null}
+            </p>
+            <p className="mt-1">النوع: <b>{INVENTORY_ITEM_TYPE_LABELS[selected.itemType ?? 'dress']}</b> • الفئة: <b>{selected.category}</b></p>
+          </div>
+        )}
     <div className="grid gap-4 md:grid-cols-2"><label className={STACKED_FORM_LABEL_CLASS_NAME}>اسم العميلة<input required value={form.customerName} onChange={(e)=>setForm({...form,customerName:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label><label className={STACKED_FORM_LABEL_CLASS_NAME}>رقم الهاتف<input value={form.customerPhone} onChange={(e)=>setForm({...form,customerPhone:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label></div>
     <div className="grid gap-4 md:grid-cols-2"><label className={STACKED_FORM_LABEL_CLASS_NAME}>قيمة البيع<input required type="number" min={MIN_MONEY_AMOUNT} step={MONEY_STEP} value={form.amount} onChange={(e)=>setForm({...form,amount:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label><label className={STACKED_FORM_LABEL_CLASS_NAME}>تاريخ البيع<input required type="date" max={getTodayISO()} value={form.saleDate} onChange={(e)=>setForm({...form,saleDate:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label></div>
     <label className={STACKED_FORM_LABEL_CLASS_NAME}>وسيلة الدفع<select value={form.paymentMethod} onChange={(e)=>setForm({...form,paymentMethod:e.target.value as SalePaymentMethod})} className={STACKED_FORM_FIELD_CLASS_NAME}>{PAYMENT_METHODS.map((method) => <option key={method} value={method}>{BASIC_PAYMENT_METHOD_LABELS[method]}</option>)}</select></label>
