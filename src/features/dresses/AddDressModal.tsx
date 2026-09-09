@@ -15,6 +15,13 @@ import { INVENTORY_ITEM_TYPE_LABELS, INVENTORY_ITEM_TYPE_OPTIONS } from '../../s
 
 const initialStatuses = ['available', 'laundry', 'maintenance', 'damaged', 'inactive'] as const;
 
+/** A bag, a tiara or a garment bag has no size; a dress, a shoe and a veil do. */
+/** What the catalogue shows for a piece that has no size. */
+const SIZE_NOT_APPLICABLE = 'موحد';
+
+const itemTypeSupportsSize = (itemType: 'dress' | 'accessory' | 'bag' | 'shoe' | 'veil' | 'other') =>
+  itemType === 'dress' || itemType === 'shoe' || itemType === 'veil';
+
 const dressSchema = z
   .object({
     name: z.string().trim().min(2, 'اكتبي اسم العنصر بشكل واضح.').max(100, 'الاسم طويل جداً.'),
@@ -22,7 +29,7 @@ const dressSchema = z
     itemType: z.enum(['dress', 'accessory', 'bag', 'shoe', 'veil', 'other']),
     category: z.enum(['زفاف', 'خطوبة', 'سهرة', 'أطفال', 'إكسسوارات', 'حقائب', 'أحذية', 'طرح وشالات', 'أخرى']),
     color: z.string().trim().min(1, 'لون العنصر مطلوب.').max(50, 'اسم اللون طويل جداً.'),
-    size: z.string().trim().min(1, 'المقاس مطلوب.').max(30, 'المقاس طويل جداً.'),
+    size: z.string().trim().max(30, 'المقاس طويل جداً.'),
     purchasePrice: z.coerce.number().finite('سعر الشراء غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الشراء لا يمكن أن يكون سالباً.'),
     rentalPrice: z.coerce.number().finite('سعر الإيجار غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر الإيجار لا يمكن أن يكون سالباً.'),
     salePrice: z.coerce.number().finite('سعر البيع غير صالح.').min(MIN_ZERO_AMOUNT, 'سعر البيع لا يمكن أن يكون سالباً.'),
@@ -33,6 +40,9 @@ const dressSchema = z
     notes: z.string().trim().max(MAX_NOTES_LENGTH, `الملاحظات يجب ألا تتجاوز ${MAX_NOTES_LENGTH} حرف.`).optional(),
   })
   .superRefine((values, context) => {
+    if (itemTypeSupportsSize(values.itemType) && values.size.length === 0) {
+      context.addIssue({ code: z.ZodIssueCode.custom, path: ['size'], message: 'المقاس مطلوب.' });
+    }
     if (!values.isForRent && !values.isForSale) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -101,6 +111,7 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
   const [images, setImages] = useState<string[]>([]);
   const {
     register,
+    setValue,
     handleSubmit,
     reset,
     watch,
@@ -113,8 +124,15 @@ export function AddDressModal({ open, onClose, onCreated }: AddDressModalProps) 
   const isForRent = watch('isForRent');
   const isForSale = watch('isForSale');
   const itemType = watch('itemType');
-  const supportsSize = itemType === 'dress' || itemType === 'shoe' || itemType === 'veil';
+  const size = watch('size');
+  const supportsSize = itemTypeSupportsSize(itemType);
   const supportsDeposit = itemType === 'dress';
+
+  // The size box is read-only for a bag or an accessory, so it must still
+  // carry the value the catalogue will show instead of blocking the save.
+  useEffect(() => {
+    if (!supportsSize && size === '') setValue('size', SIZE_NOT_APPLICABLE);
+  }, [supportsSize, size, setValue]);
 
   useEffect(() => {
     if (!open) return;

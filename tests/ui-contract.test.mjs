@@ -688,3 +688,15 @@ test('the running build states its own version for support', async () => {
   // bundle the showroom is actually running.
   assert.match(version, /__APP_VERSION__/, 'the version must be injected at build time');
 });
+
+test('adding stock never demands a size from an item that has none', async () => {
+  const source = await readFile(join(sourceRoot, 'features/dresses/AddDressModal.tsx'), 'utf8');
+
+  // A bag, a tiara and a garment bag have no size. Their size box is
+  // read-only, so a blanket "المقاس مطلوب" made those three of the six item
+  // types impossible to add at all — the owner could offer them in the
+  // catalogue but never stock one.
+  assert.doesNotMatch(source, /size:\s*z\.string\(\)\.trim\(\)\.min\(1/, 'size must not be required for every item type');
+  assert.match(source, /itemTypeSupportsSize\(values\.itemType\)/, 'the requirement follows the item type');
+  assert.match(source, /readOnly=\{!supportsSize\}/, 'the box stays read-only where size does not apply');
+});
