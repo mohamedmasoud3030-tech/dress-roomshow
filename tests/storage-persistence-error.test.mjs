@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {
   StoragePersistenceError,
   createStoragePersistenceError,
-} from '../src/services/storagePersistenceError.ts';
+} from '../src/platform/storage/index.ts';
 import { writeCollection } from '../src/services/localDatabase.ts';
 
 test('storage persistence errors preserve operation, collection, and cause', () => {

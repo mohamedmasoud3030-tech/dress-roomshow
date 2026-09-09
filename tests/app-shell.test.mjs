@@ -40,14 +40,15 @@ test('app shell keeps the established navigation order and labels', async () => 
   }
 });
 
-test('app shell preserves outlet boundary, mobile menu, persistence warning, and compatibility export', async () => {
+test('app shell preserves outlet boundary, mobile menu close, and persistence warning', async () => {
   const shell = await read('src/app/shell/AppShell.tsx');
   const mobileMenu = await read('src/app/shell/MobileMoreMenu.tsx');
-  const legacyLayout = await read('src/components/layout/AppLayout.tsx');
 
   assert.match(shell, /<PersistenceErrorBoundary key={location\.pathname}>/);
   assert.match(shell, /<Outlet \/>/);
   assert.match(shell, /persistenceStatus\.state === 'local-only'/);
   assert.match(mobileMenu, /onClick={onClose}/);
-  assert.equal(legacyLayout.trim(), "export { AppShell as AppLayout } from '@app/shell/AppShell';");
+  // Nothing imports the legacy `AppLayout` alias any more, so the shim is
+  // gone rather than kept alive by a test that only asserts its own shape.
+  await assert.rejects(() => read('src/components/layout/AppLayout.tsx'));
 });
