@@ -30,17 +30,12 @@ export type PersistenceStatus =
   | { state: 'offline'; message: string; updatedAt: string }
   | { state: 'error'; message: string; updatedAt: string; attempts: number };
 
-export type PersistenceStatusState = PersistenceStatus['state'];
-
 /**
  * Neutral event name for persistence status updates. It carries no runtime
  * branding so Web, PWA, and temporarily retained native builds can share
  * one channel without the official Web runtime depending on vendor naming.
  */
 export const PERSISTENCE_STATUS_EVENT = 'lena:persistence-status';
-
-export const LOCAL_ONLY_PERSISTENCE_MESSAGE =
-  'تعذر الاتصال بحفظ البيانات المركزي. العمليات الجديدة متوقفة لحماية السجلات.';
 
 /**
  * Default status for the official Web/PWA runtime during the current

@@ -27,12 +27,10 @@ export type UpdateListener = (available: boolean) => void;
 type RegisterFunction = (options?: {
   immediate?: boolean;
   onNeedRefresh?: () => void;
-  onOfflineReady?: () => void;
 }) => (reloadPage?: boolean) => Promise<void>;
 
 let updateServiceWorker: ((reloadPage?: boolean) => Promise<void>) | null = null;
 let updateAvailable = false;
-let offlineReady = false;
 const listeners = new Set<UpdateListener>();
 
 function notify(): void {
@@ -64,9 +62,6 @@ export async function initializeAppUpdates(): Promise<void> {
         updateAvailable = true;
         notify();
       },
-      onOfflineReady: () => {
-        offlineReady = true;
-      },
     });
   } catch {
     // No service worker in this runtime; the app simply never reports updates.
@@ -81,30 +76,10 @@ export function subscribeToAppUpdates(listener: UpdateListener): () => void {
   };
 }
 
-export function isUpdateAvailable(): boolean {
-  return updateAvailable;
-}
-
-export function isOfflineReady(): boolean {
-  return offlineReady;
-}
-
 /** Activates the waiting worker and reloads, at a moment the operator chose. */
 export async function applyPendingUpdate(): Promise<void> {
   if (!updateServiceWorker) return;
   updateAvailable = false;
   notify();
   await updateServiceWorker(true);
-}
-
-/** Test seam: lets a suite drive the update state without a service worker. */
-export function __setUpdateStateForTesting(state: {
-  available?: boolean;
-  offlineReady?: boolean;
-  updater?: ((reloadPage?: boolean) => Promise<void>) | null;
-}): void {
-  if (state.available !== undefined) updateAvailable = state.available;
-  if (state.offlineReady !== undefined) offlineReady = state.offlineReady;
-  if (state.updater !== undefined) updateServiceWorker = state.updater;
-  notify();
 }
