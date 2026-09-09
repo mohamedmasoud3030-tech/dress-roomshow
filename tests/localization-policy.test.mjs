@@ -40,8 +40,9 @@ test('mixed-direction values stay isolated (phones, emails, whatsapp, tokens)', 
   const contact = await readSource('src/pages/landing/components/LandingContact.tsx');
   const ltrSpans = (contact.match(/dir="ltr"/g) ?? []).length;
   assert.ok(ltrSpans >= 4, `landing contact isolates every contact value (found ${ltrSpans})`);
-  assert.match(contact, /<a href=\{primaryPhoneHref\}[^>]*dir="ltr"/, 'primary phone is ltr-isolated');
-  assert.match(contact, /<a href=\{primaryEmailHref\}[^>]*dir="ltr"/, 'primary email is ltr-isolated');
+  // The landing contact rows are multi-line JSX; match across lines.
+  assert.match(contact, /<a\s+href=\{primaryPhoneHref\}[\s\S]*?dir="ltr"/, 'primary phone is ltr-isolated');
+  assert.match(contact, /<a\s+href=\{primaryEmailHref\}[\s\S]*?dir="ltr"/, 'primary email is ltr-isolated');
 
   const editor = await readSource('src/features/preferences/MessageTemplatesEditor.tsx');
   assert.match(editor, /<span dir="ltr">\{`\{\{\$\{placeholder\.token\}\}\}`\}<\/span>/, 'template tokens render ltr inside rtl copy');
@@ -65,5 +66,6 @@ test('app shell and PWA metadata stay Arabic-first end to end', async () => {
   assert.match(viteConfig, /lang: 'ar'/, 'manifest lang');
 
   const title = await readSource('src/app/router/DocumentTitle.tsx');
-  assert.match(title, /\| LENA/, 'route-specific Arabic titles keep the brand suffix');
+  assert.match(title, /useBrandName\(\)/, 'the brand suffix comes from the showroom profile, never hardcoded');
+  assert.match(title, /\$\{label\} \| \$\{brandName\}/, 'route-specific Arabic titles keep the brand suffix');
 });

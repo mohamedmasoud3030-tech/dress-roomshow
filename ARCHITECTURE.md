@@ -56,8 +56,7 @@ Browser / installed PWA
 3. المسارات التشغيلية تمر عبر:
    - `RequireAuth`؛
    - `CloudDataGate`؛
-   - `DeviceLockGate`؛
-   - `AppShell`.
+   - `AppShell` (لا توجد طبقة قفل جهاز: الدخول بحساب المديرة/الموظفة هو البوابة الوحيدة).
 4. `CloudDataGate` يجلب `showroom_state`, يتحقق من `applicationId` وشكل collections، ثم يستورده إلى cache من مفاتيح `dress-roomshow:*`.
 5. feature services تقرأ/تكتب هذه collections المتسلسلة كـ arrays.
 6. `runCommand` يأخذ snapshot قبل العملية، ينفذ كل writes محليًا كمعاملة قابلة للrollback، ويضيف command log عند وجود idempotency key.

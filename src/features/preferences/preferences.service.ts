@@ -1,5 +1,6 @@
 import { readCollection, writeCollection } from '../../services/localDatabase';
 import { recordAudit } from '../audit/audit.service';
+import { getBrandName } from './useBrandName';
 
 export type AppPreferences = {
   showroomName: string;
@@ -55,7 +56,7 @@ const COLLECTION = 'preferences';
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export const DEFAULT_APP_PREFERENCES: AppPreferences = {
-  showroomName: 'CARMEN GALLERY',
+  showroomName: getBrandName(),
   reservationBufferDays: 1,
   preparationDaysBeforePickup: 1,
   cleaningDaysAfterReturn: 1,

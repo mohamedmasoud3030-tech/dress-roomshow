@@ -6,6 +6,7 @@ import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAle
 import { useAuth } from './AuthContext';
 import { getSafeReturnPath } from './auth.model';
 import { requestPasswordReset } from './auth.service';
+import { useBrandName } from '../preferences/useBrandName';
 
 /**
  * The real front door.
@@ -14,6 +15,7 @@ import { requestPasswordReset } from './auth.service';
  * (see `RequireAuth`); this is the only screen reachable without one.
  */
 export function LoginPage() {
+  const brandName = useBrandName();
   const { status, message, signIn, signOut, retry } = useAuth();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -73,7 +75,7 @@ export function LoginPage() {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
             <Lock aria-hidden="true" className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-black text-slate-950">CARMEN GALLERY</h1>
+          <h1 className="text-xl font-black text-slate-950" title={brandName}>{brandName}</h1>
           <p className="mt-1 text-sm text-slate-600">تسجيل الدخول لإدارة المعرض</p>
         </div>
 

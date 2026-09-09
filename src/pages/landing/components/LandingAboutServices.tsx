@@ -53,6 +53,7 @@ export function LandingAboutServices({ profile, dresses }: { profile: LandingPro
               <div className="col-span-3">
                 <div className="overflow-hidden rounded-[1.5rem] shadow-xl shadow-slate-900/10">
                   <DressPhoto
+            brand={profile.brandName}
                     src={photos[0]?.images[0]}
                     alt={photos[0]?.name ?? 'قطعة من تشكيلة المعرض'}
                     className="aspect-[3/4] w-full object-cover"
@@ -63,6 +64,7 @@ export function LandingAboutServices({ profile, dresses }: { profile: LandingPro
               <div className="col-span-2 space-y-3 sm:space-y-4">
                 <div className="overflow-hidden rounded-[1.5rem] shadow-lg shadow-slate-900/10">
                   <DressPhoto
+            brand={profile.brandName}
                     src={photos[1]?.images[0]}
                     alt={photos[1]?.name ?? 'قطعة من تشكيلة المعرض'}
                     className="aspect-square w-full object-cover"
@@ -71,6 +73,7 @@ export function LandingAboutServices({ profile, dresses }: { profile: LandingPro
                 </div>
                 <div className="overflow-hidden rounded-[1.5rem] ring-2 ring-amber-300">
                   <DressPhoto
+            brand={profile.brandName}
                     src={photos[2]?.images[0]}
                     alt={photos[2]?.name ?? 'قطعة من تشكيلة المعرض'}
                     className="aspect-square w-full object-cover"

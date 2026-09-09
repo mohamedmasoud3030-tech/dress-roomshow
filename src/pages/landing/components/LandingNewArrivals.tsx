@@ -59,6 +59,7 @@ export function LandingNewArrivals({
               <article className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-xl">
                 <div className="relative">
                   <DressPhoto
+            brand={profile.brandName}
                     src={dress.images[0]}
                     alt={dress.name}
                     className="aspect-[4/5] w-full transition duration-[900ms] group-hover:scale-105"

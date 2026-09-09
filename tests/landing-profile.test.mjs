@@ -56,7 +56,7 @@ test('an anonymous landing visitor reads only the public profile projection', as
 test('mobile landing keeps one persistent booking action and ships no unapproved alternate contacts', async () => {
   const page = await import('node:fs/promises').then(({ readFile }) => readFile(new URL('../src/pages/landing/LandingPage.tsx', import.meta.url), 'utf8'));
   assert.match(page, /fixed inset-x-4/);
-  assert.match(page, /طلب موعد عبر واتساب/);
+  assert.match(page, /احجزي موعد عبر واتساب/);
   assert.equal(landingShowroomProfile.contact.alternatePhones, undefined);
   assert.equal(landingShowroomProfile.contact.alternateEmail, undefined);
 });

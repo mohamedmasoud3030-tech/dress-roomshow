@@ -3,7 +3,6 @@ import { Route, Routes } from 'react-router-dom';
 import { AppShell } from '@app/shell/AppShell';
 import { LoginPage } from '../../features/auth/LoginPage';
 import { RequireAuth } from './RequireAuth';
-import { DeviceLockGate } from '../../features/device-lock/DeviceLockGate';
 import { CloudDataGate } from '../../features/sync/CloudDataGate';
 import { RouteLoadingFallback } from './RouteLoadingFallback';
 import { RequireAdmin } from './RequireAdmin';
@@ -44,9 +43,7 @@ export function AppRoutes() {
         element={
           <RequireAuth>
             <CloudDataGate>
-              <DeviceLockGate>
-                <AppShell />
-              </DeviceLockGate>
+              <AppShell />
             </CloudDataGate>
           </RequireAuth>
         }

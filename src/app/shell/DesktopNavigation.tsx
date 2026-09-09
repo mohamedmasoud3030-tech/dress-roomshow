@@ -1,8 +1,10 @@
+import { useBrandName } from '../../features/preferences/useBrandName';
 import { NavLink } from 'react-router-dom';
 import { focusRing, navigationGroups, publicPageLink } from './navigation';
 import { useAuth } from '../../features/auth/AuthContext';
 
 export function DesktopNavigation() {
+  const brandName = useBrandName();
   const { profile } = useAuth();
 
   return (
@@ -11,7 +13,7 @@ export function DesktopNavigation() {
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" aria-hidden="true" className="h-12 w-12 rounded-2xl bg-amber-300/10 shadow-lg" />
           <div>
-            <p className="text-2xl font-extrabold tracking-[0.22em] text-amber-300">CARMEN</p>
+            <p title={brandName} className="truncate text-lg font-extrabold text-amber-300">{brandName}</p>
           </div>
         </div>
         <h1 className="mt-5 text-2xl font-extrabold">إدارة المعرض</h1>

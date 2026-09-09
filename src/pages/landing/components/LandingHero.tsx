@@ -133,6 +133,7 @@ export function LandingHero({ profile, dresses, rentableCount, saleCount }: Prop
               <div className="col-span-3 space-y-3 sm:space-y-4">
                 <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
                   <DressPhoto
+            brand={profile.brandName}
                     src={photos[0]?.images[0]}
                     alt={photos[0]?.name ?? 'فستان من معروض المعرض'}
                     className="aspect-[3/4] w-full transition duration-700 hover:scale-[1.04]"
@@ -144,6 +145,7 @@ export function LandingHero({ profile, dresses, rentableCount, saleCount }: Prop
               <div className="col-span-2 space-y-3 sm:space-y-4">
                 <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
                   <DressPhoto
+            brand={profile.brandName}
                     src={photos[1]?.images[0]}
                     alt={photos[1]?.name ?? 'قطعة من معروض المعرض'}
                     className="aspect-[4/5] w-full transition duration-700 hover:scale-[1.04]"
@@ -152,6 +154,7 @@ export function LandingHero({ profile, dresses, rentableCount, saleCount }: Prop
                 </div>
                 <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-amber-300/30">
                   <DressPhoto
+            brand={profile.brandName}
                     src={photos[2]?.images[0]}
                     alt={photos[2]?.name ?? 'قطعة من معروض المعرض'}
                     className="aspect-[4/5] w-full transition duration-700 hover:scale-[1.04]"

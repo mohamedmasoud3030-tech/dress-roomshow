@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
 import { isLastOfCategory } from '../landingFlags';
-import type { Dress } from '../../../features/dresses/dress.types';
+import { getDressSecurityDepositAmount, type Dress } from '../../../features/dresses/dress.types';
 import { INVENTORY_ITEM_TYPE_LABELS } from '../../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../../shared/utils/format';
 import {
@@ -78,6 +78,7 @@ function InventoryCard({
       <article className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-2xl hover:shadow-slate-900/10">
         <div className="relative overflow-hidden">
           <DressPhoto
+            brand={profile.brandName}
             src={dress.images[0]}
             alt={dress.name}
             className="aspect-[3/4] w-full transition duration-[900ms] group-hover:scale-105"
@@ -159,9 +160,9 @@ function InventoryCard({
               <p className="mt-1 text-sm font-black text-slate-950">
                 {getLandingDressPriceLabel(dress)}
               </p>
-              {dress.isForRent && dress.depositAmount > 0 ? (
+              {dress.isForRent && getDressSecurityDepositAmount(dress) > 0 ? (
                 <p className="mt-1 text-[0.65rem] text-slate-500">
-                  التأمين {formatMoneyOMR(dress.depositAmount)}
+                  التأمين {formatMoneyOMR(getDressSecurityDepositAmount(dress))}
                 </p>
               ) : null}
             </div>
@@ -241,6 +242,7 @@ function QuickView({
       >
         <div className="grid md:grid-cols-[1fr_1fr]">
           <DressPhoto
+            brand={profile.brandName}
             src={dress.images[0]}
             alt={dress.name}
             className="aspect-[3/4] w-full md:aspect-auto md:h-full"
@@ -282,9 +284,9 @@ function QuickView({
               <p className="mt-1 text-base font-black text-slate-950">
                 {getLandingDressPriceLabel(dress)}
               </p>
-              {dress.isForRent && dress.depositAmount > 0 ? (
+              {dress.isForRent && getDressSecurityDepositAmount(dress) > 0 ? (
                 <p className="mt-1 text-xs text-amber-900">
-                  التأمين {formatMoneyOMR(dress.depositAmount)}
+                  التأمين {formatMoneyOMR(getDressSecurityDepositAmount(dress))}
                 </p>
               ) : null}
             </div>

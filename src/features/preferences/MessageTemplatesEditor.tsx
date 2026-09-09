@@ -15,6 +15,7 @@ import {
 } from '../reminders/messageTemplates';
 import { resetMessageTemplatesCommand, saveMessageTemplatesCommand } from '../workflows';
 import type { ReminderKind } from '../reminders/reminder.types';
+import { getBrandName } from './useBrandName';
 
 /**
  * Reminder message editor.
@@ -36,7 +37,7 @@ const PREVIEW_VARIABLES = buildTemplateVariables({
   returnTime: '08:00 مساءً',
   remainingAmount: 45,
   accessoryNames: ['طرحة طويلة', 'تاج'],
-  brandName: 'CARMEN GALLERY',
+  brandName: getBrandName(),
 });
 
 const KINDS: ReminderKind[] = ['pickup_tomorrow', 'return_tomorrow', 'overdue_return', 'outstanding_balance'];

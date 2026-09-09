@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react';
 import { getAppBuildInfo } from '@platform/app-update';
+import { useBrandName } from '../preferences/useBrandName';
 
 /**
  * «عن التطبيق والدعم» (UX-M3) — visible to staff, not admin-only.
@@ -10,6 +11,7 @@ import { getAppBuildInfo } from '@platform/app-update';
  * any contact channel (PD-6: the app never fabricates contact information).
  */
 export function AboutSupportCard() {
+  const brandName = useBrandName();
   const build = getAppBuildInfo();
 
   return (
@@ -19,7 +21,7 @@ export function AboutSupportCard() {
         <div>
           <h2 className="text-lg font-bold text-slate-950">عن التطبيق والدعم</h2>
           <p className="mt-1 text-sm text-slate-600">
-            CARMEN GALLERY — نظام تشغيل المعرض. الإصدار الحالي: <span dir="ltr" className="font-bold text-slate-800">{build.label}</span>
+            {brandName} — نظام تشغيل المعرض. الإصدار الحالي: <span dir="ltr" className="font-bold text-slate-800">{build.label}</span>
           </p>
         </div>
       </div>

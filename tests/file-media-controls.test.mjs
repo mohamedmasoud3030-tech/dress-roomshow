@@ -118,7 +118,9 @@ test('hard-deleting a piece reclaims only its hosted catalogue objects (orphan c
 test('replacement uploads write hosted URLs through one audited, dress-scoped command', async () => {
   const service = await readSource('src/features/dresses/dress.service.ts');
 
-  assert.match(service, /runCommand\(\s*\{ name: 'inventory\.images', idempotencyKey: `images:\$\{dress\.id\}` \}/, 'one idempotent images command per piece');
+  // The key carries a per-attempt suffix on purpose (see the comment above the
+  // call): a stable key would collapse every later photo change into a no-op.
+  assert.match(service, /runCommand\(\s*\{ name: 'inventory\.images', idempotencyKey: `images:\$\{dress\.id\}[^`]*` \}/, 'one idempotent images command per piece');
   assert.match(service, /updateDress\(dress\.code, \{ images: publicImageUrls \}\)/, 'the record moves from device data URLs to hosted URLs atomically');
 });
 

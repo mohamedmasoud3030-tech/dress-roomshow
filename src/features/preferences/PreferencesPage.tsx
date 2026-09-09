@@ -15,7 +15,6 @@ import { ShowroomProfileEditor } from './ShowroomProfileEditor';
 import { AccountSettings } from './AccountSettings';
 import { AccountManagement } from '../auth/AccountManagement';
 import { SystemErrorsSummary } from '../observability/SystemErrorsSummary';
-import { DevicePinSettings } from '../device-lock/DevicePinSettings';
 import { getAppBuildInfo } from '@platform/app-update';
 import { downloadJson } from '@platform/download';
 import {
@@ -389,8 +388,6 @@ export function PreferencesPage() {
       <AccountManagement />
 
       <SystemErrorsSummary />
-
-      <DevicePinSettings />
 
       {/* Named here because support is impossible while the operator cannot
           answer "which version are you on?". */}

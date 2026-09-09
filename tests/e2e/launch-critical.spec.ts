@@ -101,7 +101,7 @@ test('deep operational links return the SPA shell and enforce login', async ({ p
   const response = await page.goto('/reservations');
   expect(response?.status()).toBe(200);
   await expect(page).toHaveURL(/\/login$/);
-  await expect(page.getByRole('heading', { name: 'LENA' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'CARMEN GALLERY' })).toBeVisible();
 });
 
 test('PWA shell installs its manifest, survives offline reload, and does not overflow', async ({ page, context }) => {
@@ -114,7 +114,7 @@ test('PWA shell installs its manifest, survives offline reload, and does not ove
   await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: 'LENA' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'CARMEN GALLERY' })).toBeVisible();
 });
 
 test('authenticated staff hydrates cloud state and cannot open administrator settings', async ({ page }) => {
@@ -123,10 +123,6 @@ test('authenticated staff hydrates cloud state and cannot open administrator set
   await page.getByLabel('البريد الإلكتروني').fill('staff@example.test');
   await page.getByLabel('كلمة المرور').fill('valid-test-password');
   await page.getByRole('button', { name: 'دخول' }).click();
-  await expect(page.getByRole('heading', { name: 'تأمين هذا الجهاز' })).toBeVisible();
-  await page.getByLabel('رقم القفل الجديد').fill('123456');
-  await page.getByLabel('تأكيد رقم القفل').fill('123456');
-  await page.getByRole('button', { name: 'تأمين الجهاز والمتابعة' }).click();
   await expect(page.getByRole('heading', { name: 'لوحة التحكم', exact: true })).toBeVisible();
   await expect(page.getByText('الإعدادات والنسخ', { exact: true })).toHaveCount(0);
   await page.evaluate(() => {

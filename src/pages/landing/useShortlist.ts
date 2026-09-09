@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getBrowserLocalStorage } from '../../platform/storage';
 
 const STORAGE_KEY = 'lena.landing.shortlist';
 
@@ -9,10 +10,13 @@ const STORAGE_KEY = 'lena.landing.shortlist';
  * identifies the visitor. It survives a reload so she can browse, add pieces,
  * and send one WhatsApp request at the end — the way she would actually use a
  * showroom window.
+ *
+ * It still goes through the platform storage port: the port is what makes the
+ * app survive a browser that blocks or disables storage.
  */
 function read(): string[] {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = getBrowserLocalStorage()?.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed.filter((code): code is string => typeof code === 'string') : [];
@@ -31,7 +35,7 @@ export function useShortlist() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+      getBrowserLocalStorage()?.setItem(STORAGE_KEY, JSON.stringify(codes));
     } catch {
       // A blocked storage quota must never break browsing.
     }

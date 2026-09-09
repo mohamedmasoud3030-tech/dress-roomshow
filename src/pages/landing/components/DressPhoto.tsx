@@ -1,4 +1,5 @@
 import { Sparkles } from 'lucide-react';
+import { DEFAULT_BRAND_NAME } from '../../../features/preferences/useBrandName';
 
 /**
  * A catalogue photo with a graceful fallback: a piece without an uploaded
@@ -11,6 +12,7 @@ export function DressPhoto({
   imgClassName = '',
   fallbackLabel,
   priority = false,
+  brand = DEFAULT_BRAND_NAME,
 }: {
   src?: string;
   alt: string;
@@ -19,6 +21,8 @@ export function DressPhoto({
   fallbackLabel?: string;
   /** The hero's lead photo is the largest contentful paint: load it eagerly. */
   priority?: boolean;
+  /** Showroom name shown on the placeholder for a piece without a photo. */
+  brand?: string;
 }) {
   if (!src) {
     return (
@@ -31,7 +35,7 @@ export function DressPhoto({
         <div aria-hidden="true" className="absolute -bottom-14 -left-8 h-44 w-44 rounded-full bg-amber-300/30" />
         <div className="relative text-center text-amber-950">
           <Sparkles aria-hidden="true" className="mx-auto h-8 w-8" />
-          <p className="mt-2 text-lg font-black tracking-[0.2em]">CARMEN</p>
+          <p className="mt-2 truncate text-sm font-black tracking-[0.2em]">{brand}</p>
           {fallbackLabel ? <p className="mt-1 text-xs font-bold text-amber-800">{fallbackLabel}</p> : null}
         </div>
       </div>

@@ -7,7 +7,7 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 test('every authenticated route is blocked on cloud hydration', async () => {
   const routes = await read('src/app/router/AppRoutes.tsx');
-  assert.match(routes, /<RequireAuth>[\s\S]*<CloudDataGate>[\s\S]*<DeviceLockGate>/);
+  assert.match(routes, /<RequireAuth>[\s\S]*<CloudDataGate>[\s\S]*<AppShell/);
   assert.match(routes, /<RequireAdmin><PreferencesPage/);
 });
 

@@ -81,7 +81,7 @@ test('catalogue image sync keeps the compressed local record as the failure fall
   const uploader = await readFile(join(sourceRoot, 'platform/images/supabaseImageUpload.ts'), 'utf8');
 
   assert.match(service, /publicImageUrls = getSuccessfulUploadUrls\(outcomes\)/);
-  assert.match(service, /void syncCreatedDressBestEffort\(newDress\)/, 'record and image sync must use one ordered task');
+  assert.match(service, /void syncDressImagesBestEffort\(newDress\)/, 'record and image sync must use one ordered task');
   assert.doesNotMatch(service, /void pushDressBestEffort\(newDress\)/, 'parallel create and image pushes can overwrite the public URL');
   assert.match(service, /The local compressed images stay intact and can be retried later/);
   assert.doesNotMatch(service, /results\.map\(\(r:/, 'a partial result must not overwrite the local image array');

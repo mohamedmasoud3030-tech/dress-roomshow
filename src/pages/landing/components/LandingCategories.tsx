@@ -58,6 +58,7 @@ export function LandingCategories({ profile, dresses, onSelectCategory }: Props)
             >
               <span className="relative block aspect-[4/5] overflow-hidden bg-slate-100">
                 <DressPhoto
+            brand={profile.brandName}
                   src={category.photo}
                   alt={`قطع فئة ${category.name}`}
                   className="h-full w-full transition duration-[900ms] group-hover:scale-110"

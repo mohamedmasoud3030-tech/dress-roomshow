@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useBrandName } from '../../features/preferences/useBrandName';
 import { useLocation } from 'react-router-dom';
 
 const TITLES: Array<[RegExp, string]> = [
@@ -14,9 +15,10 @@ const TITLES: Array<[RegExp, string]> = [
 
 export function DocumentTitle() {
   const { pathname } = useLocation();
+  const brandName = useBrandName();
   useEffect(() => {
     const label = TITLES.find(([pattern]) => pattern.test(pathname))?.[1] ?? 'إدارة المعرض';
-    document.title = `${label} | CARMEN GALLERY`;
-  }, [pathname]);
+    document.title = `${label} | ${brandName}`;
+  }, [pathname, brandName]);
   return null;
 }

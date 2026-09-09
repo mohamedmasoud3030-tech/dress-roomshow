@@ -54,6 +54,7 @@ export function LandingInstagram({ profile, dresses }: { profile: LandingProfile
               aria-label={`تابعينا على إنستجرام — ${dress.name}`}
             >
               <DressPhoto
+            brand={profile.brandName}
                 src={dress.images[0]}
                 alt={dress.name}
                 className="aspect-square w-full transition duration-[900ms] group-hover:scale-110"
