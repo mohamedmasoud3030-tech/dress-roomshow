@@ -78,6 +78,15 @@ test('the showroom name has exactly one editable source: the profile editor', as
   assert.match(service, /showroomName: getBrandName\(\)/, 'stored preferences mirror the profile instead of owning a copy');
 });
 
+test('the service queue lets the operator undo a task and closes it exactly once', async () => {
+  const page = await readFile(join(sourceRoot, 'features/service/ServiceQueuePage.tsx'), 'utf8');
+
+  // A cancelled task used to keep its complete/cancel buttons; pressing either
+  // only produced "this work is already closed" and left the piece stuck.
+  assert.match(page, /task\.status === 'cancelled' \? \(/, 'a cancelled task must offer no further actions');
+  assert.match(page, /<CancelServiceTaskModal/, 'a task opened by mistake must be undoable from the queue');
+});
+
 test('storage capacity is visible before a browser write reaches quota', async () => {
   const shell = await readFile(join(sourceRoot, 'app/shell/AppShell.tsx'), 'utf8');
   const settings = await readFile(join(sourceRoot, 'features/preferences/PreferencesPage.tsx'), 'utf8');

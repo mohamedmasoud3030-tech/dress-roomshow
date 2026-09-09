@@ -159,14 +159,25 @@ export function openServiceTask(input: OpenServiceTaskInput): ServiceTask {
   };
 
   writeCollection(COLLECTION, [task, ...getServiceTasks()]);
-  updateDressStatus(dress.code, SERVICE_ITEM_STATUS[input.type]);
+
+  // Work planned for a later day must not take the piece off the floor today:
+  // it only leaves the shelf when the work actually starts. Opening it now
+  // still blocks conflicting reservations for the whole service window.
+  const startsNow = input.startDate <= getTodayISO();
+  if (startsNow) updateDressStatus(dress.code, SERVICE_ITEM_STATUS[input.type]);
+
   recordAudit({
     action: 'create',
     entityType: 'dress',
     entityId: task.id,
     summary: `تم فتح عمل ${SERVICE_TASK_TYPE_LABELS[task.type]} ${task.taskNumber} للعنصر ${task.dressCode}.`,
     previousValues: { status: dress.status },
-    nextValues: { status: SERVICE_ITEM_STATUS[input.type], taskType: task.type, startDate: task.startDate },
+    nextValues: {
+      status: startsNow ? SERVICE_ITEM_STATUS[input.type] : dress.status,
+      taskType: task.type,
+      startDate: task.startDate,
+      planned: !startsNow,
+    },
   });
   return task;
 }
@@ -179,13 +190,20 @@ export function startServiceTask(taskId: string): ServiceTask {
 
   const updated: ServiceTask = { ...task, status: 'in_progress' };
   writeCollection(COLLECTION, tasks.map((item) => (item.id === taskId ? updated : item)));
+
+  // Starting the work is the moment the piece leaves the shelf — for a task
+  // that was planned ahead as much as for one opened on the spot.
+  const dress = getDresses().find((item) => item.id === task.inventoryItemId);
+  const itemStatus = SERVICE_ITEM_STATUS[task.type];
+  if (dress && dress.status !== itemStatus) updateDressStatus(task.dressCode, itemStatus);
+
   recordAudit({
     action: 'status-change',
     entityType: 'dress',
     entityId: task.id,
     summary: `بدأ تنفيذ عمل الخدمة ${task.taskNumber}.`,
     previousValues: { status: task.status },
-    nextValues: { status: updated.status },
+    nextValues: { status: updated.status, itemStatus },
   });
   return updated;
 }
@@ -200,7 +218,13 @@ export function completeServiceTask(input: CompleteServiceTaskInput): ServiceTas
   if (!task) throw new Error('عمل الخدمة المحدد غير موجود.');
   if (!OPEN_STATUSES.has(task.status)) throw new Error('تم إغلاق عمل الخدمة هذا بالفعل.');
   if (!input.completedDate) throw new Error('تاريخ إنهاء العمل مطلوب.');
-  if (input.completedDate < task.startDate) throw new Error('تاريخ الإنهاء لا يمكن أن يسبق تاريخ البدء.');
+  // Work booked for a later day is often taken early, so the earliest honest
+  // completion date is the planned start date once that day has arrived, and
+  // today before it. An end date earlier than the work itself stays nonsense.
+  const earliestCompletionDate = task.startDate > getTodayISO() ? getTodayISO() : task.startDate;
+  if (input.completedDate < earliestCompletionDate) {
+    throw new Error('تاريخ الإنهاء لا يمكن أن يسبق تاريخ بدء العمل.');
+  }
   if (!Number.isFinite(input.cost) || input.cost < 0) throw new Error('تكلفة الخدمة غير صالحة.');
   if (!input.resultingItemStatus) throw new Error('حددي حالة العنصر بعد انتهاء الخدمة.');
 

@@ -4,9 +4,11 @@ import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { EmptyState } from '../../components/shared/StateViews';
+import { DRESS_STATUS_LABELS } from '../../shared/domain/dressConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { OpenServiceTaskModal } from './OpenServiceTaskModal';
+import { CancelServiceTaskModal } from './CancelServiceTaskModal';
 import { CompleteServiceTaskModal } from './CompleteServiceTaskModal';
 import {
   SERVICE_TASK_STATUS_LABELS,
@@ -28,11 +30,19 @@ const statusStyles: Record<ServiceTask['status'], string> = {
 const field =
   'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
 
+/** A cancelled task returns the piece to the state it had before the work. */
+function afterCancelledStatus(task: ServiceTask): string {
+  return task.previousItemStatus
+    ? ` وأُعيدت القطعة إلى حالتها السابقة (${DRESS_STATUS_LABELS[task.previousItemStatus] ?? task.previousItemStatus})`
+    : '';
+}
+
 export function ServiceQueuePage() {
   const [tasks, setTasks] = useState<ServiceTask[]>(() => getServiceTasks());
   const [filters, setFilters] = useState<ServiceTaskFilters>({ search: '', type: 'all', status: 'all' });
   const [openModal, setOpenModal] = useState(false);
   const [completingTask, setCompletingTask] = useState<ServiceTask | null>(null);
+  const [cancellingTask, setCancellingTask] = useState<ServiceTask | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
 
@@ -170,6 +180,10 @@ export function ServiceQueuePage() {
                     انتهى في {task.completedDate} وتم تحديد حالة القطعة صراحة.
                     {task.relatedExpenseNumber ? ` المصروف المرتبط: ${task.relatedExpenseNumber}.` : ''}
                   </p>
+                ) : task.status === 'cancelled' ? (
+                  <p className="mt-2 text-xs text-slate-500">
+                    أُلغي هذا العمل{afterCancelledStatus(task)}. لا يمكن إنهاؤه أو إلغاؤه مرة أخرى.
+                  </p>
                 ) : (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {task.status === 'open' ? (
@@ -188,6 +202,13 @@ export function ServiceQueuePage() {
                     >
                       إنهاء وتحديد حالة القطعة
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setCancellingTask(task)}
+                      className="min-h-10 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
+                    >
+                      إلغاء العمل
+                    </button>
                   </div>
                 )}
               </article>
@@ -205,6 +226,11 @@ export function ServiceQueuePage() {
         task={completingTask}
         onClose={() => setCompletingTask(null)}
         onCompleted={(task) => refresh(`تم إنهاء عمل الخدمة ${task.taskNumber} وتحديث حالة القطعة.`)}
+      />
+      <CancelServiceTaskModal
+        task={cancellingTask}
+        onClose={() => setCancellingTask(null)}
+        onCancelled={(task) => refresh(`تم إلغاء عمل الخدمة ${task.taskNumber} وإعادة القطعة إلى حالتها السابقة.`)}
       />
     </section>
   );
