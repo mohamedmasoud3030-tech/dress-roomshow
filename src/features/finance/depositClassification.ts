@@ -22,44 +22,6 @@ export type FinancialClassificationMetadata = {
   classifiedBy?: string;
 };
 
-export function createUnresolvedClassification(
-  legacyAmount: number,
-  reason: string,
-): FinancialClassificationMetadata {
-  return {
-    legacyDepositAmount: legacyAmount,
-    legacyDepositClassification: 'unresolved',
-    needsFinancialClassification: true,
-    classificationReason: reason,
-  };
-}
-
-export function createSecurityDepositClassification(
-  legacyAmount: number,
-  reason: string,
-): FinancialClassificationMetadata {
-  return {
-    legacyDepositAmount: legacyAmount,
-    legacyDepositClassification: 'security_deposit',
-    needsFinancialClassification: false,
-    classificationReason: reason,
-    classifiedAt: new Date().toISOString(),
-  };
-}
-
-export function createBookingAdvanceClassification(
-  legacyAmount: number,
-  reason: string,
-): FinancialClassificationMetadata {
-  return {
-    legacyDepositAmount: legacyAmount,
-    legacyDepositClassification: 'booking_advance',
-    needsFinancialClassification: false,
-    classificationReason: reason,
-    classifiedAt: new Date().toISOString(),
-  };
-}
-
 export function isUnresolved(entry: FinancialClassificationMetadata | undefined): boolean {
   if (!entry) return false;
   return entry.needsFinancialClassification === true || entry.legacyDepositClassification === 'unresolved';

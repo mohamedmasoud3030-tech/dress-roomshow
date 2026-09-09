@@ -53,14 +53,6 @@ export function addOperator(name: string): Operator {
   return operator;
 }
 
-export function archiveOperator(id: string): void {
-  const operators = getOperators();
-  writeCollection(
-    OPERATORS_COLLECTION,
-    operators.map((operator) => (operator.id === id ? { ...operator, archivedAt: new Date().toISOString() } : operator)),
-  );
-}
-
 /**
  * The operator this device is currently attributing actions to.
  *

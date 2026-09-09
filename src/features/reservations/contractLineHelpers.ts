@@ -294,14 +294,6 @@ export function getReservationSecurityDepositTotal(reservation: Reservation): nu
   return calculateLinesSecurityDeposit(getReservationLines(reservation));
 }
 
-export function getReservationRentalTotal(reservation: Reservation): number {
-  return calculateLinesRentalPrice(getReservationLines(reservation));
-}
-
-export function getReservationBookingAdvanceTotal(reservation: Reservation): number {
-  return calculateLinesBookingAdvance(getReservationLines(reservation));
-}
-
 /**
  * Allocates a reservation-level movement to one contract item.
  *

@@ -19,8 +19,6 @@ import type { DateRangeFilter } from '../reports/report.types';
  * - Recognised income excludes security deposit liability.
  */
 
-export type MoneyMethod = 'cash' | 'card' | 'bank_transfer' | 'other';
-
 export type FinanceTotals = {
   /** Cash actually received, including security deposits (liability) and booking advances */
   grossCollected: number;
@@ -207,8 +205,4 @@ export function getOutstandingRentalBalances(): OutstandingRentalBalance[] {
       dressCode,
       remainingAmount,
     }));
-}
-
-export function getSecurityDepositLiability(): number {
-  return getFinanceTotals().outstandingSecurityDepositLiability;
 }

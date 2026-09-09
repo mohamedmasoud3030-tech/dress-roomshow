@@ -68,18 +68,6 @@ export async function saveImages(dressId: string, dataUrls: string[]): Promise<s
   return ids;
 }
 
-export async function getImage(id: string): Promise<StoredImage | undefined> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.get(id);
-    request.onsuccess = () => resolve(request.result as StoredImage | undefined);
-    request.onerror = () => reject(request.error ?? new Error('تعذر قراءة الصورة.'));
-    tx.oncomplete = () => db.close();
-  });
-}
-
 export async function getImagesByDressId(dressId: string): Promise<StoredImage[]> {
   const db = await openDB();
   return new Promise((resolve, reject) => {
@@ -105,18 +93,6 @@ export async function deleteImage(id: string): Promise<void> {
     request.onerror = () => reject(request.error ?? new Error('تعذر حذف الصورة.'));
     tx.oncomplete = () => db.close();
   });
-}
-
-export async function deleteImagesByDressId(dressId: string): Promise<void> {
-  const images = await getImagesByDressId(dressId);
-  for (const img of images) {
-    await deleteImage(img.id);
-  }
-}
-
-export async function getAllImageDataUrls(dressId: string): Promise<string[]> {
-  const images = await getImagesByDressId(dressId);
-  return images.map((img) => img.dataUrl);
 }
 
 export async function getAllImages(): Promise<StoredImage[]> {

@@ -192,8 +192,3 @@ export function summarizeReminders(reminders: Reminder[]): ReminderSummary {
     unpaid: reminders.filter((reminder) => reminder.kind === 'outstanding_balance').length,
   };
 }
-
-/** A free-form message to one customer, used by the contact button. */
-export function buildCustomerMessage(customerName: string, body: string): string {
-  return `مرحباً ${customerName}،\n${body}\n\n${getShowroomProfile().brandName}`;
-}
