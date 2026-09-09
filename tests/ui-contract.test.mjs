@@ -64,6 +64,20 @@ test('the document shell is Arabic-first and RTL', async () => {
   assert.match(shell, /dir="rtl"/);
 });
 
+test('the showroom name has exactly one editable source: the profile editor', async () => {
+  const rules = await readFile(join(sourceRoot, 'features/preferences/PreferencesPage.tsx'), 'utf8');
+  const editor = await readFile(join(sourceRoot, 'features/preferences/ShowroomProfileEditor.tsx'), 'utf8');
+  const service = await readFile(join(sourceRoot, 'features/preferences/preferences.service.ts'), 'utf8');
+
+  assert.doesNotMatch(
+    rules,
+    /اسم المعرض\s*<input/,
+    'the operational-rules card must not offer a second brand-name field that silently shadows the profile',
+  );
+  assert.match(editor, /اسم المعرض/, 'the profile editor owns the showroom name');
+  assert.match(service, /showroomName: getBrandName\(\)/, 'stored preferences mirror the profile instead of owning a copy');
+});
+
 test('storage capacity is visible before a browser write reaches quota', async () => {
   const shell = await readFile(join(sourceRoot, 'app/shell/AppShell.tsx'), 'utf8');
   const settings = await readFile(join(sourceRoot, 'features/preferences/PreferencesPage.tsx'), 'utf8');

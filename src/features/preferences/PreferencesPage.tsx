@@ -286,7 +286,6 @@ export function PreferencesPage() {
       <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <h2 className="text-lg font-bold">قواعد التشغيل</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <label className="text-sm font-bold text-slate-700">اسم المعرض<input value={preferences.showroomName} onChange={(event) => setPreferences((current) => ({ ...current, showroomName: event.target.value }))} className={preferenceFieldClassName} /></label>
           <label className="text-sm font-bold text-slate-700">مدة التجهيز قبل التسليم (أيام)<input type="number" min="0" max="14" value={preferences.preparationDaysBeforePickup} onChange={(event) => setPreferences((current) => ({ ...current, preparationDaysBeforePickup: Number(event.target.value) }))} className={preferenceFieldClassName} /></label>
           <label className="text-sm font-bold text-slate-700">مدة التنظيف بعد الإرجاع (أيام)<input type="number" min="0" max="14" value={preferences.cleaningDaysAfterReturn} onChange={(event) => setPreferences((current) => ({ ...current, cleaningDaysAfterReturn: Number(event.target.value) }))} className={preferenceFieldClassName} /></label>
           <label className="text-sm font-bold text-slate-700">وقت الاستلام الافتراضي<input type="time" value={preferences.defaultPickupTime} onChange={(event) => setPreferences((current) => ({ ...current, defaultPickupTime: event.target.value }))} className={preferenceFieldClassName} /></label>

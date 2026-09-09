@@ -120,7 +120,10 @@ function normalizePreferences(value?: Partial<AppPreferences>): AppPreferences {
   const dormantDressDays = Number(value?.dormantDressDays ?? DEFAULT_APP_PREFERENCES.dormantDressDays);
 
   return {
-    showroomName: value?.showroomName?.trim() || DEFAULT_APP_PREFERENCES.showroomName,
+    // The showroom name has one owner: the showroom profile. Preferences only
+    // mirror it, so a rename in «ملف المعرض التعريفي» can never be shadowed by
+    // a second stored copy here.
+    showroomName: getBrandName(),
     reservationBufferDays,
     // Installations created before the split inherit the single legacy buffer,
     // so upgrading never silently changes which periods are blocked.
