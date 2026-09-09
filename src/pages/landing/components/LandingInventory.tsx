@@ -154,10 +154,10 @@ function InventoryCard({
             type="button"
             onClick={() => onToggleSave(dress)}
             aria-pressed={saved}
-            className={`absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg backdrop-blur transition duration-300 focus-visible:opacity-100 ${
+            className={`absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg backdrop-blur transition duration-300 ${
               saved
-                ? 'bg-amber-400 text-slate-950 opacity-100'
-                : 'bg-white/90 text-slate-700 opacity-0 hover:bg-white group-hover:opacity-100'
+                ? 'bg-amber-400 text-slate-950'
+                : 'bg-white/90 text-slate-700 hover:bg-white'
             }`}
             aria-label={saved ? `إزالة ${dress.name} من اختياراتك` : `إضافة ${dress.name} إلى اختياراتك`}
           >
@@ -167,7 +167,7 @@ function InventoryCard({
           <button
             type="button"
             onClick={() => onZoom(dress)}
-            className="absolute bottom-3 left-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-900 opacity-0 shadow-lg backdrop-blur transition duration-300 hover:bg-white group-hover:opacity-100 focus-visible:opacity-100"
+            className="absolute bottom-3 left-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-900 shadow-lg backdrop-blur transition duration-300 hover:bg-white"
             aria-label={`تكبير صورة ${dress.name}`}
           >
             <ZoomIn aria-hidden="true" className="h-4 w-4" />

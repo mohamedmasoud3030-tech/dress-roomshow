@@ -303,8 +303,8 @@ test('the document markup falls back safely when no settings are given', () => {
 test('the default public contact exposes only the approved primary channels', () => {
   const { contact } = landingShowroomProfile;
 
-  assert.equal(contact.phone, '+968 9191 8186');
-  assert.equal(contact.email, 'Ahmedmasoud@outlook.com');
+  assert.equal(contact.phone, '+968 9192 8186');
+  assert.equal(contact.email, 'Mohamedms.oud@outlook.com');
   assert.equal(contact.alternatePhones, undefined);
   assert.equal(contact.alternateEmail, undefined);
 });
@@ -332,8 +332,8 @@ test('the printed contract carries the contact details', () => {
     });
 
     const markup = getPrintFrameDocument().written.join('');
-    assert.match(markup, /9191 8186/, 'a customer must be able to reach the showroom');
-    assert.match(markup, /Ahmedmasoud@outlook\.com/);
+    assert.match(markup, /9192 8186/, 'a customer must be able to reach the showroom');
+    assert.match(markup, /Mohamedms\.oud@outlook\.com/);
   } finally {
     cleanup();
   }

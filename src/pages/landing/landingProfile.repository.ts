@@ -3,6 +3,7 @@ import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { getShowroomProfile } from '../../features/preferences/showroomProfile.service';
 import {
   landingShowroomProfile,
+  migrateLegacyShowroomContact,
   type LandingShowroomProfile,
 } from './landingContent';
 
@@ -37,7 +38,7 @@ function publicPairArray<T>(value: unknown, firstKey: string, secondKey: string)
 export function mergePublicShowroomProfile(value: unknown): LandingShowroomProfile {
   if (!isRecord(value)) return { ...landingShowroomProfile };
   const contact = isRecord(value.contact) ? value.contact : {};
-  return {
+  return migrateLegacyShowroomContact({
     brandName: publicText(value.brandName, landingShowroomProfile.brandName),
     shortTagline: publicText(value.shortTagline, landingShowroomProfile.shortTagline),
     heroTitle: publicText(value.heroTitle, landingShowroomProfile.heroTitle),
@@ -64,7 +65,7 @@ export function mergePublicShowroomProfile(value: unknown): LandingShowroomProfi
         : landingShowroomProfile.contact.mapQuery,
       workingHours: publicText(contact.workingHours, landingShowroomProfile.contact.workingHours),
     },
-  };
+  });
 }
 
 export async function fetchPublicShowroomProfile({

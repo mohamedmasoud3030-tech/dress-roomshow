@@ -217,7 +217,7 @@ export function ShowroomProfileEditor() {
             value={fields.contact.mapQuery ?? ''}
             onChange={(e) => setContact('mapQuery', e.target.value)}
             className={inputCls}
-            placeholder="Muscat, Oman"
+            placeholder="Oman"
             dir="ltr"
           />
         </label>

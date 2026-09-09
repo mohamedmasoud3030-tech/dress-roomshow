@@ -30,8 +30,10 @@ function lockBodyScroll(): void {
   lockCount += 1;
   if (lockCount > 1) return;
   scrollY = window.scrollY;
+  // Lock the page behind the sheet without disabling touch gestures for the
+  // sheet itself. `touch-action: none` on body makes phone forms and the
+  // sheet's own scroll area feel frozen in several mobile browsers.
   document.body.style.overflow = 'hidden';
-  document.body.style.touchAction = 'none';
 }
 
 function unlockBodyScroll(): void {
@@ -164,7 +166,7 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
             <X aria-hidden="true" className="h-5 w-5" />
           </button>
         </header>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">{children}</div>
+        <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">{children}</div>
       </section>
     </div>
   );

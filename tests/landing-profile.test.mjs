@@ -15,6 +15,20 @@ test('the public profile deep-merges contact defaults without exposing the priva
   assert.equal(merged.brandName, 'المعرض المحدث');
   assert.equal(merged.contact.whatsapp, '+968 9000 0000');
   assert.equal(merged.contact.email, landingShowroomProfile.contact.email);
+  assert.equal(landingShowroomProfile.contact.phone, '+968 9192 8186');
+  assert.equal(landingShowroomProfile.contact.email, 'Mohamedms.oud@outlook.com');
+  assert.equal(landingShowroomProfile.contact.address, 'سلطنة عمان');
+  const repaired = mergePublicShowroomProfile({
+    contact: {
+      phone: '+968 9224 1188',
+      whatsapp: '+968 9224 1188',
+      email: 'Ahmedmasoud@outlook.com',
+      address: 'ولاية صحار — سلطنة عمان',
+    },
+  });
+  assert.equal(repaired.contact.phone, '+968 9192 8186');
+  assert.equal(repaired.contact.email, 'Mohamedms.oud@outlook.com');
+  assert.equal(repaired.contact.address, 'سلطنة عمان');
   const hardened = mergePublicShowroomProfile({
     brandName: 'المعرض المحدث',
     internalSecret: 'must-not-survive',

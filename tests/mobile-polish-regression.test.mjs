@@ -32,6 +32,16 @@ test('the reservation stepper exposes the active step and phone-sized controls',
   assert.match(markup, /h-11 w-11/, 'step controls must be at least 44px on phones');
 });
 
+test('shared mobile modals keep their own touch scrolling and do not freeze phone gestures', async () => {
+  const modal = await readFile(join(sourceRoot, 'components/shared/Modal.tsx'), 'utf8');
+  assert.doesNotMatch(modal, /document\.body\.style\.touchAction\s*=\s*'none'/, 'the page lock must not disable the sheet touch surface');
+  assert.match(modal, /touch-pan-y/, 'the form body must explicitly allow vertical touch scrolling');
+
+  const inventory = await readFile(join(sourceRoot, 'pages/landing/components/LandingInventory.tsx'), 'utf8');
+  assert.doesNotMatch(inventory, /bg-white\/90 text-slate-700 opacity-0/, 'mobile save control must not depend on hover');
+  assert.doesNotMatch(inventory, /bg-white\/90 text-slate-900 opacity-0/, 'mobile zoom control must not depend on hover');
+});
+
 test('the reservation modal is a real validated four-panel wizard', async () => {
   const modal = await readFile(join(sourceRoot, 'features/reservations/CreateReservationModal.tsx'), 'utf8');
 

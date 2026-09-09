@@ -35,9 +35,9 @@ export type LandingContact = {
    */
   addressLines?: string[];
   /**
-   * Dedicated Google-Maps search phrase. A bare country name used to send
-   * visitors to a map of the whole country, so the map query is its own
-   * editable field instead of a side effect of the display text.
+   * Dedicated Google-Maps search phrase. It remains separate from the display
+   * text so the showroom can keep a short public address while still choosing
+   * a more precise map target later.
    */
   mapQuery?: string;
   workingHours: string;
@@ -56,6 +56,33 @@ export type LandingShowroomProfile = {
   faq: LandingFaqItem[];
   contact: LandingContact;
 };
+
+/**
+ * One-time compatibility repair for the seeded contact details that existed
+ * before the current owner supplied the public phone, email, and country-only
+ * address. It only touches that exact legacy seed; values entered later from
+ * the profile screen remain authoritative.
+ */
+export function migrateLegacyShowroomContact(profile: LandingShowroomProfile): LandingShowroomProfile {
+  const contact = profile.contact;
+  const isLegacySeed = contact.email === 'Ahmedmasoud@outlook.com'
+    || contact.phone.includes('9224 1188')
+    || contact.address.includes('صحار');
+  if (!isLegacySeed) return profile;
+
+  return {
+    ...profile,
+    contact: {
+      ...contact,
+      phone: '+968 9192 8186',
+      whatsapp: '+968 9192 8186',
+      email: 'Mohamedms.oud@outlook.com',
+      address: 'سلطنة عمان',
+      addressLines: ['سلطنة عمان'],
+      mapQuery: 'Oman',
+    },
+  };
+}
 
 export const landingShowroomProfile: LandingShowroomProfile = {
   brandName: 'CARMEN GALLERY',
@@ -131,13 +158,13 @@ export const landingShowroomProfile: LandingShowroomProfile = {
     },
   ],
   contact: {
-    phone: '+968 9191 8186',
-    whatsapp: '+968 9191 8186',
-    email: 'Ahmedmasoud@outlook.com',
+    phone: '+968 9192 8186',
+    whatsapp: '+968 9192 8186',
+    email: 'Mohamedms.oud@outlook.com',
     instagram: '@lena.showroom',
-    address: 'سلطنة عمان — محافظة مسقط',
-    addressLines: ['سلطنة عمان — محافظة مسقط'],
-    mapQuery: 'Muscat, Oman',
+    address: 'سلطنة عمان',
+    addressLines: ['سلطنة عمان'],
+    mapQuery: 'Oman',
     workingHours: 'السبت إلى الخميس — 10 صباحًا إلى 9 مساءً',
   },
 };
