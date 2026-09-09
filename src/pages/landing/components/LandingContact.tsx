@@ -33,8 +33,18 @@ export function LandingContact({ profile }: { profile: LandingProfile }) {
   const primaryPhoneHref = `tel:${profile.contact.phone.replace(/\s+/g, '')}`;
   const primaryEmailHref = `mailto:${profile.contact.email}`;
   const instagramHandle = profile.contact.instagram.replace(/^@/, '');
+  // Prefer the structured lines; fall back to the legacy single-line address.
+  const addressLines = (profile.contact.addressLines ?? [])
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  const displayLines = addressLines.length > 0
+    ? addressLines
+    : [profile.contact.address].filter((line) => line.trim().length > 0);
+  // The map query is its own editable phrase: a bare country name sends
+  // visitors to a zoomed-out map of the whole country, which helps no one.
+  const mapsTarget = profile.contact.mapQuery?.trim() || displayLines.join('، ');
   const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    profile.contact.address,
+    mapsTarget,
   )}`;
 
   return (
@@ -155,9 +165,11 @@ export function LandingContact({ profile }: { profile: LandingProfile }) {
                 ) : null}
 
                 <ContactRow icon={MapPin} label="العنوان">
-                  <span className="block text-sm font-semibold leading-7 text-white">
-                    {profile.contact.address}
-                  </span>
+                  {displayLines.map((line) => (
+                    <span key={line} className="block text-sm font-semibold leading-7 text-white">
+                      {line}
+                    </span>
+                  ))}
                   <a
                     href={mapsHref}
                     target="_blank"

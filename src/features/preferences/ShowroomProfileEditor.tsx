@@ -44,10 +44,31 @@ export function ShowroomProfileEditor() {
     setSaved(false);
   };
 
+  /** Structured address lines: district / street / building (index 0..2). */
+  const addressLine = (index: number) => fields.contact.addressLines?.[index] ?? '';
+  const setAddressLine = (index: number, value: string) => {
+    const lines = [addressLine(0), addressLine(1), addressLine(2)];
+    lines[index] = value;
+    setFields((prev) => ({ ...prev, contact: { ...prev.contact, addressLines: lines } }));
+    setSaved(false);
+  };
+
   const save = () => {
     try {
       const current = getShowroomProfile();
-      const updated: LandingShowroomProfile = { ...current, ...fields, contact: { ...fields.contact } };
+      const cleanedLines = (fields.contact.addressLines ?? [])
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0);
+      const cleanedMapQuery = fields.contact.mapQuery?.trim() ?? '';
+      const updated: LandingShowroomProfile = {
+        ...current,
+        ...fields,
+        contact: {
+          ...fields.contact,
+          addressLines: cleanedLines.length > 0 ? cleanedLines : undefined,
+          mapQuery: cleanedMapQuery.length > 0 ? cleanedMapQuery : undefined,
+        },
+      };
       if (!updated.brandName.trim()) {
         setError('اسم المعرض مطلوب.');
         return;
@@ -155,10 +176,56 @@ export function ShowroomProfileEditor() {
           <input value={fields.contact.workingHours} onChange={(e) => setContact('workingHours', e.target.value)} className={inputCls} placeholder={landingShowroomProfile.contact.workingHours} />
         </label>
       </div>
-      <label className={`${labelCls} mt-4 md:w-1/2`}>
-        العنوان
-        <input value={fields.contact.address} onChange={(e) => setContact('address', e.target.value)} className={inputCls} placeholder={landingShowroomProfile.contact.address} />
-      </label>
+      <h3 className="mt-6 text-sm font-bold text-slate-700">العنوان والخريطة</h3>
+      <p className="mt-1 text-xs leading-6 text-slate-500">
+        السطور التفصيلية هي ما تراه العميلة، وعبارة البحث هي ما يُفتح به زر الخريطة —
+        حتى لا يوصل الزر لخريطة البلد كاملة.
+      </p>
+      <div className="mt-3 grid gap-4 md:grid-cols-3">
+        <label className={labelCls}>
+          المنطقة / الحي
+          <input
+            value={addressLine(0)}
+            onChange={(e) => setAddressLine(0, e.target.value)}
+            className={inputCls}
+            placeholder="مثال: مسقط — الخوير"
+          />
+        </label>
+        <label className={labelCls}>
+          الشارع
+          <input
+            value={addressLine(1)}
+            onChange={(e) => setAddressLine(1, e.target.value)}
+            className={inputCls}
+            placeholder="مثال: شارع السلطان قابوس"
+          />
+        </label>
+        <label className={labelCls}>
+          المبنى / المحل
+          <input
+            value={addressLine(2)}
+            onChange={(e) => setAddressLine(2, e.target.value)}
+            className={inputCls}
+            placeholder="مثال: مبنى 12 — محل 3، الطابق الأرضي"
+          />
+        </label>
+      </div>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
+        <label className={labelCls}>
+          عبارة البحث في خرائط جوجل
+          <input
+            value={fields.contact.mapQuery ?? ''}
+            onChange={(e) => setContact('mapQuery', e.target.value)}
+            className={inputCls}
+            placeholder="Muscat, Oman"
+            dir="ltr"
+          />
+        </label>
+        <label className={labelCls}>
+          العنوان المختصر (سطر واحد — للتوافق القديم)
+          <input value={fields.contact.address} onChange={(e) => setContact('address', e.target.value)} className={inputCls} placeholder={landingShowroomProfile.contact.address} />
+        </label>
+      </div>
 
       {/* Actions */}
       <div className="mt-6 flex flex-wrap gap-3 border-t border-slate-100 pt-4">

@@ -67,3 +67,32 @@ test('a malformed public profile response fails closed instead of inventing cont
     fetcher: async () => ({ ok: true, status: 200, json: async () => ({}) }),
   }), /invalid/);
 });
+
+test('structured address lines and a dedicated map query survive the public merge — malformed ones fall back', () => {
+  const merged = mergePublicShowroomProfile({
+    contact: { addressLines: ['مسقط — الخوير', 'شارع السلطان قابوس'], mapQuery: 'Al Khuwair Muscat' },
+  });
+  assert.deepEqual(merged.contact.addressLines, ['مسقط — الخوير', 'شارع السلطان قابوس']);
+  assert.equal(merged.contact.mapQuery, 'Al Khuwair Muscat');
+
+  const malformed = mergePublicShowroomProfile({ contact: { addressLines: [{ nested: true }], mapQuery: 99 } });
+  assert.deepEqual(malformed.contact.addressLines, landingShowroomProfile.contact.addressLines);
+  assert.equal(malformed.contact.mapQuery, landingShowroomProfile.contact.mapQuery);
+
+  assert.ok((landingShowroomProfile.contact.mapQuery ?? '').trim().length > 0, 'default map query must be useful');
+  assert.ok((landingShowroomProfile.contact.addressLines ?? []).length > 0, 'default address lines must exist');
+});
+
+test('the detailed address is editable from the settings screen and the map button no longer targets a bare country', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const read = (p) => readFile(new URL(`../${p}`, import.meta.url), 'utf8');
+
+  const contact = await read('src/pages/landing/components/LandingContact.tsx');
+  assert.match(contact, /addressLines/);
+  assert.match(contact, /mapQuery/);
+
+  const editor = await read('src/features/preferences/ShowroomProfileEditor.tsx');
+  assert.match(editor, /addressLines/);
+  assert.match(editor, /mapQuery/);
+  assert.match(editor, /عبارة البحث في خرائط جوجل/);
+});

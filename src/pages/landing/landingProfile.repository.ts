@@ -58,6 +58,10 @@ export function mergePublicShowroomProfile(value: unknown): LandingShowroomProfi
         : landingShowroomProfile.contact.alternateEmail,
       instagram: publicText(contact.instagram, landingShowroomProfile.contact.instagram),
       address: publicText(contact.address, landingShowroomProfile.contact.address),
+      addressLines: publicStringArray(contact.addressLines, landingShowroomProfile.contact.addressLines),
+      mapQuery: typeof contact.mapQuery === 'string'
+        ? contact.mapQuery
+        : landingShowroomProfile.contact.mapQuery,
       workingHours: publicText(contact.workingHours, landingShowroomProfile.contact.workingHours),
     },
   };

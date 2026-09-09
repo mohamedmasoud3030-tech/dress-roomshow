@@ -28,6 +28,18 @@ export type LandingContact = {
   alternateEmail?: string;
   instagram: string;
   address: string;
+  /**
+   * Structured address lines (district, street, building…). The single-line
+   * `address` stays for backward compatibility with profiles saved before
+   * these lines existed; the public page prefers the lines when present.
+   */
+  addressLines?: string[];
+  /**
+   * Dedicated Google-Maps search phrase. A bare country name used to send
+   * visitors to a map of the whole country, so the map query is its own
+   * editable field instead of a side effect of the display text.
+   */
+  mapQuery?: string;
   workingHours: string;
 };
 
@@ -123,7 +135,9 @@ export const landingShowroomProfile: LandingShowroomProfile = {
     whatsapp: '+968 9191 8186',
     email: 'Ahmedmasoud@outlook.com',
     instagram: '@lena.showroom',
-    address: 'سلطنة عمان',
+    address: 'سلطنة عمان — محافظة مسقط',
+    addressLines: ['سلطنة عمان — محافظة مسقط'],
+    mapQuery: 'Muscat, Oman',
     workingHours: 'السبت إلى الخميس — 10 صباحًا إلى 9 مساءً',
   },
 };
