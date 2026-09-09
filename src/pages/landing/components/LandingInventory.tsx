@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
 import { isLastOfCategory } from '../landingFlags';
 import {
@@ -17,6 +18,7 @@ import {
   buildShortlistMessage,
 } from '../landingWhatsapp';
 import { useShortlist } from '../useShortlist';
+import { piecePath } from '../piecePath';
 import { DressPhoto } from './DressPhoto';
 import { Reveal } from './Reveal';
 import type { LandingDress } from '../landingDress.repository';
@@ -38,7 +40,7 @@ function getLandingDressPriceLabel(dress: Dress): string {
  * struck through beside the discounted one — the one number a customer wants
  * is the one she will pay, and hiding the old price only looks like a trick.
  */
-function LandingPrice({ dress, size = 'sm' }: { dress: Dress; size?: 'sm' | 'lg' }) {
+export function LandingPrice({ dress, size = 'sm' }: { dress: Dress; size?: 'sm' | 'lg' }) {
   const percent = getDressDiscountPercent(dress);
   const mainClass = size === 'lg' ? 'text-base font-black text-slate-950' : 'text-sm font-black text-slate-950';
 
@@ -112,17 +114,23 @@ function InventoryCard({
     <Reveal delay={Math.min(index * 70, 350)}>
       <article className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-2xl hover:shadow-slate-900/10">
         <div className="relative overflow-hidden">
-          <DressPhoto
-            brand={profile.brandName}
-            src={dress.images[0]}
-            alt={dress.name}
-            className="aspect-[3/4] w-full transition duration-[900ms] group-hover:scale-105"
-            fallbackLabel={dress.category}
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100"
-          />
+          <Link
+            to={piecePath(dress.code)}
+            aria-label={`صفحة ${dress.name}`}
+            className="block"
+          >
+            <DressPhoto
+              brand={profile.brandName}
+              src={dress.images[0]}
+              alt={dress.name}
+              className="aspect-[3/4] w-full transition duration-[900ms] group-hover:scale-105"
+              fallbackLabel={dress.category}
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100"
+            />
+          </Link>
 
           <div className="absolute right-3 top-3 flex flex-col gap-1.5">
             {isNew ? (
@@ -171,7 +179,7 @@ function InventoryCard({
             <p className="text-[0.7rem] font-bold text-amber-700">
               {typeLabel} · {dress.category}
             </p>
-            <h3 className="mt-1.5 text-lg font-black leading-snug text-slate-950">{dress.name}</h3>
+            <h3 className="mt-1.5 text-lg font-black leading-snug text-slate-950"><Link to={piecePath(dress.code)} className="transition hover:text-amber-700">{dress.name}</Link></h3>
             <p className="mt-1.5 text-xs leading-6 text-slate-500">
               {dress.description || 'قطعة متاحة حالياً ويمكن معاينتها وتجربتها خلال الموعد داخل المعرض.'}
             </p>
@@ -358,6 +366,13 @@ function QuickView({
                 احجزي موعد تجربة
               </a>
             ) : null}
+            <Link
+              to={piecePath(dress.code)}
+              onClick={onClose}
+              className="mt-2 flex min-h-11 items-center justify-center rounded-xl text-xs font-black text-amber-700 underline-offset-4 transition hover:underline"
+            >
+              افتحي صفحة القطعة لمشاركة رابطها
+            </Link>
             <p className="mt-4 text-center text-[0.7rem] leading-6 text-slate-500">
               يؤكد المعرض الموعد وتوفر القطعة بعد استلام الطلب.
             </p>

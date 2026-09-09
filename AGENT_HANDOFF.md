@@ -117,3 +117,22 @@ Node: `.nvmrc` = 22.23.2; sandbox 22.22.3 tolerated.
 - **M4 stays owner-DEFERRED** — never re-propose deletion without an operational reason + written retention policy; backup existence is never a reason to delete.
 - **Branch discipline:** work only on `arena/01a01f12-lenadress`; the parallel branch `arena/01a00fc5-lenadress` diverged — reconcile only with owner coordination.
 - **Environment ritual each session:** `git ls-remote` first (remote is truth), `npm ci` if `node_modules` missing, re-run the gate before claiming green.
+
+---
+
+## تكملة — إغلاق ناقصَين من §9 (صفحات القطع + العنوان التفصيلي)
+
+- **صفحة تفاصيل عامة مستقلة لكل قطعة** على `/piece/:code` (عامة مثل `/landing`، خارج بوابة الدخول).
+  تنشئها بطاقات المعروض وأسماؤها ونافذة العرض السريع عبر `src/pages/landing/piecePath.ts`،
+  وتقرأ نفس الإسقاط العلني `loadLandingInventory` (لا مسار بيانات ثانٍ)، وتعرض السعر بعد الخصم
+  والمقاس واللون والكود وأزرار واتساب الجاهزة بالكود، مع حالة «لم تعد متاحة» صادقة وقطع مشابهة.
+- **العنوان التفصيلي وربط الخريطة:** النوع `LandingContact` صار فيه `addressLines` و`mapQuery`،
+  الدمج المقوّى في `landingProfile.repository.ts` يسمح بهما ويسقط الشاذ، صفحة التواصل تعرض السطور
+  وتفتح الخريطة بعبارة البحث المخصصة، وشاشة «ملف المعرض التعريفي» في الإعدادات تُحرر كل ذلك
+  وتُطبّع القيم الفارغة لتسقط على الافتراضيات. المزامنة السحابية تمرّر الحقول تلقائياً (trigger passthrough).
+- **التحقق:** `typecheck` ✔ · `lint` ✔ · الاختبارات **785/785** (أُضيفت 5: الموجّه، رابط القطعة،
+  التحقق من مسار القطعة العام، دمج حقول العنوان، تحرير العنوان من الشاشة).
+- **لم يُكسر أي سلوك قائم:** بوابة الزباين، نافذة العرض السريع، القلب/الاختصارات، أزرار واتساب،
+  واختبارات front-door كما هي.
+- **منوط بالمالكة:** تعبئة سطور العنوان الحقيقية (منطقة/شارع/مبنى) من شاشة الإعدادات — الكود جاهز
+  ويعرض ويربط أي قيمة تحفظها فوراً.

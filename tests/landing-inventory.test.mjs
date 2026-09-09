@@ -216,3 +216,26 @@ test('a stalled public catalogue connection fails closed instead of hanging the 
   );
   assert.ok(Date.now() - startedAt < 5_000, 'the stalled request must resolve to the error state promptly');
 });
+
+test('every public card deep-links to the standalone piece page and the page stays on the anonymous catalogue projection', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const read = (p) => readFile(new URL(`../${p}`, import.meta.url), 'utf8');
+
+  const inventory = await read('src/pages/landing/components/LandingInventory.tsx');
+  assert.match(inventory, /piecePath\(dress\.code\)/);
+  assert.match(inventory, /from 'react-router-dom'/);
+
+  const page = await read('src/pages/landing/LandingPiecePage.tsx');
+  assert.match(page, /loadLandingInventory/);
+  assert.match(page, /useParams/);
+  assert.match(page, /buildAppointmentInquiryMessage/);
+  assert.match(page, /لم تعد في المعروض الحالي/);
+  assert.doesNotMatch(page, /showroom_state/);
+  assert.doesNotMatch(page, /RequireAuth/);
+});
+
+test('piecePath builds one canonical public URL per piece code', async () => {
+  const { piecePath } = await import('../src/pages/landing/piecePath.ts');
+  assert.equal(piecePath('D-009'), '/piece/D-009');
+  assert.equal(piecePath('  D-010  '), '/piece/D-010');
+});

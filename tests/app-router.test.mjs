@@ -79,3 +79,19 @@ test('router keeps the inventory details page lazy and preserves the loading cop
   assert.match(fallback, /role="status"/);
   assert.match(fallback, /aria-live="polite"/);
 });
+
+test('a visitor can open a standalone public piece page at /piece/:code', async () => {
+  const routes = await read('src/app/router/AppRoutes.tsx');
+  const landingAt = routes.indexOf('path="/landing"');
+  const pieceAt = routes.indexOf('path="/piece/:code"');
+  const loginAt = routes.indexOf('path="/login"');
+  assert.notEqual(pieceAt, -1, 'missing public piece route');
+  assert.ok(pieceAt > landingAt && pieceAt < loginAt, 'piece route must sit with the public routes, before the auth gate');
+  assert.match(routes, /<LandingPiecePage \/>/);
+
+  const pages = await read('src/app/router/routePages.ts');
+  assert.match(pages, /import\('\.\.\/\.\.\/pages\/landing\/LandingPiecePage'\)/);
+
+  const titles = await read('src/app/router/DocumentTitle.tsx');
+  assert.match(titles, /\/piece/);
+});

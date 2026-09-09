@@ -3,7 +3,7 @@ import { useBrandName } from '../../features/preferences/useBrandName';
 import { useLocation } from 'react-router-dom';
 
 const TITLES: Array<[RegExp, string]> = [
-  [/^\/landing/, 'معرض فساتين المناسبات'], [/^\/login/, 'تسجيل الدخول'],
+  [/^\/landing/, 'معرض فساتين المناسبات'], [/^\/piece\//, 'صفحة القطعة'], [/^\/login/, 'تسجيل الدخول'],
   [/^\/inventory/, 'المخزون'], [/^\/designs/, 'التصاميم'], [/^\/availability/, 'المتاح في فترة'],
   [/^\/accessories/, 'الملحقات'], [/^\/customers/, 'العميلات'], [/^\/reservations/, 'الحجوزات'],
   [/^\/appointments/, 'المواعيد'], [/^\/delivery-return/, 'التسليم والاسترجاع'], [/^\/sales/, 'المبيعات والمرتجعات'],

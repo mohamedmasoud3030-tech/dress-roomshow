@@ -34,6 +34,7 @@ export const SalesLedgerPage = lazyNamed(() => import('../../features/dresses/Sa
 export const StocktakePage = lazyNamed(() => import('../../features/stocktake/StocktakePage'), 'StocktakePage');
 export const ServiceQueuePage = lazyNamed(() => import('../../features/service/ServiceQueuePage'), 'ServiceQueuePage');
 export const LandingPage = lazyNamed(() => import('../../pages/landing/LandingPage'), 'LandingPage');
+export const LandingPiecePage = lazyNamed(() => import('../../pages/landing/LandingPiecePage'), 'LandingPiecePage');
 
 export const DesignDetailsPage = lazy(async () => {
   const module = await import('../../features/dresses/DesignDetailsPage');

@@ -22,6 +22,7 @@ import {
   ExpensesPage,
   InventoryPerformancePage,
   LandingPage,
+  LandingPiecePage,
   NotFoundPage,
   PaymentsPage,
   PreferencesPage,
@@ -39,6 +40,7 @@ export function AppRoutes() {
     <Suspense fallback={<RouteLoadingFallback />}>
     <Routes>
       <Route path="/landing" element={<LandingPage />} />
+      <Route path="/piece/:code" element={<LandingPiecePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<RootGate />}>
         <Route element={<AppShell />}>
