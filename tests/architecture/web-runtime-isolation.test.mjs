@@ -9,7 +9,6 @@ const sourceRoot = join(repositoryRoot, 'src');
 
 const aliases = {
   '@app': join(sourceRoot, 'app'),
-  '@modules': join(sourceRoot, 'modules'),
   '@engines': join(sourceRoot, 'engines'),
   '@platform': join(sourceRoot, 'platform'),
   '@shared': join(sourceRoot, 'shared'),

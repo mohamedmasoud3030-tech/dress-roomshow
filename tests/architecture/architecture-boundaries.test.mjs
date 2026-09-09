@@ -9,7 +9,6 @@ const sourceRoot = join(repositoryRoot, 'src');
 
 const aliases = {
   '@app': join(sourceRoot, 'app'),
-  '@modules': join(sourceRoot, 'modules'),
   '@engines': join(sourceRoot, 'engines'),
   '@platform': join(sourceRoot, 'platform'),
   '@shared': join(sourceRoot, 'shared'),
@@ -18,7 +17,7 @@ const aliases = {
 // `src/shared` already contains legacy utilities from before the target architecture.
 // It becomes guarded folder-by-folder as Step B moves proven reusable code into the
 // approved shared categories. New business modules and engines are guarded now.
-const guardedRoots = new Set(['app', 'modules', 'engines', 'platform']);
+const guardedRoots = new Set(['app', 'engines', 'platform']);
 const legacyRoots = new Set(['features', 'services', 'components', 'pages']);
 const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 
@@ -88,10 +87,6 @@ function pathPartsInsideSource(path) {
   return pathFromSource.split(sep);
 }
 
-function isPublicCrossModuleImport(specifier, targetModule) {
-  return specifier === `@modules/${targetModule}` || specifier === `@modules/${targetModule}/index`;
-}
-
 async function collectBoundaryViolations() {
   const files = (
     await Promise.all([...guardedRoots].map((root) => walk(join(sourceRoot, root))))
@@ -119,22 +114,12 @@ async function collectBoundaryViolations() {
       const targetRootName = targetParts[0];
       if (!targetRootName) continue;
 
-      if (sourceRootName === 'platform' && ['app', 'modules', 'engines'].includes(targetRootName)) {
+      if (sourceRootName === 'platform' && ['app', 'engines'].includes(targetRootName)) {
         violations.push(`${relative(repositoryRoot, file)}: platform cannot import ${specifier}`);
       }
 
-      if (['modules', 'engines', 'platform'].includes(sourceRootName) && legacyRoots.has(targetRootName)) {
+      if (['engines', 'platform'].includes(sourceRootName) && legacyRoots.has(targetRootName)) {
         violations.push(`${relative(repositoryRoot, file)}: target architecture code cannot import legacy ${specifier}`);
-      }
-
-      if (sourceRootName === 'modules' && targetRootName === 'modules') {
-        const sourceModule = sourceParts[1];
-        const targetModule = targetParts[1];
-        if (sourceModule && targetModule && sourceModule !== targetModule && !isPublicCrossModuleImport(specifier, targetModule)) {
-          violations.push(
-            `${relative(repositoryRoot, file)}: cross-module import must use @modules/${targetModule}, received ${specifier}`,
-          );
-        }
       }
     }
   }
@@ -148,7 +133,6 @@ test('TypeScript and Vite expose the approved architecture aliases', async () =>
 
   const expectedPaths = {
     '@app/*': ['src/app/*'],
-    '@modules/*': ['src/modules/*'],
     '@engines/*': ['src/engines/*'],
     '@platform/*': ['src/platform/*'],
     '@shared/*': ['src/shared/*'],

@@ -40,7 +40,18 @@
 - postcss dedup (D5, byte-identical CSS proof) · dead Tauri CI retirement (D4) with the
   Node-22 witness test updated (invariant preserved on the two live workflows).
 
-### M11 — Device-PIN abuse throttle — VERIFIED COMPLETE (sandbox; pulled ahead of M10)
+### M11 — Device-PIN abuse throttle — WITHDRAWN: the lock screen it hardened no longer exists
+
+> **حُذف هذا العنصر بالكامل بطلب المالكة:** شاشة قفل الجهاز بـ PIN أُزيلت من المنتج،
+> ومعها `src/features/device-lock/` و`src/platform/security/` و`tests/device-pin.test.mjs`.
+> ما يلي سجل تاريخي للعمل الذي أُنجز ثم أُلغي — **لا يُمثّل حالة الكود الحالية**، ولا يجوز
+> إعادة إنشائه من تاريخ Git.
+> الحاجز الفعلي اليوم: تسجيل دخول Supabase + صلاحيات RLS على الخادم + تفعيل الحسابات
+> يدوياً بيد المديرة فقط (راجعي `docs/OPERATIONS_GUIDE.md`).
+
+<details>
+<summary>السجل التاريخي (أُنجز ثم حُذف بطلب المالكة)</summary>
+
 - Problem → root cause: the 6-digit device PIN verifier (PBKDF2-SHA256, 210k iterations)
   had no attempt limiting at all — a borrowed phone + obvious guesses (123456, birth
   years) was an unbounded free oracle (`devicePin.ts` code inspection).
@@ -64,6 +75,8 @@
   build PASS. Review-pass caught and fixed: a locked attempt also wrote the lockout
   text into the persistent red `message` slot → stale "retry after N seconds" banner
   after expiry; now the live-countdown amber `role="alert"` banner owns that state.
+
+</details>
 - Remaining risk: determined attacker with device access can still wait out locks —
   residual accepted; the verifier cost + exponential cap makes quick-guess attacks die.
   Hosted-account (email) login throttling is Supabase-platform-managed → evidence item

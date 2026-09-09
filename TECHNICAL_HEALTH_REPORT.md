@@ -13,8 +13,10 @@
 سليم، أذونات قاعدة البيانات محكمة (تحقّقنا منها سطرًا سطرًا)، ولا ثغرات تبعية معروفة.
 أُغلقت هذه الجولة أخطر النقاط الصامتة: غياب نسخ احتياطية زمنية على الخادم، خطر «توقف الحفظ»
 عند امتلاء قاعدة البيانات المركزية دون إنذار، تعليق محتمل للصفحة العامة على الشبكات الضعيفة،
-ثم — في الجولة الثانية — ردع تخمين رمز قفل الجهاز (5 محاولات ثم قفل مؤقت متصاعد) وبطاقة
-عداد «أخطاء النظام» المرئية للإدمن دون الحاجة لفتح لوحة Supabase. ما تبقى يحتاج إما جهازك
+ثم — في الجولة الثانية — بطاقة
+عداد «أخطاء النظام» المرئية للإدمن دون الحاجة لفتح لوحة Supabase. (رُدِع تخمين رمز قفل
+الجهاز كان ضمن هذه الجولة أيضاً، لكن **شاشة القفل بـ PIN أُزيلت لاحقاً بطلب المالكة**،
+فالحاجز الوحيد اليوم هو تسجيل الدخول نفسه.) ما تبقى يحتاج إما جهازك
 الحقيقي (إثبات الكاميرا/الطباعة/التثبيت) أو قرارات مالك على حساب Supabase (جدولة النسخ،
 MFA، سياسات الاحتفاظ) — كلها مسعّدة في خطة المعالجة بترتيب صارم.
 
@@ -46,7 +48,7 @@ listed as open risks, never marked verified.
 - Structure: legacy roots (`features`, `services`, `components`) coexist with guarded target roots (`app/engines/platform/shared`) by design; architecture-boundary tests enforce the direction (verified present in the default gate).
 
 ### 2. Frontend, routes, forms, PWA boundaries
-- 24 routes behind `RequireAuth → CloudDataGate → DeviceLockGate`; `/preferences` additionally admin-only; lazy loading per route; 404 shell for unknown paths (verified in `AppRoutes.tsx` + router tests).
+- 24 routes behind `RequireAuth → CloudDataGate`; `/preferences` additionally admin-only. lazy loading per route; 404 shell for unknown paths (verified in `AppRoutes.tsx` + router tests).
 - Form handling is **not uniform**: 4 main forms use react-hook-form + Zod (`inventory`, `accessories`, `customers`, `reservations`); the rest use manual/HTML/service validation. Not a defect by itself; recorded as UX-consistency debt.
 - Loading/empty/error/success states are contract-tested (`tests/ui-contract.test.mjs`), incl. focus trap, tap targets, 320px overflow guards.
 - PWA: `generateSW`, precache of static assets only — **`runtimeCaching` absent, so no Supabase/API data is ever stored by the service worker** (verified `vite.config.ts`). Update flow is prompt-mode (verified). Offline = shell only; operational writes are online-only by product contract.

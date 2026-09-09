@@ -525,6 +525,10 @@ order (queue items NEXT 4.02 and PENDING 4.04/4.05 remain device-blocked and unc
   attempts-remaining warning only at ≤2 left; review-pass fix: lockout text no longer
   lingers as a stale red banner after expiry. Evidence: `devicePin.ts`,
   `DeviceLockGate.tsx`, `tests/device-pin.test.mjs` (suite 4→9).
+  > **ملاحظة لاحقة:** شاشة القفل بـ PIN أُزيلت بالكامل بطلب المالكة، ومعها
+  > `src/features/device-lock/` و`src/platform/security/` و`tests/device-pin.test.mjs`.
+  > هذا البند سجل تاريخي فقط؛ الحاجز الفعلي اليوم هو تسجيل الدخول + RLS
+  > (`docs/OPERATIONS_GUIDE.md`).
 - **M7 — errors visibility:** read-only «أخطاء النظام» count card for the admin on
   `/preferences` (route verified admin-only) — one round trip (`count:'exact'` + newest
   timestamp only, no row payloads), calm "unavailable" degradation, manual refresh; RLS
