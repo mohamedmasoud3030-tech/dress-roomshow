@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CircleAlert, Inbox, Loader2 } from 'lucide-react';
+import { Button } from './Button';
 
 /**
  * Unified Empty / Loading / Error presentation.
@@ -54,13 +55,9 @@ export function ErrorState({ title = 'تعذر إتمام العملية', messa
           <p className="text-sm font-bold text-rose-800">{title}</p>
           <p className="mt-1 break-words text-sm leading-6 text-rose-700">{message}</p>
           {onRetry ? (
-            <button
-              type="button"
-              onClick={onRetry}
-              className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-rose-300 bg-white px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
-            >
+            <Button type="button" variant="danger" size="sm" onClick={onRetry} className="mt-3">
               إعادة المحاولة
-            </button>
+            </Button>
           ) : null}
         </div>
       </div>

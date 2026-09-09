@@ -320,56 +320,56 @@ export function DressesPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="المخزون"
-          title="المخزون"
-        />
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setFeedback(null);
-              setHighlightedDressCode(null);
-              setShowScanner(true);
-            }}
-            className={SECONDARY_BUTTON_CLASS_NAME}
-          >
-            <Barcode aria-hidden="true" className="h-5 w-5" />
-            مسح باركود
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFeedback(null);
-              setShowSaleModal(true);
-            }}
-            className={SECONDARY_BUTTON_CLASS_NAME}
-          >
-            <Banknote aria-hidden="true" className="h-5 w-5" />
-            بيع عنصر
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFeedback(null);
-              setShowCreateModal(true);
-            }}
-            className={PRIMARY_BUTTON_CLASS_NAME}
-          >
-            <Plus aria-hidden="true" className="h-5 w-5" />
-            إضافة عنصر مخزون
-          </button>
-          <button
-            type="button"
-            onClick={() => { setFeedback(null); setShowDesignModal(true); }}
-            className={SECONDARY_BUTTON_CLASS_NAME}
-          >
-            <Layers aria-hidden="true" className="h-5 w-5" />
-            تصميم بمقاسات وألوان
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="المخزون"
+        title="المخزون"
+        actions={(
+          <>
+            <button
+              type="button"
+              onClick={() => {
+                setFeedback(null);
+                setHighlightedDressCode(null);
+                setShowScanner(true);
+              }}
+              className={SECONDARY_BUTTON_CLASS_NAME}
+            >
+              <Barcode aria-hidden="true" className="h-5 w-5" />
+              مسح باركود
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFeedback(null);
+                setShowSaleModal(true);
+              }}
+              className={SECONDARY_BUTTON_CLASS_NAME}
+            >
+              <Banknote aria-hidden="true" className="h-5 w-5" />
+              بيع عنصر
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setFeedback(null);
+                setShowCreateModal(true);
+              }}
+              className={PRIMARY_BUTTON_CLASS_NAME}
+            >
+              <Plus aria-hidden="true" className="h-5 w-5" />
+              إضافة عنصر مخزون
+            </button>
+            <button
+              type="button"
+              onClick={() => { setFeedback(null); setShowDesignModal(true); }}
+              className={SECONDARY_BUTTON_CLASS_NAME}
+            >
+              <Layers aria-hidden="true" className="h-5 w-5" />
+              تصميم بمقاسات وألوان
+            </button>
+          </>
+        )}
+      />
 
       {feedback && (
         <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { PersistenceErrorBoundary } from '../../components/shared/PersistenceErrorBoundary';
+import { PageContainer } from '../../components/shared/PageContainer';
 import { StorageCapacityIndicator } from '../../components/shared/StorageCapacityIndicator';
 import { AppHeader } from './AppHeader';
 import { DesktopNavigation } from './DesktopNavigation';
@@ -34,7 +35,7 @@ export function AppShell() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-l from-amber-200/50 via-transparent to-amber-100/60" />
         <AppHeader />
 
-        <div className="relative mx-auto w-full min-w-0 max-w-7xl p-4 sm:p-6">
+        <PageContainer>
           {showPersistenceNotice && (
             <div role="alert" className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold text-amber-900">
               {persistenceStatus.message}
@@ -46,7 +47,7 @@ export function AppShell() {
           <PersistenceErrorBoundary key={location.pathname}>
             <Outlet />
           </PersistenceErrorBoundary>
-        </div>
+        </PageContainer>
       </main>
 
       <MobileNavigation onOpenMenu={() => setMobileMenuOpen(true)} />

@@ -1,5 +1,6 @@
 import { useId, type ReactNode, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { cn } from '../../lib/utils';
+import { Button } from './Button';
 
 /**
  * Shared form primitives.
@@ -177,21 +178,20 @@ export function FormActions({
 }) {
   return (
     <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
-      <button
-        type="button"
-        onClick={onCancel}
-        className="min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-      >
+      <Button type="button" variant="secondary" size="md" onClick={onCancel}>
         {cancelLabel}
-      </button>
-      <button
+      </Button>
+      <Button
         type="submit"
-        disabled={disabled || isSubmitting}
+        variant="primary"
+        size="md"
+        loading={isSubmitting}
+        loadingLabel={pendingLabel}
         aria-busy={isSubmitting || undefined}
-        className="min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+        disabled={disabled}
       >
-        {isSubmitting ? pendingLabel : submitLabel}
-      </button>
+        {submitLabel}
+      </Button>
     </div>
   );
 }

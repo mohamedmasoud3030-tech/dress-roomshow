@@ -5,6 +5,9 @@ import { join } from 'node:path';
 import { URL, fileURLToPath } from 'node:url';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { Button } from '../src/components/shared/Button.tsx';
+import { PageContainer } from '../src/components/shared/PageContainer.tsx';
+import { PageHeader } from '../src/components/shared/PageHeader.tsx';
 import { Stepper } from '../src/components/shared/Stepper.tsx';
 import { getSuccessfulUploadUrls } from '../src/platform/images/supabaseImageUpload.ts';
 import { getRemoteCatalogueImageUrl } from '../src/features/sync/supabaseSync.ts';
@@ -40,6 +43,40 @@ test('shared mobile modals keep their own touch scrolling and do not freeze phon
   const inventory = await readFile(join(sourceRoot, 'pages/landing/components/LandingInventory.tsx'), 'utf8');
   assert.doesNotMatch(inventory, /bg-white\/90 text-slate-700 opacity-0/, 'mobile save control must not depend on hover');
   assert.doesNotMatch(inventory, /bg-white\/90 text-slate-900 opacity-0/, 'mobile zoom control must not depend on hover');
+});
+
+test('shared page foundations keep actions, spacing, and form semantics consistent', async () => {
+  const pageContainer = await readFile(join(sourceRoot, 'components/shared/PageContainer.tsx'), 'utf8');
+  const pageHeader = await readFile(join(sourceRoot, 'components/shared/PageHeader.tsx'), 'utf8');
+  const buttons = await readFile(join(sourceRoot, 'components/shared/Button.tsx'), 'utf8');
+  const shell = await readFile(join(sourceRoot, 'app/shell/AppShell.tsx'), 'utf8');
+  const forms = await readFile(join(sourceRoot, 'components/shared/FormField.tsx'), 'utf8');
+
+  assert.match(pageContainer, /safe-area-inset-bottom/);
+  assert.match(pageHeader, /actions\?: ReactNode/);
+  assert.match(pageHeader, /status\?: ReactNode/);
+  assert.match(buttons, /aria-busy/);
+  assert.match(buttons, /AMBER_FOCUS_RING_CLASS_NAME/);
+  assert.match(shell, /<PageContainer>/);
+  assert.match(forms, /<Button/);
+  assert.match(forms, /type="submit"/);
+
+  const markup = renderToStaticMarkup(
+    React.createElement(
+      PageContainer,
+      null,
+      React.createElement(PageHeader, {
+        eyebrow: 'المخزون',
+        title: 'المخزون',
+        status: React.createElement('span', null, 'جاهز'),
+        actions: React.createElement(Button, { type: 'button', loading: true }, 'حفظ'),
+      }),
+    ),
+  );
+  assert.match(markup, /max-w-7xl/);
+  assert.match(markup, /safe-area-inset-bottom/);
+  assert.match(markup, /aria-busy="true"/);
+  assert.match(markup, /جاهز/);
 });
 
 test('the reservation modal is a real validated four-panel wizard', async () => {
