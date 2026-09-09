@@ -6,7 +6,8 @@ import {
 } from '../../shared/utils/financialCalculations.js';
 import { recordAudit } from '../audit/audit.service';
 import { assertBusinessDateOpen } from '../integrity/integrity.service';
-import { getReservations, recordReservationPayment, settleReservationReturn } from '../reservations/reservation.service';
+import { getReservations } from '../reservations/reservation.service';
+import { recordReservationPayment, settleReservationReturn } from '../reservations/reservationMoney.service';
 import { getReservationDepositTotal } from '../reservations/contractLineHelpers';
 import type { Reservation } from '../reservations/reservation.types';
 import { PAYMENT_DIRECTION_LABELS, PAYMENT_METHOD_LABELS, PAYMENT_TYPE_LABELS } from './payment.constants';

@@ -7,11 +7,11 @@ import { addDress } from '../src/features/dresses/dress.service.ts';
 import {
   cancelReservation,
   createReservation,
-  getReservations,
   getReservationTimes,
+  getReservations,
   hasReservationOverlap,
-  rescheduleReservation,
 } from '../src/features/reservations/reservation.service.ts';
+import { rescheduleReservation } from '../src/features/reservations/reservationLines.service.ts';
 import {
   expandPeriodWithBuffers,
   findItemConflicts,

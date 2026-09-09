@@ -168,7 +168,7 @@ test('unresolved legacy does not affect canonical rental balance or liability an
     const serviceRes = getReservations().find((r) => r.reservationNumber === 'RSV-NO-AUTO');
     assert.ok(serviceRes);
     assert.equal(serviceRes.needsFinancialClassification, true);
-    const { settleReservationReturn } = await import('../src/features/reservations/reservation.service.ts');
+    const { settleReservationReturn } = await import('../src/features/reservations/reservationMoney.service.ts');
     assert.throws(() => {
       settleReservationReturn({
         reservationNumber: 'RSV-NO-AUTO',

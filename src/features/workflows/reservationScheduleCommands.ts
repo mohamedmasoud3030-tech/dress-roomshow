@@ -1,5 +1,5 @@
 import { commandBoundary, runCommand } from '@engines/workflows';
-import { rescheduleReservation } from '../reservations/reservation.service';
+import { rescheduleReservation } from '../reservations/reservationLines.service';
 import type { Reservation, RescheduleReservationInput } from '../reservations/reservation.types';
 
 /**

@@ -4,12 +4,8 @@ import { installStorage, uninstallStorage, futureDate } from './helpers/storage.
 import { resetCountersForTesting } from '../src/engines/persistence/index.ts';
 import { addCustomer } from '../src/features/customers/customer.service.ts';
 import { addDress, getDresses } from '../src/features/dresses/dress.service.ts';
-import {
-  createReservation,
-  deliverContractLine,
-  getReservations,
-  returnContractLine,
-} from '../src/features/reservations/reservation.service.ts';
+import { createReservation, getReservations } from '../src/features/reservations/reservation.service.ts';
+import { deliverContractLine, returnContractLine } from '../src/features/reservations/reservationLines.service.ts';
 import { DEFAULT_APP_PREFERENCES, saveAppPreferences } from '../src/features/preferences/preferences.service.ts';
 
 function cleanup() {

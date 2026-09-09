@@ -4,14 +4,9 @@ import { installStorage, uninstallStorage, futureDate } from './helpers/storage.
 import { resetCountersForTesting } from '../src/engines/persistence/index.ts';
 import { addCustomer } from '../src/features/customers/customer.service.ts';
 import { addDress } from '../src/features/dresses/dress.service.ts';
-import {
-  createReservation,
-  getReservations,
-  rescheduleReservation,
-  addContractLine,
-  removeContractLine,
-  recordReservationPayment,
-} from '../src/features/reservations/reservation.service.ts';
+import { createReservation, getReservations } from '../src/features/reservations/reservation.service.ts';
+import { addContractLine, removeContractLine, rescheduleReservation } from '../src/features/reservations/reservationLines.service.ts';
+import { recordReservationPayment } from '../src/features/reservations/reservationMoney.service.ts';
 import {
   getReservationLines,
   isMultiItemReservation,
