@@ -63,11 +63,12 @@ function RowList({ title, description, rows, emptyText, onOpen }: {
         <ul className="mt-3 space-y-2">
           {rows.map((row) => (
             <li key={row.id}>
-              <button
+              <Button
                 type="button"
+                variant="quiet"
                 onClick={() => onOpen(row)}
                 aria-label={`فتح تفاصيل أداء ${row.code}`}
-                className={`flex w-full items-center justify-between gap-2 rounded-xl bg-stone-50 p-3 text-right transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                className="flex w-full items-center justify-between gap-2 rounded-xl bg-stone-50 p-3 text-right hover:bg-stone-100"
               >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-bold text-slate-900">{row.code} — {row.name}</span>
@@ -78,7 +79,7 @@ function RowList({ title, description, rows, emptyText, onOpen }: {
                 <span className={`shrink-0 text-sm font-extrabold ${row.netResult < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
                   {formatMoneyOMR(row.netResult)}
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

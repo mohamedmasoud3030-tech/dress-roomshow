@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshCw, ShieldAlert } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 /**
@@ -92,14 +93,10 @@ export function SystemErrorsSummary() {
               <p className="mt-1 text-xs text-slate-500">إذا تسارع العدد أو لاحظتِ عطلًا متكررًا، أخبري الدعم برقم الإصدار من قسم «عن التطبيق».</p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-stone-100"
-          >
+          <Button type="button" variant="secondary" onClick={() => void refresh()}>
             <RefreshCw aria-hidden="true" className="h-4 w-4" />
             تحديث
-          </button>
+          </Button>
         </div>
       )}
     </article>

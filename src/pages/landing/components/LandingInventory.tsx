@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
+import { Button, IconButton } from '../../../components/shared/Button';
 import { isLastOfCategory } from '../landingFlags';
 import {
   getDressDiscountPercent,
@@ -150,28 +151,32 @@ function InventoryCard({
             ) : null}
           </div>
 
-          <button
+          <IconButton
             type="button"
+            variant="quiet"
+            size="sm"
             onClick={() => onToggleSave(dress)}
             aria-pressed={saved}
-            className={`absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg backdrop-blur transition duration-300 ${
+            label={saved ? `إزالة ${dress.name} من اختياراتك` : `إضافة ${dress.name} إلى اختياراتك`}
+            className={`absolute left-3 top-3 h-10 w-10 rounded-xl p-0 shadow-lg backdrop-blur ${
               saved
                 ? 'bg-amber-400 text-slate-950'
                 : 'bg-white/90 text-slate-700 hover:bg-white'
             }`}
-            aria-label={saved ? `إزالة ${dress.name} من اختياراتك` : `إضافة ${dress.name} إلى اختياراتك`}
           >
             <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
-          </button>
+          </IconButton>
 
-          <button
+          <IconButton
             type="button"
+            variant="secondary"
+            size="sm"
             onClick={() => onZoom(dress)}
-            className="absolute bottom-3 left-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-900 shadow-lg backdrop-blur transition duration-300 hover:bg-white"
-            aria-label={`تكبير صورة ${dress.name}`}
+            label={`تكبير صورة ${dress.name}`}
+            className="absolute bottom-3 left-3 h-10 w-10 rounded-xl bg-white/90 p-0 text-slate-900 shadow-lg backdrop-blur hover:bg-white"
           >
             <ZoomIn aria-hidden="true" className="h-4 w-4" />
-          </button>
+          </IconButton>
         </div>
 
         <div className="flex flex-1 flex-col space-y-4 p-5">
@@ -290,14 +295,16 @@ function QuickView({
             fallbackLabel={dress.category}
           />
           <div className="relative p-6 sm:p-8">
-            <button
+            <IconButton
               type="button"
+              variant="secondary"
+              size="sm"
               onClick={onClose}
-              className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 transition hover:bg-slate-200"
-              aria-label="إغلاق"
+              label="إغلاق"
+              className="absolute left-4 top-4 h-10 w-10 rounded-xl bg-slate-100 p-0 text-slate-700 hover:bg-slate-200"
             >
               <X aria-hidden="true" className="h-5 w-5" />
-            </button>
+            </IconButton>
 
             <p className="text-xs font-black tracking-[0.15em] text-amber-600">
               {INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress']} · {dress.category}
@@ -331,10 +338,12 @@ function QuickView({
             </div>
 
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <button
+              <Button
                 type="button"
+                variant="quiet"
+                aria-pressed={saved}
                 onClick={() => onToggleSave(dress)}
-                className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition ${
+                className={`min-h-12 rounded-xl px-4 py-3 text-sm font-black ${
                   saved
                     ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
                     : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
@@ -342,7 +351,7 @@ function QuickView({
               >
                 <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
                 {saved ? 'في اختياراتك' : 'أضيفي لاختياراتك'}
-              </button>
+              </Button>
               {inquiryLink ? (
                 <a
                   href={inquiryLink}
@@ -533,19 +542,21 @@ export function LandingInventory({
             {inventoryCategories.map((category) => {
               const active = selectedCategory === category;
               return (
-                <button
+                <Button
                   key={category}
                   type="button"
+                  variant="quiet"
+                  size="sm"
                   onClick={() => onCategoryChange(category)}
                   aria-pressed={active}
-                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-black transition ${
+                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-black ${
                     active
                       ? 'bg-slate-950 text-white'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
                 >
                   {category === 'all' ? 'كل الفئات' : category}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -555,12 +566,14 @@ export function LandingInventory({
             {usageChips.map((chip) => {
               const active = usageFilter === chip.value;
               return (
-                <button
+                <Button
                   key={chip.value}
                   type="button"
+                  variant="quiet"
+                  size="sm"
                   onClick={() => onUsageChange(chip.value)}
                   aria-pressed={active}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black transition ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black ${
                     active
                       ? 'border-amber-400 bg-amber-50 text-amber-800'
                       : 'border-slate-200 text-slate-600 hover:border-slate-300'
@@ -568,14 +581,16 @@ export function LandingInventory({
                 >
                   {active ? <Check aria-hidden="true" className="h-3 w-3" /> : null}
                   {chip.label}
-                </button>
+                </Button>
               );
             })}
-            <button
+            <Button
               type="button"
+              variant="quiet"
+              size="sm"
               onClick={() => onNewOnlyChange(!newOnly)}
               aria-pressed={newOnly}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black transition ${
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black ${
                 newOnly
                   ? 'border-amber-400 bg-amber-400 text-slate-950'
                   : 'border-slate-200 text-slate-600 hover:border-slate-300'
@@ -583,7 +598,7 @@ export function LandingInventory({
             >
               <Sparkles aria-hidden="true" className="h-3 w-3" />
               وصل حديثاً
-            </button>
+            </Button>
             <span className="mr-auto pl-1 text-xs font-bold text-slate-500">
               {sorted.length} قطعة
             </span>
@@ -686,13 +701,9 @@ export function LandingInventory({
             </label>
 
             <div className="mr-auto flex items-center gap-2">
-              <button
-                type="button"
-                onClick={shortlist.clear}
-                className="rounded-xl px-3 py-2 text-xs font-bold text-slate-400 transition hover:text-white"
-              >
+              <Button type="button" variant="quiet" size="sm" onClick={shortlist.clear} className="rounded-xl px-3 py-2 text-xs text-slate-400 hover:text-white">
                 مسح
-              </button>
+              </Button>
               {shortlistLink ? (
                 <a
                   href={shortlistLink}

@@ -5,7 +5,6 @@ import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import {
-  AMBER_FOCUS_RING_CLASS_NAME,
   STACKED_FORM_FIELD_CLASS_NAME,
   STACKED_FORM_LABEL_CLASS_NAME,
 } from '../../shared/domain/formConstants';
@@ -268,14 +267,17 @@ export function AddPaymentModal({ open, onClose, onCreated }: AddPaymentModalPro
           <p className="mb-2 text-sm font-bold text-slate-700">نوع الحركة</p>
           <div className="grid gap-2 rounded-3xl bg-slate-950 p-2 text-sm font-bold text-white sm:grid-cols-3 lg:grid-cols-5">
             {MANUAL_PAYMENT_TYPES.map((type) => (
-              <button
+              <Button
                 key={type}
                 type="button"
+                size="sm"
+                variant="quiet"
+                aria-pressed={form.type === type}
                 onClick={() => updateType(type)}
-                className={`min-h-11 rounded-2xl px-3 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${form.type === type ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+                className={`min-h-11 rounded-2xl px-3 ${form.type === type ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
               >
                 {formatPaymentTypeLabel(type)}
-              </button>
+              </Button>
             ))}
           </div>
           <p className="mt-2 text-xs text-slate-500">دفعة الحجز (دفعة مقدمة تقلل المتبقي من الإيجار) · التأمين المسترد (التزام قابل للرد ولا يُحتسب إيراداً)</p>

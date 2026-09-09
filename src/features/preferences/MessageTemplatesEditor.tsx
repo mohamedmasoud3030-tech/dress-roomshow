@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { RotateCcw, Save } from 'lucide-react';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { REMINDER_KIND_LABELS } from '../reminders/reminder.service';
 import {
   DEFAULT_MESSAGE_TEMPLATES,
@@ -112,14 +112,16 @@ export function MessageTemplatesEditor() {
         <ul className="mt-2 flex flex-wrap gap-2">
           {TEMPLATE_PLACEHOLDERS.map((placeholder) => (
             <li key={placeholder.token}>
-              <button
+              <Button
                 type="button"
+                variant="quiet"
+                size="sm"
                 onClick={() => insertPlaceholder(placeholder)}
                 aria-label={`إدراج رمز ${placeholder.label}`}
-                className="rounded-full bg-white px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200 transition hover:bg-amber-50 hover:ring-amber-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                className="rounded-full bg-white px-2.5 py-1 text-xs text-slate-700 ring-1 ring-slate-200 hover:bg-amber-50 hover:ring-amber-300"
               >
                 <span dir="ltr">{`{{${placeholder.token}}}`}</span> — {placeholder.label}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -168,22 +170,14 @@ export function MessageTemplatesEditor() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={handleSave}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" onClick={handleSave}>
           <Save aria-hidden="true" className="h-4 w-4" />
           حفظ النصوص
-        </button>
-        <button
-          type="button"
-          onClick={handleReset}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={handleReset}>
           <RotateCcw aria-hidden="true" className="h-4 w-4" />
           إعادة الصياغة الافتراضية
-        </button>
+        </Button>
       </div>
     </article>
   );

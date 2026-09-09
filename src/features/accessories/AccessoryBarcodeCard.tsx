@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
+import { Button } from '../../components/shared/Button';
 import { printAccessoryLabel } from './printAccessoryLabel';
 import type { Accessory } from './accessory.types';
 
@@ -65,14 +66,9 @@ export function AccessoryBarcodeCard({ accessory }: { accessory: Accessory }) {
         </p>
       ) : null}
 
-      <button
-        type="button"
-        onClick={handlePrint}
-        disabled={generationError !== null}
-        className="min-h-11 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-      >
+      <Button type="button" variant="secondary" onClick={handlePrint} disabled={generationError !== null}>
         طباعة بطاقة الملحق
-      </button>
+      </Button>
     </div>
   );
 }

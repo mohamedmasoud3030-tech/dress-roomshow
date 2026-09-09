@@ -73,7 +73,7 @@ test('an empty reservation wizard can create its missing customer and inventory 
 test('inventory image removal is visible on touch and named for assistive technology', async () => {
   const uploader = await readSource('features/dresses/ImageUpload.tsx');
 
-  assert.match(uploader, /aria-label=\{`حذف صورة العنصر/);
+  assert.match(uploader, /(?:aria-label|label)=\{`حذف صورة العنصر/, 'the shared icon button must carry the accessible label');
   assert.match(uploader, /opacity-100/);
   assert.match(uploader, /focus-visible:opacity-100/);
   assert.match(uploader, /<X aria-hidden="true"/);

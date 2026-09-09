@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ImagePlus, X } from 'lucide-react';
+import { IconButton } from '../../components/shared/Button';
 import { compressImageFiles } from '@platform/images';
 
 /**
@@ -151,14 +152,16 @@ export function ImageUpload({ images, onChange, maxImages = 5 }: ImageUploadProp
                 alt={`صورة ${index + 1}`}
                 className="h-full w-full object-cover"
               />
-              <button
+              <IconButton
                 type="button"
+                variant="danger"
+                size="sm"
                 onClick={() => removeImage(index)}
-                aria-label={`حذف صورة العنصر ${index + 1}`}
-                className="absolute right-1 top-1 rounded-full bg-red-600 p-2 text-white opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+                label={`حذف صورة العنصر ${index + 1}`}
+                className="absolute right-1 top-1 min-h-8 min-w-8 rounded-full bg-red-600 p-2 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
               >
                 <X aria-hidden="true" size={14} />
-              </button>
+              </IconButton>
             </div>
           ))}
         </div>

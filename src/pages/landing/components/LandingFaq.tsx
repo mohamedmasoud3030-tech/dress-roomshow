@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Button } from '../../../components/shared/Button';
 import type { LandingProfile } from './types';
 import { Reveal } from './Reveal';
 
@@ -24,11 +25,12 @@ export function LandingFaq({ profile }: { profile: LandingProfile }) {
             <Reveal key={item.question} delay={index * 50}>
               <div>
                 <h3>
-                  <button
+                  <Button
                     type="button"
+                    variant="quiet"
                     onClick={() => setOpenIndex(open ? null : index)}
                     aria-expanded={open}
-                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-right transition hover:bg-slate-50 sm:px-7"
+                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-right hover:bg-slate-50 sm:px-7"
                   >
                     <span className="text-base font-black text-slate-950 sm:text-lg">
                       {item.question}
@@ -42,7 +44,7 @@ export function LandingFaq({ profile }: { profile: LandingProfile }) {
                     >
                       <Plus aria-hidden="true" className="h-4 w-4" />
                     </span>
-                  </button>
+                  </Button>
                 </h3>
                 <div
                   className={`grid transition-all duration-300 ease-out ${

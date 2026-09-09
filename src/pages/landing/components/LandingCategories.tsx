@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
+import { Button } from '../../../components/shared/Button';
 import type { Dress } from '../../../features/dresses/dress.types';
 import type { LandingProfile } from './types';
 import { DressPhoto } from './DressPhoto';
@@ -36,24 +37,21 @@ export function LandingCategories({ profile, dresses, onSelectCategory }: Props)
               معروضة بصورتها الحقيقية.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => onSelectCategory('all')}
-            className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-black text-slate-700 transition hover:border-slate-900 hover:text-slate-950 sm:self-auto"
-          >
+          <Button type="button" variant="secondary" onClick={() => onSelectCategory('all')} className="self-start border-slate-300 px-4 py-2.5 text-sm font-black hover:border-slate-900 hover:text-slate-950 sm:self-auto">
             عرض كل المعروض
             <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </Reveal>
 
       <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {categories.map((category, index) => (
           <Reveal key={category.name} delay={index * 60}>
-            <button
+            <Button
               type="button"
+              variant="quiet"
               onClick={() => onSelectCategory(category.name)}
-              className="group relative block w-full overflow-hidden rounded-[1.5rem] text-right focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/50"
+              className="group relative block w-full overflow-hidden rounded-[1.5rem] p-0 text-right focus-visible:ring-4 focus-visible:ring-amber-400/50"
               aria-label={`عرض قطع فئة ${category.name}`}
             >
               <span className="relative block aspect-[4/5] overflow-hidden bg-slate-100">
@@ -82,7 +80,7 @@ export function LandingCategories({ profile, dresses, onSelectCategory }: Props)
                   </span>
                 ) : null}
               </span>
-            </button>
+            </Button>
           </Reveal>
         ))}
       </div>

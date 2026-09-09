@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType, NotFoundException } from '@zxing/library';
 import type { IScannerControls } from '@zxing/browser';
+import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 
 type BarcodeScannerProps = {
@@ -98,13 +99,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       {error ? (
         <div className="space-y-3 text-center">
           <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>
-          <button
-            type="button"
-            onClick={() => void startCamera()}
-            className="w-full rounded-xl border border-slate-300 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
-          >
+          <Button type="button" variant="secondary" className="w-full" onClick={() => void startCamera()}>
             إعادة محاولة تشغيل الكاميرا
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -122,13 +119,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           </p>
 
           <div className="mt-4 grid gap-2">
-            <button
-              type="button"
-              onClick={() => void startCamera()}
-              className="w-full rounded-xl border border-slate-300 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
-            >
+            <Button type="button" variant="secondary" className="w-full" onClick={() => void startCamera()}>
               إعادة المسح
-            </button>
+            </Button>
           </div>
         </>
       )}
@@ -153,13 +146,9 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
         {manualInputError && (
           <p className="mt-2 text-sm font-medium text-red-600">{manualInputError}</p>
         )}
-        <button
-          type="button"
-          onClick={handleManualSubmit}
-          className="mt-3 w-full rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
-        >
+        <Button type="button" className="mt-3 w-full" onClick={handleManualSubmit}>
           تأكيد الباركود اليدوي
-        </button>
+        </Button>
       </div>
     </Modal>
   );

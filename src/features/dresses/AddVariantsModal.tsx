@@ -1,11 +1,11 @@
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { Button, IconButton } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { FormActions, MoneyField, TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { createSubmissionKey } from '../../shared/utils/submissionKey';
 import { addDesignVariantsCommand } from '../workflows';
 import type { DressDesign } from './design.types';
@@ -127,27 +127,24 @@ export function AddVariantsModal({ open, design, onClose, onAdded }: Props) {
               placeholder="افتراضي"
             />
             <div className="flex items-end">
-              <button
+              <IconButton
                 type="button"
-                aria-label={`حذف الصف ${index + 1}`}
+                variant="danger"
+                label={`حذف الصف ${index + 1}`}
                 disabled={rows.length === 1}
                 onClick={() => setRows((current) => current.filter((_, rowIndex) => rowIndex !== index))}
-                className={`flex h-11 w-11 items-center justify-center rounded-xl border border-rose-200 text-rose-700 transition hover:bg-rose-50 disabled:opacity-40 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                className="min-w-11"
               >
                 <Trash2 aria-hidden="true" className="h-4 w-4" />
-              </button>
+              </IconButton>
             </div>
           </div>
         ))}
 
-        <button
-          type="button"
-          onClick={() => setRows((current) => [...current, emptyRow()])}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={() => setRows((current) => [...current, emptyRow()])}>
           <Plus aria-hidden="true" className="h-4 w-4" />
           صف آخر
-        </button>
+        </Button>
 
         <FormActions
           onCancel={close}

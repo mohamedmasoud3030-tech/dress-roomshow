@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH } from '../../shared/domain/businessRules';
@@ -144,20 +145,8 @@ export function AddCustomerModal({ open, onClose, onCreated }: AddCustomerModalP
         </div>
 
         <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={closeModal}
-            className="min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-          >
-            إلغاء
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-          >
-            {isSubmitting ? 'جارٍ الحفظ...' : 'إضافة العميلة'}
-          </button>
+          <Button type="button" variant="secondary" onClick={closeModal}>إلغاء</Button>
+          <Button type="submit" disabled={isSubmitting} loading={isSubmitting} loadingLabel="جارٍ الحفظ...">إضافة العميلة</Button>
         </div>
       </form>
     </Modal>

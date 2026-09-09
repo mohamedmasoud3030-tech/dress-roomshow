@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Ruler, Save } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { Section } from '../../components/shared/Section';
 import { TextAreaField, TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH } from '../../shared/domain/businessRules';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { updateCustomerCommand } from '../workflows';
 import { getMeasurementLabel, parseLegacyMeasurements, suggestSize } from './measurements.service';
@@ -125,14 +125,10 @@ export function MeasurementsPanel({ customer, onSaved }: { customer: Customer; o
         <p className="mt-2 text-xs text-slate-500">آخر تحديث للمقاسات: {customer.bodyMeasurements.measuredAt}</p>
       )}
 
-      <button
-        type="button"
-        onClick={save}
-        className={`mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-      >
+      <Button type="button" onClick={save} className="mt-4">
         <Save aria-hidden="true" className="h-4 w-4" />
         حفظ المقاسات
-      </button>
+      </Button>
     </Section>
   );
 }

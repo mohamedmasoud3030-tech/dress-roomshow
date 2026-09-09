@@ -1,12 +1,12 @@
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { Button, IconButton } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { FormActions, MoneyField, SelectField, TextAreaField, TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { createSubmissionKey } from '../../shared/utils/submissionKey';
 import { addDesignWithVariantsCommand } from '../workflows';
 import type { DressCategory } from './dress.types';
@@ -169,14 +169,10 @@ export function AddDesignModal({ open, onClose, onCreated }: Props) {
         <fieldset className="space-y-3 rounded-2xl border border-slate-200 bg-stone-50/70 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <legend className="text-sm font-bold text-slate-800">المقاسات والألوان المتوفرة</legend>
-            <button
-              type="button"
-              onClick={() => setVariants((current) => [...current, emptyVariant()])}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={() => setVariants((current) => [...current, emptyVariant()])}>
               <Plus aria-hidden="true" className="h-4 w-4" />
               إضافة مقاس / لون
-            </button>
+            </Button>
           </div>
 
           {variants.map((row, index) => (
@@ -205,15 +201,16 @@ export function AddDesignModal({ open, onClose, onCreated }: Props) {
                 onChange={(event) => updateVariant(index, { quantity: event.target.value })}
               />
               <div className="flex items-end">
-                <button
+                <IconButton
                   type="button"
-                  aria-label={`حذف المقاس ${index + 1}`}
+                  variant="danger"
+                  label={`حذف المقاس ${index + 1}`}
                   disabled={variants.length === 1}
                   onClick={() => setVariants((current) => current.filter((_, rowIndex) => rowIndex !== index))}
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl border border-rose-200 text-rose-700 transition hover:bg-rose-50 disabled:opacity-40 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                  className="min-w-11"
                 >
                   <Trash2 aria-hidden="true" className="h-4 w-4" />
-                </button>
+                </IconButton>
               </div>
             </div>
           ))}

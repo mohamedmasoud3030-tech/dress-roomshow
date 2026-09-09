@@ -8,6 +8,7 @@ import {
   SHOWROOM_COMMAND_COMMITTED_EVENT,
   type ShowroomCommandCommitted,
 } from '@shared/persistence/cloudCommit';
+import { Button } from '../../components/shared/Button';
 import { RouteLoadingFallback } from '@app/router/RouteLoadingFallback';
 import {
   commitShowroomState,
@@ -124,7 +125,7 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
           <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 p-6 text-center">
             <h1 className="text-2xl font-black text-slate-950">تم إيقاف التشغيل لحماية البيانات</h1>
             <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 font-bold text-red-900">{failure}</p>
-            <button type="button" onClick={() => void hydrate()} className="rounded-xl bg-slate-950 px-5 py-3 font-bold text-white">إعادة المحاولة</button>
+            <Button type="button" onClick={() => void hydrate()}>إعادة المحاولة</Button>
           </main>
         ) : <RouteLoadingFallback />}
       </div>

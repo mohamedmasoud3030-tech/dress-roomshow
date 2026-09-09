@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, HardDrive, RefreshCw } from 'lucide-react';
+import { IconButton } from './Button';
 import { Link } from 'react-router-dom';
 import {
   formatStorageBytes,
@@ -58,9 +59,9 @@ export function StorageCapacityIndicator({ compact = false }: StorageCapacityInd
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {compact && <Link to="/preferences" className="inline-flex min-h-10 items-center rounded-lg border border-current/30 px-3 py-2 text-xs font-bold hover:bg-white/40">إدارة التخزين</Link>}
-          <button type="button" onClick={() => void refresh()} disabled={isRefreshing} aria-label="تحديث سعة التخزين" className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-current/30 hover:bg-white/40 disabled:cursor-not-allowed disabled:opacity-60">
+          <IconButton type="button" variant="quiet" size="sm" onClick={() => void refresh()} disabled={isRefreshing} label="تحديث سعة التخزين" className="min-h-10 min-w-10 rounded-lg border border-current/30 text-current hover:bg-white/40">
             <RefreshCw aria-hidden="true" className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
+          </IconButton>
         </div>
       </div>
     </section>

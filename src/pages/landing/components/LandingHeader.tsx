@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, Menu, X } from 'lucide-react';
+import { IconButton } from '../../../components/shared/Button';
 import type { LandingProfile } from './types';
 import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from '../landingWhatsapp';
 
@@ -74,15 +75,17 @@ export function LandingHeader({ profile }: { profile: LandingProfile }) {
             </a>
           ) : null}
 
-          <button
+          <IconButton
             type="button"
+            variant="quiet"
+            size="sm"
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 text-white transition hover:bg-white/10 lg:hidden"
-            aria-label={menuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+            label={menuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
             aria-expanded={menuOpen}
+            className="h-11 w-11 rounded-xl border border-white/15 p-0 text-white hover:bg-white/10 lg:hidden"
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          </IconButton>
         </div>
       </div>
 

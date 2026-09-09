@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { Camera, X } from 'lucide-react';
+import { IconButton } from '../../components/shared/Button';
 import { compressImageFiles } from '@platform/images';
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import type { ConditionPhoto } from './deliveryReturn.types';
@@ -120,15 +121,17 @@ export function ConditionPhotoCapture({
           {photos.map((photo, index) => (
             <li key={photo.id} className="relative aspect-square overflow-hidden rounded-lg border border-slate-200">
               <img src={photo.dataUrl} alt={`${label} ${index + 1}`} className="h-full w-full object-cover" />
-              <button
+              <IconButton
                 type="button"
+                variant="danger"
+                size="sm"
                 onClick={() => onChange(photos.filter((item) => item.id !== photo.id))}
-                aria-label={`حذف ${label} ${index + 1}`}
+                label={`حذف ${label} ${index + 1}`}
                 disabled={disabled}
-                className={`absolute left-1 top-1 rounded-full bg-rose-600 p-1 text-white transition hover:bg-rose-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                className="absolute left-1 top-1 min-h-8 min-w-8 rounded-full bg-rose-600 p-1 text-white hover:bg-rose-700"
               >
                 <X aria-hidden="true" className="h-3.5 w-3.5" />
-              </button>
+              </IconButton>
             </li>
           ))}
         </ul>

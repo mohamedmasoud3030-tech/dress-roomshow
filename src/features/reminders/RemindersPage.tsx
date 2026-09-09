@@ -62,31 +62,18 @@ function ReminderCard({
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => onSend(reminder)}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white transition hover:bg-emerald-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" variant="secondary" onClick={() => onSend(reminder)} className="border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700">
           <MessageCircle aria-hidden="true" className="h-4 w-4" />
           فتح واتساب
-        </button>
-        <button
-          type="button"
-          onClick={() => onCopy(reminder)}
-          aria-label={`نسخ رسالة ${reminder.customerName}`}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => onCopy(reminder)} aria-label={`نسخ رسالة ${reminder.customerName}`}>
           <Copy aria-hidden="true" className="h-4 w-4" />
           نسخ
-        </button>
-        <button
-          type="button"
-          onClick={() => onDismiss(reminder)}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-600 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => onDismiss(reminder)}>
           <Check aria-hidden="true" className="h-4 w-4" />
           تمت المتابعة
-        </button>
+        </Button>
         <Link
           to={`/reservations?search=${encodeURIComponent(reminder.reservation.reservationNumber)}`}
           className={`inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-bold text-slate-600 underline-offset-2 transition hover:underline ${AMBER_FOCUS_RING_CLASS_NAME}`}

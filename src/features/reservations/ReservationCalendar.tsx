@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { getTodayISO } from '../../shared/utils/date';
 import { RESERVATION_STATUS_LABELS, RESERVATION_STATUS_STYLES, RESERVATION_STATUS_DOT_STYLES } from '../../shared/domain/reservationConstants';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import {
   CALENDAR_VIEW_LABELS,
   EMPTY_CALENDAR_FILTERS,
@@ -40,19 +40,21 @@ function EntryChip({ entry, onOpen }: { entry: CalendarEntry; onOpen?: (reservat
   const label = `${KIND_LABELS[kind]}${timeLabel ? ` ${timeLabel}` : ''} — ${reservation.customerName} — ${reservation.dressCode}`;
 
   return (
-    <button
+    <Button
       type="button"
+      variant="quiet"
+      size="sm"
       onClick={() => onOpen?.(reservation)}
       title={label}
       aria-label={`فتح الحجز ${reservation.reservationNumber}: ${label}`}
-      className={`flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-right text-[11px] font-bold ring-1 transition hover:brightness-95 ${RESERVATION_STATUS_STYLES[reservation.status]} ${AMBER_FOCUS_RING_CLASS_NAME}`}
+      className={`flex w-full items-center gap-1.5 rounded-lg px-1.5 py-1 text-right text-[11px] font-bold ring-1 hover:brightness-95 ${RESERVATION_STATUS_STYLES[reservation.status]}`}
     >
       <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${RESERVATION_STATUS_DOT_STYLES[reservation.status]}`} />
       <span className="min-w-0 flex-1 truncate">
         {KIND_LABELS[kind]}
         {timeLabel ? ` ${timeLabel}` : ''} · {reservation.customerName}
       </span>
-    </button>
+    </Button>
   );
 }
 
@@ -93,11 +95,12 @@ function DayAgenda({ day, onOpen }: { day: CalendarDay; onOpen?: (reservation: R
     <ul className="space-y-2">
       {day.entries.map((entry) => (
         <li key={`${entry.reservation.id}-${entry.kind}`}>
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => onOpen?.(entry.reservation)}
             aria-label={`فتح الحجز ${entry.reservation.reservationNumber}`}
-            className={`flex w-full flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-3 text-right transition hover:bg-stone-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            className="flex w-full flex-col gap-1 rounded-2xl p-3 text-right hover:bg-stone-50"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-extrabold text-slate-950">{entry.reservation.customerName}</span>
@@ -110,7 +113,7 @@ function DayAgenda({ day, onOpen }: { day: CalendarDay; onOpen?: (reservation: R
               {entry.timeLabel ? ` · ${entry.timeLabel}` : ''} · {entry.reservation.dressCode} — {entry.reservation.dressName}
             </p>
             <p className="text-[11px] font-bold text-slate-400">{entry.reservation.reservationNumber}</p>
-          </button>
+          </Button>
         </li>
       ))}
     </ul>
@@ -142,29 +145,29 @@ export function ReservationCalendar({ reservations, onOpenReservation }: Props) 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-bold text-slate-950">تقويم الحجوزات</h2>
           <div className="flex items-center gap-2">
-            <button
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               aria-label="الفترة السابقة"
               onClick={() => setAnchorDate((current) => shiftAnchor(current, view, -1))}
-              className={`flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+              className="h-11 min-w-11 px-0"
             >
               <ChevronRight aria-hidden="true" className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setAnchorDate(getTodayISO())}
-              className={`min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-            >
+            </Button>
+            <Button type="button" variant="secondary" size="sm" onClick={() => setAnchorDate(getTodayISO())}>
               اليوم
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
+              size="sm"
               aria-label="الفترة التالية"
               onClick={() => setAnchorDate((current) => shiftAnchor(current, view, 1))}
-              className={`flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+              className="h-11 min-w-11 px-0"
             >
               <ChevronLeft aria-hidden="true" className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -172,15 +175,17 @@ export function ReservationCalendar({ reservations, onOpenReservation }: Props) 
           <p className="text-sm font-extrabold text-slate-800">{grid.label}</p>
           <div role="group" aria-label="نمط عرض التقويم" className="flex rounded-2xl bg-slate-950 p-1 text-xs font-bold text-white">
             {VIEWS.map((option) => (
-              <button
+              <Button
                 key={option}
                 type="button"
+                variant="quiet"
+                size="sm"
                 aria-pressed={view === option}
                 onClick={() => setView(option)}
-                className={`min-h-9 rounded-xl px-3 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${view === option ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+                className={`min-h-9 rounded-xl px-3 ${view === option ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
               >
                 {CALENDAR_VIEW_LABELS[option]}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
@@ -231,28 +236,26 @@ export function ReservationCalendar({ reservations, onOpenReservation }: Props) 
         {STATUS_ORDER.map((status) => {
           const active = filters.statuses.includes(status);
           return (
-            <button
+            <Button
               key={status}
               type="button"
+              variant="quiet"
+              size="sm"
               aria-pressed={active}
               onClick={() => toggleStatus(status)}
-              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold ring-1 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${
+              className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-xs font-bold ring-1 ${
                 active ? RESERVATION_STATUS_STYLES[status] : 'bg-white text-slate-500 ring-slate-200 hover:bg-stone-100'
               }`}
             >
               <span aria-hidden="true" className={`h-2 w-2 rounded-full ${RESERVATION_STATUS_DOT_STYLES[status]}`} />
               {RESERVATION_STATUS_LABELS[status]}
-            </button>
+            </Button>
           );
         })}
         {(filters.statuses.length > 0 || filters.dress || filters.customer || filters.from || filters.to) && (
-          <button
-            type="button"
-            onClick={() => setFilters(EMPTY_CALENDAR_FILTERS)}
-            className={`min-h-9 rounded-full border border-slate-300 px-3 text-xs font-bold text-slate-600 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" variant="secondary" size="sm" onClick={() => setFilters(EMPTY_CALENDAR_FILTERS)} className="min-h-9 rounded-full px-3 text-xs">
             مسح الفلاتر
-          </button>
+          </Button>
         )}
       </div>
 

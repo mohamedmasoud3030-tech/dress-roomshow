@@ -1,4 +1,5 @@
 import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Button } from '../../../components/shared/Button';
 import { formatMoneyOMR } from '../../../shared/utils/format';
 import type { LandingDress } from '../landingDress.repository';
 import type { LandingProfile } from './types';
@@ -82,14 +83,10 @@ export function LandingNewArrivals({
                       : `بيع ${formatMoneyOMR(dress.salePrice)}`}
                   </p>
                   <div className="mt-auto flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => onSelect(dress)}
-                      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-black text-slate-700 transition hover:bg-slate-50"
-                    >
+                    <Button type="button" variant="secondary" onClick={() => onSelect(dress)} className="min-h-11 flex-1 rounded-xl border-slate-300 px-3 py-2.5 text-xs font-black hover:bg-slate-50">
                       شاهديها في المعروض
                       <ArrowLeft aria-hidden="true" className="mr-1 h-3.5 w-3.5" />
-                    </button>
+                    </Button>
                     {link ? (
                       <a
                         href={link}

@@ -86,23 +86,13 @@ function CustomerCard({ customer, onArchive, onDelete, canDelete }: { customer: 
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={() => setShowConduct((current) => !current)}
-        aria-expanded={showConduct}
-        className="mt-3 inline-flex min-h-10 items-center rounded-xl border border-slate-300 px-3 text-xs font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-      >
+      <Button type="button" variant="secondary" size="sm" onClick={() => setShowConduct((current) => !current)} aria-expanded={showConduct} className="mt-3">
         {showConduct ? 'إخفاء سجل التعامل' : `سجل التعامل · التزام ${conduct.reliabilityScore}`}
-      </button>
+      </Button>
 
-      <button
-        type="button"
-        onClick={() => setShowMeasurements((current) => !current)}
-        aria-expanded={showMeasurements}
-        className="mt-2 mr-2 inline-flex min-h-10 items-center rounded-xl border border-slate-300 px-3 text-xs font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-      >
+      <Button type="button" variant="secondary" size="sm" onClick={() => setShowMeasurements((current) => !current)} aria-expanded={showMeasurements} className="mt-2 mr-2">
         {showMeasurements ? 'إخفاء المقاسات' : 'المقاسات واقتراح المقاس'}
-      </button>
+      </Button>
 
       {showConduct && <div className="mt-3"><CustomerConductPanel customer={customer} /></div>}
       {showMeasurements && <div className="mt-3"><MeasurementsPanel customer={customer} /></div>}
@@ -125,14 +115,10 @@ function CustomerCard({ customer, onArchive, onDelete, canDelete }: { customer: 
         {customer.archivedAt ? (
           <span className="text-xs font-bold text-slate-500">مؤرشفة — التاريخ محفوظ</span>
         ) : (
-          <button
-            type="button"
-            onClick={() => onArchive(customer)}
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-amber-300 px-3 text-sm font-bold text-amber-700 transition hover:bg-amber-50"
-          >
+          <Button type="button" variant="secondary" size="sm" onClick={() => onArchive(customer)} className="border-amber-300 text-amber-700 hover:bg-amber-50">
             <Archive aria-hidden="true" className="h-4 w-4" />
             أرشفة
-          </button>
+          </Button>
         )}
         {canDelete && (
           <button

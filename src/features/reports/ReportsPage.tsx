@@ -11,11 +11,11 @@ import {
 import type { DateRangeFilter } from './report.types';
 import { getReservationsNeedingFinancialClassification } from '../reservations/reservation.service';
 import { PageHeader } from '../../components/shared/PageHeader';
+import { Button } from '../../components/shared/Button';
 import { Section } from '../../components/shared/Section';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { getControlClassName } from '../../components/shared/FormField';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 
 export function ReportsPage() {
   const [range, setRange] = useState<DateRangeFilter>({ from: '', to: '' });
@@ -89,13 +89,7 @@ export function ReportsPage() {
         title="فلتر الفترة المالية"
         description="يؤثر على التحصيل والمصروفات والصافي فقط، بينما تظل مؤشرات التشغيل الحالية كما هي."
         action={
-          <button
-            type="button"
-            onClick={applyRange}
-            className={`inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
-            تطبيق الفترة
-          </button>
+          <Button type="button" onClick={applyRange}>تطبيق الفترة</Button>
         }
       >
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">

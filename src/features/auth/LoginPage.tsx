@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Lock } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { useAuth } from './AuthContext';
@@ -92,14 +93,14 @@ export function LoginPage() {
               {accountNotice}
               <div className="mt-3 flex flex-wrap gap-2">
                 {status !== 'disabled' && (
-                  <button type="button" onClick={() => void retry()} className="min-h-11 rounded-xl border border-amber-300 bg-white px-3 py-2 text-xs font-bold">
+                  <Button type="button" variant="secondary" size="sm" onClick={() => void retry()}>
                     إعادة المحاولة
-                  </button>
+                  </Button>
                 )}
                 {(status === 'disabled' || status === 'profile-missing') && (
-                  <button type="button" onClick={() => void signOut()} className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700">
+                  <Button type="button" variant="secondary" size="sm" onClick={() => void signOut()}>
                     استخدام حساب آخر
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -126,21 +127,26 @@ export function LoginPage() {
             />
           </div>
 
-          <button
+          <Button
             type="submit"
+            className="mt-6 w-full"
             disabled={submitting || resetting || status === 'loading'}
-            className="mt-6 min-h-11 w-full rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 disabled:cursor-not-allowed disabled:opacity-60"
+            loading={submitting || status === 'loading'}
+            loadingLabel="جارٍ التحقق..."
           >
-            {submitting || status === 'loading' ? 'جارٍ التحقق...' : 'دخول'}
-          </button>
-          <button
+            دخول
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
+            className="mt-3 w-full"
             onClick={() => void handlePasswordReset()}
             disabled={submitting || resetting || status === 'loading'}
-            className="mt-3 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50 disabled:opacity-60"
+            loading={resetting}
+            loadingLabel="جارٍ إرسال رابط الاستعادة..."
           >
-            {resetting ? 'جارٍ إرسال رابط الاستعادة...' : 'نسيت كلمة المرور'}
-          </button>
+            نسيت كلمة المرور
+          </Button>
           <p className="mt-4 text-center text-xs leading-5 text-slate-500">الحسابات الجديدة تنشئها مديرة المعرض. إذا كان حسابك موقوفًا، تواصلي معها لتفعيله.</p>
         </form>
       </div>

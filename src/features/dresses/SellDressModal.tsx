@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
@@ -83,6 +84,6 @@ export function SellDressModal({ open, onClose, onCreated }: Props) {
     <label className={STACKED_FORM_LABEL_CLASS_NAME}>وسيلة الدفع<select value={form.paymentMethod} onChange={(e)=>setForm({...form,paymentMethod:e.target.value as SalePaymentMethod})} className={STACKED_FORM_FIELD_CLASS_NAME}>{PAYMENT_METHODS.map((method) => <option key={method} value={method}>{BASIC_PAYMENT_METHOD_LABELS[method]}</option>)}</select></label>
     <label className={STACKED_FORM_LABEL_CLASS_NAME}>ملاحظات<textarea rows={3} maxLength={MAX_NOTES_LENGTH} value={form.notes} onChange={(e)=>setForm({...form,notes:e.target.value})} className={STACKED_FORM_FIELD_CLASS_NAME} /></label>
     {dresses.length===0 && <p className="text-sm font-bold text-amber-700">لا توجد عناصر مؤهلة للبيع حالياً.</p>}
-    <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-11 rounded-xl border border-slate-300 px-5 text-sm font-bold text-slate-700">إلغاء</button><button type="submit" disabled={dresses.length===0 || isSubmitting} className="min-h-11 rounded-xl bg-slate-950 px-5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">{isSubmitting ? 'جارٍ الحفظ…' : 'تسجيل البيع'}</button></div>
+    <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"><Button type="button" variant="secondary" onClick={close}>إلغاء</Button><Button type="submit" disabled={dresses.length===0 || isSubmitting} loading={isSubmitting} loadingLabel="جارٍ الحفظ…">تسجيل البيع</Button></div>
   </form></Modal>;
 }

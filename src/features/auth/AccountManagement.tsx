@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { Section } from '../../components/shared/Section';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { getSupabaseClient } from '../../lib/supabaseClient';
@@ -59,7 +60,7 @@ export function AccountManagement() {
       {error !== null && (
         <div className="mb-3 space-y-2">
           <UserFacingErrorAlert error={error} fallback="تعذر إدارة الحسابات." />
-          <button type="button" onClick={() => { setError(null); void loadProfiles().then(setProfiles).catch(setError); }} className="min-h-11 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold">إعادة المحاولة</button>
+          <Button type="button" variant="secondary" onClick={() => { setError(null); void loadProfiles().then(setProfiles).catch(setError); }}>إعادة المحاولة</Button>
         </div>
       )}
       {profiles.length === 0 ? <p className="text-sm text-slate-500">لا توجد حسابات أخرى ظاهرة.</p> : (
@@ -76,14 +77,15 @@ export function AccountManagement() {
               >
                 <option value="staff">موظفة</option><option value="admin">مديرة</option>
               </select>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 disabled={savingId === profile.id}
                 onClick={() => void update({ ...profile, isActive: !profile.isActive })}
-                className="min-h-11 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold"
               >
                 {profile.isActive ? 'تعطيل' : 'تفعيل'}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

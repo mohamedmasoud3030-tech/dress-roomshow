@@ -1,11 +1,11 @@
 import type { FormEvent } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { Button, IconButton } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { FormActions, MoneyField, SelectField, TextAreaField, TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_MONEY_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getDressEffectiveSalePrice } from './dress.types';
@@ -138,14 +138,10 @@ export function CreateSaleInvoiceModal({ open, onClose, onCreated }: Props) {
         <fieldset className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <legend className="text-sm font-bold text-slate-800">بنود الفاتورة</legend>
-            <button
-              type="button"
-              onClick={() => setLines((current) => [...current, { dressCode: '', amount: '' }])}
-              className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={() => setLines((current) => [...current, { dressCode: '', amount: '' }])}>
               <Plus aria-hidden="true" className="h-4 w-4" />
               إضافة بند
-            </button>
+            </Button>
           </div>
 
           {lines.map((line, index) => (
@@ -171,15 +167,16 @@ export function CreateSaleInvoiceModal({ open, onClose, onCreated }: Props) {
               />
 
               <div className="flex items-end">
-                <button
+                <IconButton
                   type="button"
-                  aria-label={`حذف البند ${index + 1}`}
+                  variant="danger"
+                  label={`حذف البند ${index + 1}`}
                   disabled={lines.length === 1}
                   onClick={() => setLines((current) => current.filter((_, lineIndex) => lineIndex !== index))}
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl border border-rose-200 text-rose-700 transition hover:bg-rose-50 disabled:opacity-40 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                  className="min-w-11"
                 >
                   <Trash2 aria-hidden="true" className="h-4 w-4" />
-                </button>
+                </IconButton>
               </div>
             </div>
           ))}

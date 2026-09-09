@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { Button } from './Button';
 import { applyPendingUpdate, subscribeToAppUpdates } from '@platform/app-update';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 
 /**
  * "A new version is ready" banner.
@@ -48,22 +48,13 @@ export function AppUpdateNotice() {
           </p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={handleApply}
-            disabled={applying}
-            className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-amber-600 px-3 text-sm font-bold text-white transition hover:bg-amber-700 disabled:opacity-60 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" onClick={handleApply} disabled={applying} loading={applying} loadingLabel="جارٍ التحديث…" className="bg-amber-600 px-3 hover:bg-amber-700">
             <RefreshCw aria-hidden="true" className={`h-4 w-4 ${applying ? 'animate-spin' : ''}`} />
-            {applying ? 'جارٍ التحديث…' : 'تحديث الآن'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setDismissed(true)}
-            className={`inline-flex min-h-11 items-center rounded-xl border border-amber-300 bg-white px-3 text-sm font-bold text-amber-900 transition hover:bg-amber-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+            تحديث الآن
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => setDismissed(true)} className="min-h-11 border-amber-300 text-amber-900 hover:bg-amber-100">
             لاحقاً
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { Printer, RotateCcw, Save } from 'lucide-react';
 import { Section } from '../../components/shared/Section';
 import { SelectField, TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import {
   COLOR_MODE_LABELS,
   DENSITY_LABELS,
@@ -176,17 +176,19 @@ export function PrintSettingsEditor() {
           {(Object.keys(SECTION_LABELS) as PrintableSection[]).map((section) => {
             const visible = !settings.hiddenSections.includes(section);
             return (
-              <button
+              <Button
                 key={section}
                 type="button"
+                variant="quiet"
+                size="sm"
                 onClick={() => toggleSection(section)}
                 aria-pressed={visible}
-                className={`min-h-10 rounded-full px-3 text-xs font-bold ring-1 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${
+                className={`min-h-10 rounded-full px-3 text-xs ring-1 ${
                   visible ? 'bg-emerald-50 text-emerald-800 ring-emerald-200' : 'bg-stone-100 text-slate-500 ring-slate-200 line-through'
                 }`}
               >
                 {SECTION_LABELS[section]}
-              </button>
+              </Button>
             );
           })}
         </div>
@@ -204,30 +206,18 @@ export function PrintSettingsEditor() {
       </label>
 
       <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-        <button
-          type="button"
-          onClick={save}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" onClick={save}>
           <Save aria-hidden="true" className="h-4 w-4" />
           حفظ الإعدادات
-        </button>
-        <button
-          type="button"
-          onClick={printTestPage}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={printTestPage}>
           <Printer aria-hidden="true" className="h-4 w-4" />
           طباعة صفحة اختبار
-        </button>
-        <button
-          type="button"
-          onClick={restore}
-          className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={restore}>
           <RotateCcw aria-hidden="true" className="h-4 w-4" />
           استعادة الافتراضي
-        </button>
+        </Button>
       </div>
 
       <p className="mt-3 rounded-xl bg-stone-50 p-3 text-xs leading-6 text-slate-600">

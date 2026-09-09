@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { ImageUpload } from './ImageUpload';
 import { saveDressImages } from './dress.service';
@@ -64,24 +65,11 @@ export function EditDressImagesModal({ open, dress, onClose, onSaved }: Props) {
       <ImageUpload images={images} onChange={setImages} />
 
       <div className="mt-5 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="inline-flex min-h-11 items-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
-        >
-          إلغاء
-        </button>
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-60"
-        >
-          {saving
-            ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-            : <ImageIcon aria-hidden="true" className="h-4 w-4" />}
+        <Button type="button" variant="secondary" onClick={onClose}>إلغاء</Button>
+        <Button type="button" onClick={save} disabled={saving} loading={saving} loadingLabel="جارٍ الحفظ…">
+          <ImageIcon aria-hidden="true" className="h-4 w-4" />
           حفظ الصور ({images.length})
-        </button>
+        </Button>
       </div>
     </Modal>
   );

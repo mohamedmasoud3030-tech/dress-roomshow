@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle2, Circle, ListChecks, X } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getBrowserLocalStorage } from '@platform/storage';
 import { getSetupChecklist, SETUP_CHECKLIST_DISMISS_KEY } from './setupChecklist';
@@ -37,15 +38,10 @@ export function SetupChecklistCard() {
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={dismiss}
-          aria-label="إخفاء تلميحات البداية"
-          className={`inline-flex min-h-11 items-center gap-1 rounded-xl px-3 text-xs font-bold text-slate-600 hover:bg-amber-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" variant="quiet" size="sm" onClick={dismiss} aria-label="إخفاء تلميحات البداية" className="text-slate-600 hover:bg-amber-100">
           <X aria-hidden="true" className="h-4 w-4" />
           إخفاء
-        </button>
+        </Button>
       </div>
 
       <ol className="mt-4 space-y-2">

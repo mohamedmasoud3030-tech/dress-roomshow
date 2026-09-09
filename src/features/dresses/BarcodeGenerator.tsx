@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
+import { Button } from '../../components/shared/Button';
 import { printBarcodeLabel } from './printBarcodeLabel';
 
 type BarcodeGeneratorProps = {
@@ -73,23 +74,14 @@ export function BarcodeGenerator({ value, onClick, itemName, itemCode }: Barcode
       ) : null}
 
       <div className="flex flex-wrap justify-center gap-2">
-        <button
-          type="button"
-          onClick={handlePrint}
-          disabled={generationError !== null}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={handlePrint} disabled={generationError !== null}>
           طباعة الباركود
-        </button>
+        </Button>
 
         {onClick && (
-          <button
-            type="button"
-            onClick={onClick}
-            className="rounded-lg bg-slate-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
-          >
+          <Button type="button" size="sm" onClick={onClick}>
             توليد باركود جديد
-          </button>
+          </Button>
         )}
       </div>
     </div>

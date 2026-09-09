@@ -130,14 +130,10 @@ export function WaitlistPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleNotify(entry.id, entry.customerPhone, message, entry.customerName)}
-                      className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-3 text-sm font-bold text-white transition hover:bg-emerald-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-                    >
+                    <Button type="button" variant="secondary" size="sm" onClick={() => handleNotify(entry.id, entry.customerPhone, message, entry.customerName)} className="border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-700">
                       <MessageCircle aria-hidden="true" className="h-4 w-4" />
                       إبلاغها
-                    </button>
+                    </Button>
                     <Link
                       to={`/reservations?${new URLSearchParams({
                         new: '1',
@@ -200,14 +196,16 @@ export function WaitlistPage() {
                   {STATUS_LABELS[entry.status]}
                 </span>
                 {(entry.status === 'waiting' || entry.status === 'notified') && (
-                  <button
+                  <Button
                     type="button"
+                    variant="danger"
+                    size="sm"
                     onClick={() => handleClose(entry)}
                     aria-label={`إغلاق طلب ${entry.customerName}`}
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 transition hover:bg-rose-50 hover:text-rose-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                    className="min-w-10 shrink-0 px-0"
                   >
                     <XCircle aria-hidden="true" className="h-4 w-4" />
-                  </button>
+                  </Button>
                 )}
               </div>
             </li>

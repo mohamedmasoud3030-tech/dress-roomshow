@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Banknote, Barcode, Layers, Pencil, Plus, Printer, Search, Shirt } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_CATEGORIES, DRESS_STATUS_LABELS, DRESS_STATUS_OPTIONS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS, INVENTORY_ITEM_TYPE_OPTIONS } from '../../shared/domain/dressConstants';
@@ -161,14 +162,16 @@ function DressRow({ dress, highlighted, onEdit }: { dress: Dress; highlighted: b
         )}
       </span>
       </Link>
-      <button
+      <Button
         type="button"
+        variant="secondary"
+        size="sm"
         onClick={() => onEdit(dress)}
         aria-label={`تعديل بيانات ${dress.name}`}
-        className={`inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-stone-100 hover:text-slate-900 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+        className="min-w-10 shrink-0 px-0"
       >
         <Pencil aria-hidden="true" className="h-4 w-4" />
-      </button>
+      </Button>
     </div>
   );
 }
@@ -325,8 +328,9 @@ export function DressesPage() {
         title="المخزون"
         actions={(
           <>
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setFeedback(null);
                 setHighlightedDressCode(null);
@@ -336,9 +340,10 @@ export function DressesPage() {
             >
               <Barcode aria-hidden="true" className="h-5 w-5" />
               مسح باركود
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setFeedback(null);
                 setShowSaleModal(true);
@@ -347,8 +352,8 @@ export function DressesPage() {
             >
               <Banknote aria-hidden="true" className="h-5 w-5" />
               بيع عنصر
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => {
                 setFeedback(null);
@@ -358,15 +363,16 @@ export function DressesPage() {
             >
               <Plus aria-hidden="true" className="h-5 w-5" />
               إضافة عنصر مخزون
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => { setFeedback(null); setShowDesignModal(true); }}
               className={SECONDARY_BUTTON_CLASS_NAME}
             >
               <Layers aria-hidden="true" className="h-5 w-5" />
               تصميم بمقاسات وألوان
-            </button>
+            </Button>
           </>
         )}
       />
@@ -460,35 +466,35 @@ export function DressesPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div role="group" aria-label="تجميع العرض" className="inline-flex rounded-xl border border-slate-300 bg-white p-1 text-xs font-bold">
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="quiet"
             aria-pressed={!groupByDesign}
             onClick={() => setGroupByDesign(false)}
-            className={`min-h-10 rounded-lg px-3 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${!groupByDesign ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-stone-100'}`}
+            className={`min-h-10 rounded-lg px-3 ${!groupByDesign ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-stone-100'}`}
           >
             كل القطع ({filteredDresses.length})
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            size="sm"
+            variant="quiet"
             aria-pressed={groupByDesign}
             onClick={() => setGroupByDesign(true)}
-            className={`min-h-10 rounded-lg px-3 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${groupByDesign ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-stone-100'}`}
+            className={`min-h-10 rounded-lg px-3 ${groupByDesign ? 'bg-slate-950 text-white' : 'text-slate-600 hover:bg-stone-100'}`}
           >
             حسب التصميم ({designSummaries.length})
-          </button>
+          </Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* Labelling a delivery of forty pieces used to be forty trips through
               the print dialog. This prints the whole filtered set at once. */}
           {!groupByDesign && filteredDresses.length > 0 && (
-            <button
-              type="button"
-              onClick={handlePrintLabels}
-              className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}
-            >
+            <Button type="button" variant="secondary" size="sm" onClick={handlePrintLabels} className={COMPACT_SECONDARY_BUTTON_CLASS_NAME}>
               <Printer aria-hidden="true" className="h-4 w-4" />
               طباعة ملصقات ({filteredDresses.length})
-            </button>
+            </Button>
           )}
           {!groupByDesign && <ViewModeToggle mode={viewMode} onChange={setViewMode} />}
         </div>
@@ -507,14 +513,10 @@ export function DressesPage() {
             title="لا توجد تصاميم بعد"
             description="أنشئي تصميماً واحداً بعدة مقاسات وألوان بدلاً من إضافة كل قطعة على حدة."
             action={
-              <button
-                type="button"
-                onClick={() => setShowDesignModal(true)}
-                className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
-              >
+              <Button type="button" onClick={() => setShowDesignModal(true)} className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}>
                 <Layers aria-hidden="true" className="h-4 w-4" />
                 إضافة أول تصميم
-              </button>
+              </Button>
             }
           />
         )

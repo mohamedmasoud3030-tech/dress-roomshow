@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { Section } from '../../components/shared/Section';
 import { SelectField, TextField } from '../../components/shared/FormField';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { getConductNotesForCustomer, getCustomerConduct } from './customerConduct.service';
 import { addConductNoteCommand, removeConductNoteCommand } from '../workflows';
@@ -163,14 +163,9 @@ export function CustomerConductPanel({ customer }: { customer: Customer }) {
           onChange={(event) => setNote(event.target.value)}
           placeholder="مثال: أعادت الفستان متأخرة يومين بدون إشعار."
         />
-        <button
-          type="button"
-          onClick={submitNote}
-          disabled={!note.trim()}
-          className={`inline-flex min-h-11 items-center rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800 disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" onClick={submitNote} disabled={!note.trim()}>
           حفظ الملاحظة
-        </button>
+        </Button>
 
         {notes.length > 0 && (
           <ul className="space-y-1.5 border-t border-slate-200 pt-3">
@@ -179,14 +174,16 @@ export function CustomerConductPanel({ customer }: { customer: Customer }) {
                 <span className="min-w-0 truncate text-slate-600">
                   {entry.note} — <b>{entry.recordedBy}</b>
                 </span>
-                <button
+                <Button
                   type="button"
+                  variant="danger"
+                  size="sm"
                   onClick={() => { removeConductNoteCommand(entry.id); refresh(); }}
                   aria-label={`حذف الملاحظة: ${entry.note}`}
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-rose-50 hover:text-rose-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                  className="min-w-9 shrink-0 px-0"
                 >
                   <Trash2 aria-hidden="true" className="h-4 w-4" />
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { Button, IconButton } from '../../components/shared/Button';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import {
   ACCESSORY_CATEGORY_LABELS,
   ACCESSORY_STATUS_LABELS,
   ACCESSORY_STATUS_STYLES,
 } from '../../shared/domain/accessoryConstants';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { createSubmissionKey } from '../../shared/utils/submissionKey';
 import { getAccessories, isAccessoryBookable } from '../accessories/accessory.service';
@@ -109,14 +109,16 @@ export function ReservationAccessoriesPanel({ reservation }: { reservation: Rese
                   </span>
                 )}
                 {!isClosed && !link.deliveredAt && (
-                  <button
+                  <IconButton
                     type="button"
+                    variant="danger"
+                    size="sm"
                     onClick={() => handleDetach(link.accessoryId, link.accessoryCodeSnapshot)}
-                    aria-label={`إزالة الملحق ${link.accessoryCodeSnapshot} من الحجز`}
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl text-slate-500 transition hover:bg-rose-50 hover:text-rose-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                    label={`إزالة الملحق ${link.accessoryCodeSnapshot} من الحجز`}
+                    className="min-w-10 px-0"
                   >
                     <Trash2 aria-hidden="true" className="h-4 w-4" />
-                  </button>
+                  </IconButton>
                 )}
               </div>
             </li>
@@ -143,15 +145,10 @@ export function ReservationAccessoriesPanel({ reservation }: { reservation: Rese
               ))}
             </select>
           </label>
-          <button
-            type="button"
-            onClick={handleAttach}
-            disabled={!selectedId || isSubmitting}
-            className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" onClick={handleAttach} disabled={!selectedId || isSubmitting} loading={isSubmitting} loadingLabel="جارٍ الإضافة…">
             <Plus aria-hidden="true" className="h-4 w-4" />
-            {isSubmitting ? 'جارٍ الإضافة…' : 'إضافة ملحق'}
-          </button>
+            إضافة ملحق
+          </Button>
         </div>
       )}
     </section>

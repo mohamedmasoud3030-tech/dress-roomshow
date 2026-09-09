@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { RotateCcw, Save } from 'lucide-react';
 import { getShowroomProfile } from './showroomProfile.service';
 import { resetShowroomProfileCommand, saveShowroomProfileCommand } from '../workflows';
@@ -229,22 +230,14 @@ export function ShowroomProfileEditor() {
 
       {/* Actions */}
       <div className="mt-6 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
-        <button
-          type="button"
-          onClick={save}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white hover:bg-slate-800"
-        >
+        <Button type="button" onClick={save}>
           <Save aria-hidden="true" className="h-4 w-4" />
           حفظ الملف التعريفي
-        </button>
-        <button
-          type="button"
-          onClick={reset}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 hover:bg-stone-100"
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={reset}>
           <RotateCcw aria-hidden="true" className="h-4 w-4" />
           استعادة الافتراضي
-        </button>
+        </Button>
       </div>
     </article>
   );

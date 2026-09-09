@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowRight, Heart, MessageCircle, RotateCcw } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { getDressSecurityDepositAmount } from '../../features/dresses/dress.types';
 import { getShowroomProfile } from '../../features/preferences/showroomProfile.service';
 import { INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
@@ -155,14 +156,10 @@ function PieceLoadError({ message }: { message: string }) {
       <p className="text-lg font-black text-slate-950">تعذّر تحميل القطعة</p>
       <p className="mt-2 text-sm leading-7 text-slate-600">{message}</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-5 text-sm font-black text-white transition hover:bg-slate-800"
-        >
+        <Button type="button" onClick={() => window.location.reload()} className="font-black">
           <RotateCcw aria-hidden="true" className="h-4 w-4" />
           تحديث الصفحة
-        </button>
+        </Button>
         <Link
           to="/landing"
           className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-5 text-sm font-black text-slate-700 transition hover:bg-slate-50"
@@ -330,11 +327,12 @@ function PieceDetails({
                       استفسار سريع
                     </a>
                   ) : null}
-                  <button
+                  <Button
                     type="button"
-                    onClick={onToggleSave}
+                    variant="quiet"
                     aria-pressed={saved}
-                    className={`flex min-h-12 items-center justify-center gap-2 rounded-2xl px-4 text-sm font-black transition ${
+                    onClick={onToggleSave}
+                    className={`min-h-12 rounded-2xl px-4 text-sm font-black ${
                       saved
                         ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
                         : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
@@ -342,7 +340,7 @@ function PieceDetails({
                   >
                     <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
                     {saved ? 'في اختياراتك' : 'احفظيها'}
-                  </button>
+                  </Button>
                 </div>
                 <p className="text-center text-[0.7rem] leading-6 text-slate-500">
                   يؤكد المعرض الموعد وتوفر القطعة بعد استلام الطلب — ويمكنك مشاركة رابط هذه الصفحة

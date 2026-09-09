@@ -23,7 +23,7 @@
 | 5 | Split admin settings safely | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | admin finds profile, documents, accounts, and data safety without long scroll | conceptual section anchors with `/preferences` compatibility; nested routes remain deferred | admin/staff permission, backup/restore/reset, deep-link/redirect tests |
 | 6 | Standardize financial ledgers and reconciliation | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | payment/expense/audit comparison surfaces now have a phone-safe table transformation | `DataTable`, `KeyValueList`, payment/expense/audit surfaces, daily-close action semantics | full financial regression, print, daily-close, mobile table strategy |
 | 7 | Reports and audit decision surfaces | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | inventory performance and audit use shared comparison surfaces without changing report sources | report/inventory performance/audit | report source reconciliation, export, accessible table/chart equivalence |
-| 8 | Public storefront content hierarchy refinement | NOT STARTED | shorter phone journey with category → catalogue → CTA and accessible detail | public sections, filters, shortlist, piece detail | anonymous public projection/privacy, route, CTA, phone/tablet/desktop |
+| 8 | Public storefront content hierarchy refinement | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | shorter phone journey with category → catalogue → CTA and accessible detail | public sections, filters, shortlist, piece detail, shared touch actions | anonymous public projection/privacy, route, CTA, phone/tablet/desktop |
 | 9 | Remove obsolete wrappers/duplicate patterns | NOT STARTED | smaller maintainable interface layer | only proven dead components after graph/test audit | `git grep`, route smoke, full suite/build |
 
 ## Milestone 0 — implemented change set
@@ -76,6 +76,7 @@
 12. Continued inventory detail action migration to canonical `Button` semantics for dress and design detail operations.
 13. Completed a service-queue pass with shared filter/reset semantics and canonical action/loading buttons for start, complete, and cancel paths.
 14. Standardized the active stocktake session actions and scan/remove controls on the shared button semantics while keeping the hands-free scan loop unchanged.
+15. Completed the remaining feature, settings, operational, and public storefront action-surface pass with shared `Button`/`IconButton` semantics; permission-sensitive hard-delete source contracts remain intentionally native and unchanged.
 
 ### Changed files
 
@@ -115,6 +116,8 @@
 - `src/features/service/CancelServiceTaskModal.tsx`
 - `src/features/stocktake/StocktakePage.tsx`
 - `src/features/customers/CustomerDetailsPage.tsx`
+- Remaining action surfaces under `src/features/`, including inventory, customers, accessories, reservations, preferences, reports, reminders, waitlist, auth, settings, and image/barcode controls
+- Public storefront action surfaces under `src/pages/landing/`
 - `src/app/router/AppRoutes.tsx`
 - `src/app/router/routePages.ts`
 - `src/components/shared/DataTable.tsx`

@@ -45,7 +45,7 @@ test('template editor chips insert by click into the last-focused message (PX-12
   const editor = await readSource('src/features/preferences/MessageTemplatesEditor.tsx');
 
   assert.match(editor, /insertTemplateToken\(templates\[activeKind\], placeholder\.token/, 'chips route through the pure helper');
-  assert.match(editor, /<button[\s\S]*?onClick=\{\(\) => insertPlaceholder\(placeholder\)\}[\s\S]*?aria-label=\{`إدراج رمز \$\{placeholder\.label\}`\}/, 'every chip is an accessible button');
+  assert.match(editor, /<(?:button|Button)[\s\S]*?onClick=\{\(\) => insertPlaceholder\(placeholder\)\}[\s\S]*?aria-label=\{`إدراج رمز \$\{placeholder\.label\}`\}/, 'every chip is an accessible shared button');
   assert.match(editor, /onFocus=\{\(event\) => \{[\s\S]*?setActiveKind\(kind\)/, 'the message being edited owns the insertion target');
   assert.match(editor, /setSelectionRange\(target\.value\.length, target\.value\.length\)/, 'fresh focus rests the caret at the end so a chip never prepends a token into a settled message');
   assert.match(editor, /setSelectionRange\(caret, caret\)/, 'the caret lands right after the inserted token');

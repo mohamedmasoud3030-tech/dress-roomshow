@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { LogOut, ShieldCheck } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { Section } from '../../components/shared/Section';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { useAuth } from '../auth/AuthContext';
 
 const ROLE_LABELS: Record<'admin' | 'staff', string> = {
@@ -46,15 +46,10 @@ export function AccountSettings() {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleSignOut}
-          disabled={signingOut}
-          className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition hover:border-rose-300 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" variant="secondary" onClick={handleSignOut} disabled={signingOut} loading={signingOut} loadingLabel="جارٍ الخروج...">
           <LogOut aria-hidden="true" className="h-4 w-4" />
-          {signingOut ? 'جارٍ الخروج...' : 'تسجيل الخروج'}
-        </button>
+          تسجيل الخروج
+        </Button>
       </div>
     </Section>
   );

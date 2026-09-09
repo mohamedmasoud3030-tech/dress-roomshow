@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
+import { IconButton } from '../../components/shared/Button';
 import { MessageCircle } from 'lucide-react';
 import type { LandingDress } from './landingDress.repository';
 import { getNewArrivals } from './landingFlags';
@@ -190,14 +191,16 @@ export function LandingPage() {
       <LandingFooter profile={profile} />
 
       {showTop ? (
-        <button
+        <IconButton
           type="button"
+          variant="secondary"
+          size="lg"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-slate-800 shadow-xl backdrop-blur transition hover:bg-white lg:bottom-6"
-          aria-label="العودة إلى الأعلى"
+          label="العودة إلى الأعلى"
+          className="fixed bottom-24 left-4 z-40 h-12 w-12 rounded-2xl bg-white/90 p-0 text-slate-800 shadow-xl backdrop-blur hover:bg-white lg:bottom-6"
         >
           <ArrowUp aria-hidden="true" className="h-5 w-5" />
-        </button>
+        </IconButton>
       ) : null}
 
       {appointmentLink ? (

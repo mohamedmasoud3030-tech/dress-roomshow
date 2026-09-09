@@ -1,7 +1,8 @@
 import { Barcode } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import { ACCESSORY_RETURN_CONDITION_OPTIONS } from '../../shared/domain/accessoryConstants';
-import { AMBER_FOCUS_RING_CLASS_NAME, STACKED_FORM_FIELD_CLASS_NAME } from '../../shared/domain/formConstants';
+import { STACKED_FORM_FIELD_CLASS_NAME } from '../../shared/domain/formConstants';
 import { ACCESSORY_RETURN_CONDITION_LABELS } from '../accessories/reservationAccessory.service';
 import type { ReservationAccessoryView } from '../accessories/reservationAccessory.service';
 import type { AccessoryReturnCondition } from '../accessories/accessory.types';
@@ -56,14 +57,10 @@ export function DeliveryAccessoryChecklist(props: Props) {
         <h3 className="text-sm font-extrabold text-slate-800">
           {props.mode === 'delivery' ? 'الملحقات المسلَّمة فعلياً' : 'حالة الملحقات المسترجعة'}
         </h3>
-        <button
-          type="button"
-          onClick={props.onScan}
-          className={`inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={props.onScan}>
           <Barcode aria-hidden="true" className="h-4 w-4" />
           مسح باركود ملحق
-        </button>
+        </Button>
       </div>
 
       {relevant.length === 0 ? (
