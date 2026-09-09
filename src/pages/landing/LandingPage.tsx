@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowUp } from 'lucide-react';
 import { MessageCircle } from 'lucide-react';
 import type { Dress } from '../../features/dresses/dress.types';
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
@@ -12,6 +13,7 @@ import { LandingContact } from './components/LandingContact';
 import { LandingFaq } from './components/LandingFaq';
 import { LandingFooter } from './components/LandingFooter';
 import { LandingHeader } from './components/LandingHeader';
+import { LandingInstagram } from './components/LandingInstagram';
 import { LandingHero } from './components/LandingHero';
 import { LandingInventory } from './components/LandingInventory';
 import { LandingSteps } from './components/LandingSteps';
@@ -43,6 +45,19 @@ export function LandingPage() {
   const [selectedCategory, setSelectedCategory] = useState<InventoryCategoryFilter>('all');
   const [usageFilter, setUsageFilter] = useState<LandingUsageFilter>('all');
   const [profile, setProfile] = useState<LandingShowroomProfile>(() => getShowroomProfileSafely());
+  const [progress, setProgress] = useState(0);
+  const [showTop, setShowTop] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? Math.min(window.scrollY / max, 1) : 0);
+      setShowTop(window.scrollY > 900);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +125,13 @@ export function LandingPage() {
     <div className="min-h-screen bg-[#faf8f4] text-slate-900" dir="rtl">
       <LandingHeader profile={profile} />
 
+      {/* Reading progress across the whole storefront */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-x-0 top-0 z-[55] h-0.5 origin-right bg-gradient-to-l from-amber-300 to-amber-500 transition-transform duration-150"
+        style={{ transform: `scaleX(${progress})` }}
+      />
+
       <main>
         <LandingHero
           profile={profile}
@@ -138,6 +160,7 @@ export function LandingPage() {
             onUsageChange={setUsageFilter}
             inventoryCategories={inventoryCategories}
           />
+          <LandingInstagram profile={profile} dresses={dresses} />
           <LandingAboutServices profile={profile} dresses={dresses} />
           <LandingSteps profile={profile} />
           <LandingFaq profile={profile} />
@@ -146,6 +169,17 @@ export function LandingPage() {
       </main>
 
       <LandingFooter profile={profile} />
+
+      {showTop ? (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-24 left-4 z-40 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white/90 text-slate-800 shadow-xl backdrop-blur transition hover:bg-white lg:bottom-6"
+          aria-label="العودة إلى الأعلى"
+        >
+          <ArrowUp aria-hidden="true" className="h-5 w-5" />
+        </button>
+      ) : null}
 
       {appointmentLink ? (
         <a

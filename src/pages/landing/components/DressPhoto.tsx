@@ -10,12 +10,15 @@ export function DressPhoto({
   className = '',
   imgClassName = '',
   fallbackLabel,
+  priority = false,
 }: {
   src?: string;
   alt: string;
   className?: string;
   imgClassName?: string;
   fallbackLabel?: string;
+  /** The hero's lead photo is the largest contentful paint: load it eagerly. */
+  priority?: boolean;
 }) {
   if (!src) {
     return (
@@ -39,7 +42,8 @@ export function DressPhoto({
     <img
       src={src}
       alt={alt}
-      loading="lazy"
+      loading={priority ? 'eager' : 'lazy'}
+      fetchPriority={priority ? 'high' : 'auto'}
       decoding="async"
       className={`object-cover ${className} ${imgClassName}`}
     />

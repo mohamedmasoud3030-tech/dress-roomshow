@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Filter, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
 import type { Dress } from '../../../features/dresses/dress.types';
 import { INVENTORY_ITEM_TYPE_LABELS } from '../../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../../shared/utils/format';
@@ -7,10 +7,14 @@ import {
   buildAppointmentInquiryMessage,
   buildLandingWhatsAppLink,
   buildQuickInquiryMessage,
+  buildShortlistMessage,
 } from '../landingWhatsapp';
+import { useShortlist } from '../useShortlist';
 import { DressPhoto } from './DressPhoto';
 import { Reveal } from './Reveal';
 import type { InventoryCategoryFilter, LandingProfile, LandingUsageFilter } from './types';
+
+type SortOrder = 'newest' | 'rent-asc' | 'rent-desc';
 
 function getLandingDressPriceLabel(dress: Dress): string {
   if (dress.isForRent && dress.isForSale) {
@@ -19,6 +23,10 @@ function getLandingDressPriceLabel(dress: Dress): string {
   if (dress.isForRent) return `إيجار ${formatMoneyOMR(dress.rentalPrice)}`;
   if (dress.isForSale) return `بيع ${formatMoneyOMR(dress.salePrice)}`;
   return 'السعر يحدد عند المعاينة';
+}
+
+function rentValue(dress: Dress): number {
+  return dress.isForRent ? dress.rentalPrice : dress.isForSale ? dress.salePrice : 0;
 }
 
 type Props = {
@@ -40,11 +48,15 @@ function InventoryCard({
   profile,
   onZoom,
   index,
+  saved,
+  onToggleSave,
 }: {
   dress: Dress;
   profile: LandingProfile;
   onZoom: (dress: Dress) => void;
   index: number;
+  saved: boolean;
+  onToggleSave: (dress: Dress) => void;
 }) {
   const typeLabel = INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress'];
   const bookingItem = { code: dress.code, name: dress.name, size: dress.size, color: dress.color };
@@ -53,7 +65,7 @@ function InventoryCard({
 
   return (
     <Reveal delay={Math.min(index * 70, 350)}>
-      <article className="group h-full overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-2xl hover:shadow-slate-900/10">
+      <article className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-2xl hover:shadow-slate-900/10">
         <div className="relative overflow-hidden">
           <DressPhoto
             src={dress.images[0]}
@@ -81,6 +93,20 @@ function InventoryCard({
 
           <button
             type="button"
+            onClick={() => onToggleSave(dress)}
+            aria-pressed={saved}
+            className={`absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-xl shadow-lg backdrop-blur transition duration-300 focus-visible:opacity-100 ${
+              saved
+                ? 'bg-amber-400 text-slate-950 opacity-100'
+                : 'bg-white/90 text-slate-700 opacity-0 hover:bg-white group-hover:opacity-100'
+            }`}
+            aria-label={saved ? `إزالة ${dress.name} من اختياراتك` : `إضافة ${dress.name} إلى اختياراتك`}
+          >
+            <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+          </button>
+
+          <button
+            type="button"
             onClick={() => onZoom(dress)}
             className="absolute bottom-3 left-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/90 text-slate-900 opacity-0 shadow-lg backdrop-blur transition duration-300 hover:bg-white group-hover:opacity-100 focus-visible:opacity-100"
             aria-label={`تكبير صورة ${dress.name}`}
@@ -89,7 +115,7 @@ function InventoryCard({
           </button>
         </div>
 
-        <div className="space-y-4 p-5">
+        <div className="flex flex-1 flex-col space-y-4 p-5">
           <div>
             <p className="text-[0.7rem] font-bold text-amber-700">
               {typeLabel} · {dress.category}
@@ -104,12 +130,10 @@ function InventoryCard({
             <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700">
               المقاس <span dir="ltr">{dress.size}</span>
             </span>
-            <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700">
-              {dress.color}
-            </span>
+            <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700">{dress.color}</span>
           </div>
 
-          <div className="flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
+          <div className="mt-auto flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
             <div>
               <p className="text-[0.65rem] font-bold text-slate-500">السعر</p>
               <p className="mt-1 text-sm font-black text-slate-950">
@@ -158,10 +182,14 @@ function QuickView({
   dress,
   profile,
   onClose,
+  saved,
+  onToggleSave,
 }: {
   dress: Dress;
   profile: LandingProfile;
   onClose: () => void;
+  saved: boolean;
+  onToggleSave: (dress: Dress) => void;
 }) {
   const bookingItem = { code: dress.code, name: dress.name, size: dress.size, color: dress.color };
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage(bookingItem));
@@ -241,17 +269,19 @@ function QuickView({
               ) : null}
             </div>
 
-            <div className="mt-6 grid gap-2 sm:grid-cols-2">
-              {appointmentLink ? (
-                <a
-                  href={appointmentLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800"
-                >
-                  احجزي موعد تجربة
-                </a>
-              ) : null}
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => onToggleSave(dress)}
+                className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-black transition ${
+                  saved
+                    ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+                    : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
+                {saved ? 'في اختياراتك' : 'أضيفي لاختياراتك'}
+              </button>
               {inquiryLink ? (
                 <a
                   href={inquiryLink}
@@ -264,6 +294,17 @@ function QuickView({
                 </a>
               ) : null}
             </div>
+
+            {appointmentLink ? (
+              <a
+                href={appointmentLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800"
+              >
+                احجزي موعد تجربة
+              </a>
+            ) : null}
             <p className="mt-4 text-center text-[0.7rem] leading-6 text-slate-500">
               يؤكد المعرض الموعد وتوفر القطعة بعد استلام الطلب.
             </p>
@@ -288,10 +329,50 @@ export function LandingInventory({
   inventoryCategories,
 }: Props) {
   const [zoomed, setZoomed] = useState<Dress | null>(null);
+  const [sort, setSort] = useState<SortOrder>('newest');
+  const [size, setSize] = useState('all');
+  const [eventDate, setEventDate] = useState('');
+  const shortlist = useShortlist();
   const closeZoom = useCallback(() => setZoomed(null), []);
+
+  const savedDresses = useMemo(
+    () => dresses.filter((dress) => shortlist.codes.includes(dress.code)),
+    [dresses, shortlist.codes],
+  );
+
+  const sorted = useMemo(() => {
+    const list = size === 'all' ? dresses : dresses.filter((dress) => dress.size === size);
+    if (sort === 'newest') return list;
+    return [...list].sort((a, b) =>
+      sort === 'rent-asc' ? rentValue(a) - rentValue(b) : rentValue(b) - rentValue(a),
+    );
+  }, [dresses, size, sort]);
+
+  const availableSizes = useMemo(
+    () => [...new Set(dresses.map((dress) => dress.size).filter(Boolean))].sort(),
+    [dresses],
+  );
 
   const headerAppointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
   const emptyStateAppointmentLink = buildLandingWhatsAppLink(profile, buildQuickInquiryMessage());
+  const shortlistLink = buildLandingWhatsAppLink(
+    profile,
+    buildShortlistMessage(
+      savedDresses.map((dress) => ({
+        code: dress.code,
+        name: dress.name,
+        size: dress.size,
+        color: dress.color,
+      })),
+      eventDate,
+    ),
+  );
+
+  const usageChips: { value: LandingUsageFilter; label: string }[] = [
+    { value: 'all', label: 'الكل' },
+    { value: 'rent', label: 'للإيجار' },
+    { value: 'sale', label: 'للبيع' },
+  ];
 
   return (
     <section id="available-dresses" className="mt-20 scroll-mt-24 sm:mt-24">
@@ -299,12 +380,10 @@ export function LandingInventory({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-black tracking-[0.2em] text-amber-600">المعروض الآن</p>
-            <h2 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">
-              قطع جاهزة للطلب
-            </h2>
+            <h2 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">قطع جاهزة للطلب</h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-              كل ما ترينه هنا متاح فعلياً في المعرض. اختاري القطعة وأرسلي طلب الموعد، وسيتم
-              تأكيد التوفر لتاريخ مناسبتك.
+              كل ما ترينه هنا متاح فعلياً في المعرض. أضيفي ما أعجبك إلى اختياراتك، ثم أرسليها
+              دفعة واحدة عبر واتساب مع تاريخ مناسبتك.
             </p>
           </div>
           {headerAppointmentLink ? (
@@ -323,7 +402,7 @@ export function LandingInventory({
 
       <Reveal delay={80}>
         <div className="mt-7 rounded-[1.5rem] border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
-          <div className="grid gap-3 lg:grid-cols-[1fr_200px_200px]">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_170px_190px]">
             <label className="relative block">
               <span className="sr-only">ابحثي في المعروض</span>
               <Search
@@ -338,36 +417,91 @@ export function LandingInventory({
                 className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
               />
             </label>
+
             <label className="relative block">
-              <span className="sr-only">فلتر الفئة</span>
+              <span className="sr-only">فلتر المقاس</span>
               <Filter
                 aria-hidden="true"
                 className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
               />
               <select
-                value={selectedCategory}
-                onChange={(event) => onCategoryChange(event.target.value as InventoryCategoryFilter)}
+                value={size}
+                onChange={(event) => setSize(event.target.value)}
                 className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pr-10 pl-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
               >
-                {inventoryCategories.map((category) => (
-                  <option key={category} value={category}>
-                    {category === 'all' ? 'كل الفئات' : category}
+                <option value="all">كل المقاسات</option>
+                {availableSizes.map((option) => (
+                  <option key={option} value={option}>
+                    مقاس {option}
                   </option>
                 ))}
               </select>
             </label>
-            <label className="block">
-              <span className="sr-only">فلتر الخدمة</span>
+
+            <label className="relative block">
+              <span className="sr-only">ترتيب النتائج</span>
+              <ArrowUpDown
+                aria-hidden="true"
+                className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+              />
               <select
-                value={usageFilter}
-                onChange={(event) => onUsageChange(event.target.value as LandingUsageFilter)}
-                className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
+                value={sort}
+                onChange={(event) => setSort(event.target.value as SortOrder)}
+                className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pr-10 pl-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
               >
-                <option value="all">إيجار وبيع</option>
-                <option value="rent">للإيجار فقط</option>
-                <option value="sale">للبيع فقط</option>
+                <option value="newest">الأحدث</option>
+                <option value="rent-asc">السعر من الأقل</option>
+                <option value="rent-desc">السعر من الأعلى</option>
               </select>
             </label>
+          </div>
+
+          {/* Category chips */}
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {inventoryCategories.map((category) => {
+              const active = selectedCategory === category;
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => onCategoryChange(category)}
+                  aria-pressed={active}
+                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-black transition ${
+                    active
+                      ? 'bg-slate-950 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {category === 'all' ? 'كل الفئات' : category}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Usage chips */}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {usageChips.map((chip) => {
+              const active = usageFilter === chip.value;
+              return (
+                <button
+                  key={chip.value}
+                  type="button"
+                  onClick={() => onUsageChange(chip.value)}
+                  aria-pressed={active}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black transition ${
+                    active
+                      ? 'border-amber-400 bg-amber-50 text-amber-800'
+                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                  }`}
+                >
+                  {active ? <Check aria-hidden="true" className="h-3 w-3" /> : null}
+                  {chip.label}
+                </button>
+              );
+            })}
+            <span className="mr-auto pl-1 text-xs font-bold text-slate-500">
+              {sorted.length} قطعة
+            </span>
           </div>
         </div>
       </Reveal>
@@ -394,7 +528,7 @@ export function LandingInventory({
             </div>
           ))}
         </div>
-      ) : dresses.length === 0 ? (
+      ) : sorted.length === 0 ? (
         <div className="mt-8 rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-12 text-center">
           <p className="text-lg font-black text-slate-900">لا توجد قطع مطابقة حالياً</p>
           <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-500">
@@ -413,19 +547,80 @@ export function LandingInventory({
         </div>
       ) : (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {dresses.map((dress, index) => (
+          {sorted.map((dress, index) => (
             <InventoryCard
               key={dress.id}
               dress={dress}
               profile={profile}
               index={index}
               onZoom={setZoomed}
+              saved={shortlist.has(dress.code)}
+              onToggleSave={(item) => shortlist.toggle(item.code)}
             />
           ))}
         </div>
       )}
 
-      {zoomed ? <QuickView dress={zoomed} profile={profile} onClose={closeZoom} /> : null}
+      {zoomed ? (
+        <QuickView
+          dress={zoomed}
+          profile={profile}
+          onClose={closeZoom}
+          saved={shortlist.has(zoomed.code)}
+          onToggleSave={(item) => shortlist.toggle(item.code)}
+        />
+      ) : null}
+
+      {/* Shortlist bar — only once she has picked something. */}
+      {shortlist.codes.length > 0 ? (
+        <div className="fixed inset-x-3 bottom-[6.5rem] z-40 mx-auto max-w-3xl rounded-[1.5rem] border border-white/10 bg-[#0b0b12]/95 p-3 shadow-2xl backdrop-blur-md sm:bottom-6 lg:inset-x-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400 text-slate-950">
+              <Heart aria-hidden="true" className="h-4 w-4 fill-current" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-black text-white">
+                {shortlist.codes.length} قطعة في اختياراتك
+              </p>
+              <p className="truncate text-[0.7rem] text-slate-400">
+                {savedDresses.map((dress) => dress.name).join(' · ') || 'اختياراتك محفوظة على جهازك'}
+              </p>
+            </div>
+
+            <label className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2">
+              <CalendarDays aria-hidden="true" className="h-4 w-4 text-amber-300" />
+              <span className="sr-only">تاريخ المناسبة</span>
+              <input
+                type="date"
+                value={eventDate}
+                onChange={(event) => setEventDate(event.target.value)}
+                className="bg-transparent text-xs font-bold text-white outline-none [color-scheme:dark]"
+              />
+            </label>
+
+            <div className="mr-auto flex items-center gap-2">
+              <button
+                type="button"
+                onClick={shortlist.clear}
+                className="rounded-xl px-3 py-2 text-xs font-bold text-slate-400 transition hover:text-white"
+              >
+                مسح
+              </button>
+              {shortlistLink ? (
+                <a
+                  href={shortlistLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-amber-300 to-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-amber-900/30 transition hover:brightness-105"
+                >
+                  <MessageCircle aria-hidden="true" className="h-4 w-4" />
+                  أرسليها عبر واتساب
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

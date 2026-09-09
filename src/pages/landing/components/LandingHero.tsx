@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { ArrowDown, CalendarDays, ShieldCheck, Sparkles, Stars } from 'lucide-react';
 import type { Dress } from '../../../features/dresses/dress.types';
 import type { LandingProfile } from './types';
@@ -11,6 +12,39 @@ type Props = {
   rentableCount: number;
   saleCount: number;
 };
+
+function useCountUp(target: number, duration = 1100): number {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (target === 0) {
+      setValue(0);
+      return;
+    }
+    let frame = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      // easeOutCubic — fast start, gentle landing.
+      setValue(Math.round(target * (1 - (1 - progress) ** 3)));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration]);
+
+  return value;
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  const shown = useCountUp(value);
+  return (
+    <div className="border-r-2 border-amber-400/40 pr-3 sm:pr-4">
+      <dt className="text-2xl font-black text-amber-300 sm:text-4xl">{shown}</dt>
+      <dd className="mt-1 text-[0.7rem] font-bold leading-5 text-slate-400 sm:text-xs">{label}</dd>
+    </div>
+  );
+}
 
 /**
  * The shop window.
@@ -83,12 +117,7 @@ export function LandingHero({ profile, dresses, rentableCount, saleCount }: Prop
             {/* Live numbers straight from the catalogue */}
             <dl className="mt-10 grid max-w-lg grid-cols-3 gap-3 sm:gap-5">
               {stats.map((stat) => (
-                <div key={stat.label} className="border-r-2 border-amber-400/40 pr-3 sm:pr-4">
-                  <dt className="text-2xl font-black text-amber-300 sm:text-4xl">{stat.value}</dt>
-                  <dd className="mt-1 text-[0.7rem] font-bold leading-5 text-slate-400 sm:text-xs">
-                    {stat.label}
-                  </dd>
-                </div>
+                <Stat key={stat.label} value={stat.value} label={stat.label} />
               ))}
             </dl>
 
@@ -108,6 +137,7 @@ export function LandingHero({ profile, dresses, rentableCount, saleCount }: Prop
                     alt={photos[0]?.name ?? 'فستان من معروض المعرض'}
                     className="aspect-[3/4] w-full transition duration-700 hover:scale-[1.04]"
                     fallbackLabel={photos[0]?.category ?? 'المعروض'}
+                    priority
                   />
                 </div>
               </div>

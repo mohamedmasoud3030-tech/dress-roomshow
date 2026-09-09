@@ -39,16 +39,38 @@ export function buildLandingWhatsAppLink(profile: LandingProfile, message: strin
   }
 }
 
-export function buildAppointmentInquiryMessage(item?: LandingBookingItem): string {
+export function buildAppointmentInquiryMessage(item?: LandingBookingItem, eventDate?: string): string {
+  const dateLine = eventDate ? ` تاريخ المناسبة المطلوب: ${eventDate}.` : '';
   if (item) {
     const details = [
       `الكود: ${item.code}`,
       item.size ? `المقاس: ${item.size}` : null,
       item.color ? `اللون: ${item.color}` : null,
     ].filter(Boolean).join('، ');
-    return `مرحباً، أرغب في طلب موعد لتجربة "${item.name}" (${details}). أرجو تأكيد الموعد وتوفر القطعة لتاريخ المناسبة.`;
+    return `مرحباً، أرغب في طلب موعد لتجربة "${item.name}" (${details}).${dateLine} أرجو تأكيد الموعد وتوفر القطعة لتاريخ المناسبة.`;
   }
-  return 'مرحباً، أرغب في طلب موعد لزيارة المعرض وتجربة إحدى القطع المعروضة. أرجو تأكيد الوقت المناسب.';
+  return `مرحباً، أرغب في طلب موعد لزيارة المعرض وتجربة إحدى القطع المعروضة.${dateLine} أرجو تأكيد الوقت المناسب.`;
+}
+
+/**
+ * One message carrying the whole shortlist, so a visitor who shortlisted five
+ * pieces does not have to send five separate enquiries — and the showroom
+ * receives a single, readable request it can answer in one reply.
+ */
+export function buildShortlistMessage(items: LandingBookingItem[], eventDate?: string): string {
+  if (items.length === 0) {
+    return 'مرحباً، عندي استفسار عن المعروض الحالي في المعرض.';
+  }
+  const lines = items
+    .map((item, index) => {
+      const details = [item.size ? `المقاس ${item.size}` : null, item.color ? item.color : null]
+        .filter(Boolean)
+        .join('، ');
+      return `${index + 1}) ${item.name} — ${item.code}${details ? ` (${details})` : ''}`;
+    })
+    .join('\n');
+  const dateLine = eventDate ? `\nتاريخ المناسبة المطلوب: ${eventDate}` : '';
+  return `مرحباً، أود الاستفسار عن توفر هذه القطع لتاريخ مناسبتي:\n${lines}${dateLine}\n\nأرجو تأكيد التوفر والموعد المناسب للتجربة.`;
 }
 
 export function buildQuickInquiryMessage(item?: LandingBookingItem): string {
