@@ -3,6 +3,7 @@ import { Download, Plus } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
 import { buildPaymentsCsv, ledgerFileName } from '../reports/ledgerExports';
 import { Button } from '../../components/shared/Button';
+import { DataTable } from '../../components/shared/DataTable';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -88,6 +89,62 @@ function movementAmountClass(direction: PaymentDirection): string {
   return 'text-slate-700';
 }
 
+const paymentColumns = [
+  {
+    key: 'movement',
+    header: 'الحركة',
+    priority: 'primary' as const,
+    render: (payment: PaymentRecord) => (
+      <div>
+        <p className="font-bold text-slate-950">{payment.customerName}</p>
+        <p className="mt-1 text-xs text-slate-500" dir="ltr">{payment.paymentNumber}</p>
+      </div>
+    ),
+  },
+  {
+    key: 'reservation',
+    header: 'الحجز والعنصر',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => <span>{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</span>,
+  },
+  {
+    key: 'date',
+    header: 'التاريخ',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => formatDate(payment.paymentDate),
+  },
+  {
+    key: 'type',
+    header: 'نوع الحركة',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span>,
+  },
+  {
+    key: 'method',
+    header: 'الوسيلة',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span>,
+  },
+  {
+    key: 'direction',
+    header: 'الاتجاه',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span>,
+  },
+  {
+    key: 'amount',
+    header: 'المبلغ',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => <span className={`font-extrabold ${movementAmountClass(payment.direction)}`}>{formatMovementAmount(payment)}</span>,
+  },
+  {
+    key: 'notes',
+    header: 'ملاحظات',
+    priority: 'secondary' as const,
+    render: (payment: PaymentRecord) => payment.retentionReason || payment.notes || '—',
+  },
+];
+
 export function PaymentsPage() {
   const [payments, setPayments] = useState<PaymentRecord[]>(() => getPayments());
   const [filters, setFilters] = useState<PaymentFilters>({
@@ -172,7 +229,12 @@ export function PaymentsPage() {
           description={payments.length === 0 ? 'سجّلي أول دفعة على حجز قائم لتظهر هنا.' : 'غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.'}
         />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-2">{filteredPayments.map((payment)=><article key={payment.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="text-sm text-slate-500">رقم الحركة: {payment.paymentNumber}</p><h2 className="mt-1 text-lg font-semibold text-slate-950">{payment.customerName}</h2><p className="text-sm text-slate-600">{payment.reservationNumber} — {payment.dressCode} / {payment.dressName}</p></div><p className={`text-sm font-bold ${movementAmountClass(payment.direction)}`}>{formatMovementAmount(payment)}</p></div><div className="mt-3 flex flex-wrap gap-2"><span className={`rounded-full px-3 py-1 text-xs font-semibold ${typeBadgeClasses[payment.type]}`}>{formatPaymentTypeLabel(payment.type)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${methodBadgeClasses[payment.method]}`}>{formatPaymentMethodLabel(payment.method)}</span><span className={`rounded-full px-3 py-1 text-xs font-semibold ${directionBadgeClasses[payment.direction]}`}>{formatPaymentDirectionLabel(payment.direction)}</span></div><dl className="mt-4 text-sm text-slate-700"><dt className="text-slate-500\">تاريخ الحركة</dt><dd>{formatDate(payment.paymentDate)}</dd></dl>{payment.retentionReason ? <p className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">سبب الاحتجاز: {payment.retentionReason}</p> : null}{payment.notes ? <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{payment.notes}</p> : null}</article>)}</div>
+        <DataTable
+          rows={filteredPayments}
+          columns={paymentColumns}
+          rowKey={(payment) => payment.id}
+          caption="سجل المدفوعات"
+        />
       )}
 
       <AddPaymentModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />

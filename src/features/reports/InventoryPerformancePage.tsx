@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, Printer } from 'lucide-react';
 import { Button } from '../../components/shared/Button';
+import { DataTable } from '../../components/shared/DataTable';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -27,6 +28,7 @@ import {
   printInventoryPerformanceReport,
 } from './inventoryPerformanceExport';
 import type {
+  DesignPerformanceRow,
   InventoryPerformanceDetail,
   InventoryPerformanceFilters,
   InventoryPerformanceRow,
@@ -135,6 +137,48 @@ export function InventoryPerformancePage() {
       setError(reason);
     }
   };
+
+  const designColumns = [
+    {
+      key: 'design',
+      header: 'التصميم',
+      priority: 'primary' as const,
+      render: (design: DesignPerformanceRow) => (
+        <div>
+          <Link
+            to={`/designs/${encodeURIComponent(design.code)}`}
+            className={`block font-bold text-slate-900 underline-offset-2 hover:underline ${AMBER_FOCUS_RING_CLASS_NAME}`}
+          >
+            {design.code} — {design.name}
+          </Link>
+          <span className="block text-xs text-slate-500">{design.category}</span>
+        </div>
+      ),
+    },
+    { key: 'pieces', header: 'القطع', priority: 'secondary' as const, render: (design: DesignPerformanceRow) => design.pieceCount },
+    { key: 'rentals', header: 'تأجير', priority: 'secondary' as const, render: (design: DesignPerformanceRow) => design.rentalCount },
+    { key: 'revenue', header: 'الإيراد', priority: 'secondary' as const, render: (design: DesignPerformanceRow) => formatMoneyOMR(design.totalRevenue) },
+    { key: 'net', header: 'صافي العائد', priority: 'secondary' as const, render: (design: DesignPerformanceRow) => <span className={design.netResult < 0 ? 'font-bold text-rose-700' : 'font-bold text-emerald-700'}>{formatMoneyOMR(design.netResult)}</span> },
+    { key: 'utilisation', header: 'الإشغال', priority: 'secondary' as const, render: (design: DesignPerformanceRow) => percent(design.utilisationRate) },
+    { key: 'idle', header: 'قطع راكدة', priority: 'secondary' as const, render: (design: DesignPerformanceRow) => <span className={design.idlePieceCount > 0 ? 'font-bold text-amber-700' : undefined}>{design.idlePieceCount}</span> },
+  ];
+
+  const performanceColumns = [
+    {
+      key: 'item',
+      header: 'العنصر',
+      priority: 'primary' as const,
+      render: (row: InventoryPerformanceRow) => <div><span className="block font-bold text-slate-900">{row.code} — {row.name}</span><span className="block text-xs text-slate-500">{KIND_LABELS[row.kind]} · {row.category} · {row.status}</span></div>,
+    },
+    { key: 'rentals', header: <Button type="button" variant="quiet" size="sm" onClick={() => toggleSort('rentalCount')} aria-label="ترتيب حسب عدد مرات التأجير" className="min-h-9 px-2 text-xs">تأجير</Button>, priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => row.rentalCount },
+    { key: 'sales', header: 'بيع', priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => row.saleCount },
+    { key: 'revenue', header: <Button type="button" variant="quiet" size="sm" onClick={() => toggleSort('revenue')} aria-label="ترتيب حسب الإيراد" className="min-h-9 px-2 text-xs">الإيراد</Button>, priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => formatMoneyOMR(row.totalRevenue) },
+    { key: 'cost', header: <Button type="button" variant="quiet" size="sm" onClick={() => toggleSort('serviceCost')} aria-label="ترتيب حسب تكلفة الصيانة" className="min-h-9 px-2 text-xs">التكاليف</Button>, priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => formatMoneyOMR(row.totalCost) },
+    { key: 'net', header: <Button type="button" variant="quiet" size="sm" onClick={() => toggleSort('netResult')} aria-label="ترتيب حسب صافي العائد" className="min-h-9 px-2 text-xs">صافي العائد</Button>, priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => <span className={row.netResult < 0 ? 'font-bold text-rose-700' : 'font-bold text-emerald-700'}>{formatMoneyOMR(row.netResult)}</span> },
+    { key: 'utilisation', header: <Button type="button" variant="quiet" size="sm" onClick={() => toggleSort('utilisationRate')} aria-label="ترتيب حسب نسبة الإشغال" className="min-h-9 px-2 text-xs">الإشغال</Button>, priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => percent(row.utilisationRate) },
+    { key: 'idle', header: <Button type="button" variant="quiet" size="sm" onClick={() => toggleSort('idleDays')} aria-label="ترتيب حسب الركود" className="min-h-9 px-2 text-xs">ركود</Button>, priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => row.idleDays === null ? '—' : row.idleDays },
+    { key: 'details', header: 'التفاصيل', priority: 'secondary' as const, render: (row: InventoryPerformanceRow) => <Button type="button" variant="secondary" size="sm" onClick={() => openDetail(row)} aria-label={`فتح تفاصيل أداء ${row.code}`}>عرض</Button> },
+  ];
 
   return (
     <section className="space-y-6">
@@ -308,46 +352,13 @@ export function InventoryPerformancePage() {
               <p className="mt-1 text-xs text-slate-500">
                 مجمّع من قطع كل تصميم. نسبة الإشغال محسوبة على مجموع أيام القطع، فقطعة مشغولة لا تُخفي قطعاً راكدة.
               </p>
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[46rem] text-right text-sm">
-                  <caption className="sr-only">أداء كل تصميم خلال الفترة المحددة</caption>
-                  <thead className="text-xs text-slate-500">
-                    <tr>
-                      <th scope="col" className="p-2">التصميم</th>
-                      <th scope="col" className="p-2">القطع</th>
-                      <th scope="col" className="p-2">تأجير</th>
-                      <th scope="col" className="p-2">الإيراد</th>
-                      <th scope="col" className="p-2">صافي العائد</th>
-                      <th scope="col" className="p-2">الإشغال</th>
-                      <th scope="col" className="p-2">قطع راكدة</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.designRows.map((design) => (
-                      <tr key={design.designId} className="border-t border-slate-100">
-                        <td className="p-2">
-                          <Link
-                            to={`/designs/${encodeURIComponent(design.code)}`}
-                            className={`block font-bold text-slate-900 underline-offset-2 hover:underline ${AMBER_FOCUS_RING_CLASS_NAME}`}
-                          >
-                            {design.code} — {design.name}
-                          </Link>
-                          <span className="block text-xs text-slate-500">{design.category}</span>
-                        </td>
-                        <td className="p-2">{design.pieceCount}</td>
-                        <td className="p-2">{design.rentalCount}</td>
-                        <td className="p-2">{formatMoneyOMR(design.totalRevenue)}</td>
-                        <td className={`p-2 font-bold ${design.netResult < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
-                          {formatMoneyOMR(design.netResult)}
-                        </td>
-                        <td className="p-2">{percent(design.utilisationRate)}</td>
-                        <td className={`p-2 ${design.idlePieceCount > 0 ? 'font-bold text-amber-700' : ''}`}>
-                          {design.idlePieceCount}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="mt-4 min-w-0 overflow-x-auto">
+                <DataTable
+                  rows={report.designRows}
+                  columns={designColumns}
+                  rowKey={(design) => design.designId}
+                  caption="أداء كل تصميم خلال الفترة المحددة"
+                />
               </div>
             </article>
           )}
@@ -359,63 +370,17 @@ export function InventoryPerformancePage() {
                 <EmptyState title="لا توجد عناصر مطابقة" description="غيّري الفترة أو الفلاتر لعرض نتائج أخرى." />
               </div>
             ) : (
-              <div className="mt-4 overflow-x-auto">
-                <table className="w-full min-w-[54rem] text-right text-sm">
-                  <caption className="sr-only">أداء كل عنصر خلال الفترة المحددة</caption>
-                  <thead className="text-xs text-slate-500">
-                    <tr>
-                      <th scope="col" className="p-2">العنصر</th>
-                      <th scope="col" className="p-2">
-                        <button type="button" onClick={() => toggleSort('rentalCount')} className={`font-bold ${AMBER_FOCUS_RING_CLASS_NAME}`} aria-label="ترتيب حسب عدد مرات التأجير">تأجير</button>
-                      </th>
-                      <th scope="col" className="p-2">بيع</th>
-                      <th scope="col" className="p-2">
-                        <button type="button" onClick={() => toggleSort('revenue')} className={`font-bold ${AMBER_FOCUS_RING_CLASS_NAME}`} aria-label="ترتيب حسب الإيراد">الإيراد</button>
-                      </th>
-                      <th scope="col" className="p-2">
-                        <button type="button" onClick={() => toggleSort('serviceCost')} className={`font-bold ${AMBER_FOCUS_RING_CLASS_NAME}`} aria-label="ترتيب حسب تكلفة الصيانة">التكاليف</button>
-                      </th>
-                      <th scope="col" className="p-2">
-                        <button type="button" onClick={() => toggleSort('netResult')} className={`font-bold ${AMBER_FOCUS_RING_CLASS_NAME}`} aria-label="ترتيب حسب صافي العائد">صافي العائد</button>
-                      </th>
-                      <th scope="col" className="p-2">
-                        <button type="button" onClick={() => toggleSort('utilisationRate')} className={`font-bold ${AMBER_FOCUS_RING_CLASS_NAME}`} aria-label="ترتيب حسب نسبة الإشغال">الإشغال</button>
-                      </th>
-                      <th scope="col" className="p-2">
-                        <button type="button" onClick={() => toggleSort('idleDays')} className={`font-bold ${AMBER_FOCUS_RING_CLASS_NAME}`} aria-label="ترتيب حسب الركود">ركود</button>
-                      </th>
-                      <th scope="col" className="p-2">التفاصيل</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {report.rows.map((row) => (
-                      <tr key={row.id} className="border-t border-slate-100">
-                        <td className="p-2">
-                          <span className="block font-bold text-slate-900">{row.code} — {row.name}</span>
-                          <span className="block text-xs text-slate-500">{KIND_LABELS[row.kind]} · {row.category} · {row.status}</span>
-                        </td>
-                        <td className="p-2">{row.rentalCount}</td>
-                        <td className="p-2">{row.saleCount}</td>
-                        <td className="p-2">{formatMoneyOMR(row.totalRevenue)}</td>
-                        <td className="p-2">{formatMoneyOMR(row.totalCost)}</td>
-                        <td className={`p-2 font-bold ${row.netResult < 0 ? 'text-rose-700' : 'text-emerald-700'}`}>{formatMoneyOMR(row.netResult)}</td>
-                        <td className="p-2">{percent(row.utilisationRate)}</td>
-                        <td className="p-2">{row.idleDays === null ? '—' : row.idleDays}</td>
-                        <td className="p-2">
-                          <button
-                            type="button"
-                            onClick={() => openDetail(row)}
-                            aria-label={`فتح تفاصيل أداء ${row.code}`}
-                            className={`min-h-10 rounded-xl border border-slate-300 px-3 text-xs font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-                          >
-                            عرض
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <p className="sr-only">أداء كل عنصر خلال الفترة المحددة</p>
+                <div className="mt-4 min-w-0 overflow-x-auto">
+                <DataTable
+                  rows={report.rows}
+                  columns={performanceColumns}
+                  rowKey={(row) => row.id}
+                  caption="أداء كل عنصر خلال الفترة المحددة"
+                />
+                </div>
+              </>
             )}
           </article>
 

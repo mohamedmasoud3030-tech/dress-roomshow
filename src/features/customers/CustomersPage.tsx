@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Archive, CircleAlert, Download, Plus, Search, Trash2 } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
 import {
@@ -116,6 +116,12 @@ function CustomerCard({ customer, onArchive, onDelete, canDelete }: { customer: 
       </div>
 
       <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
+        <Link
+          to={`/customers/${encodeURIComponent(customer.id)}`}
+          className="inline-flex min-h-10 items-center rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+        >
+          فتح الملف الكامل
+        </Link>
         {customer.archivedAt ? (
           <span className="text-xs font-bold text-slate-500">مؤرشفة — التاريخ محفوظ</span>
         ) : (
@@ -306,10 +312,10 @@ export function CustomersPage() {
           <ul className="space-y-2">
             {filteredCustomers.map((customer) => (
               <li key={customer.id} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3">
-                <span className="min-w-0 flex-1">
+                <Link to={`/customers/${encodeURIComponent(customer.id)}`} className="min-w-0 flex-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2">
                   <span className="block truncate text-sm font-bold text-slate-900">{customer.name}</span>
                   <span className="block truncate text-xs text-slate-500" dir="ltr">{customer.phone}</span>
-                </span>
+                </Link>
                 <span className="shrink-0 text-left">
                   <span className={`block rounded-full px-2.5 py-0.5 text-[11px] font-bold ring-1 ${statusStyles[customer.status]}`}>
                     {statusLabels[customer.status]}

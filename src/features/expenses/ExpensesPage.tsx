@@ -3,6 +3,7 @@ import { Download, Plus } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
 import { buildExpensesCsv, ledgerFileName } from '../reports/ledgerExports';
 import { Button } from '../../components/shared/Button';
+import { DataTable } from '../../components/shared/DataTable';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -10,7 +11,6 @@ import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/F
 import {
   ALERT_STYLES,
   ALERT_BASE_CLASS_NAME,
-  CARD_GRID_CLASS_NAME,
 } from '../../shared/domain/uiConstants';
 import { AddExpenseModal } from './AddExpenseModal';
 import { EXPENSE_CATEGORY_FILTER_OPTIONS, EXPENSE_PAYMENT_METHOD_FILTER_OPTIONS } from './expense.constants';
@@ -48,6 +48,60 @@ function formatDate(date: string): string {
     day: '2-digit',
   });
 }
+
+const expenseColumns = [
+  {
+    key: 'expense',
+    header: 'المصروف',
+    priority: 'primary' as const,
+    render: (expense: ExpenseRecord) => (
+      <div>
+        <p className="font-bold text-slate-950">{expense.title}</p>
+        <p className="mt-1 text-xs text-slate-500" dir="ltr">{expense.expenseNumber}</p>
+      </div>
+    ),
+  },
+  {
+    key: 'date',
+    header: 'التاريخ',
+    priority: 'secondary' as const,
+    render: (expense: ExpenseRecord) => formatDate(expense.expenseDate),
+  },
+  {
+    key: 'category',
+    header: 'الفئة',
+    priority: 'secondary' as const,
+    render: (expense: ExpenseRecord) => <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${categoryBadgeClasses[expense.category]}`}>{formatExpenseCategoryLabel(expense.category)}</span>,
+  },
+  {
+    key: 'payment-method',
+    header: 'وسيلة الدفع',
+    priority: 'secondary' as const,
+    render: (expense: ExpenseRecord) => formatExpensePaymentMethodLabel(expense.paymentMethod),
+  },
+  {
+    key: 'related-item',
+    header: 'العنصر المرتبط',
+    priority: 'secondary' as const,
+    render: (expense: ExpenseRecord) => expense.relatedDressCode
+      ? `${expense.relatedDressCode}${expense.relatedDressName ? ` / ${expense.relatedDressName}` : ''}`
+      : expense.relatedAccessoryCode
+        ? `${expense.relatedAccessoryCode}${expense.relatedAccessoryName ? ` / ${expense.relatedAccessoryName}` : ''}`
+        : 'غير مرتبط بعنصر محدد',
+  },
+  {
+    key: 'amount',
+    header: 'المبلغ',
+    priority: 'secondary' as const,
+    render: (expense: ExpenseRecord) => <span className="font-extrabold text-rose-700">- {formatAmount(expense.amount)}</span>,
+  },
+  {
+    key: 'notes',
+    header: 'ملاحظات',
+    priority: 'secondary' as const,
+    render: (expense: ExpenseRecord) => expense.notes || '—',
+  },
+];
 
 export function ExpensesPage() {
   const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => getExpenses());
@@ -131,50 +185,12 @@ export function ExpensesPage() {
           description={expenses.length === 0 ? 'سجّلي أول مصروف تشغيلي ليظهر هنا وفي تقارير الربحية.' : 'غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.'}
         />
       ) : (
-        <div className={CARD_GRID_CLASS_NAME}>
-          {filteredExpenses.map((expense) => (
-            <article key={expense.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-slate-500">رقم المصروف: {expense.expenseNumber}</p>
-                  <h2 className="mt-1 text-lg font-semibold text-slate-950">{expense.title}</h2>
-                  {expense.relatedDressCode ? (
-                    <p className="text-sm text-slate-600">
-                      العنصر: {expense.relatedDressCode}
-                      {expense.relatedDressName ? ` / ${expense.relatedDressName}` : ''}
-                    </p>
-                  ) : expense.relatedAccessoryCode ? (
-                    <p className="text-sm text-slate-600">
-                      الملحق: {expense.relatedAccessoryCode}
-                      {expense.relatedAccessoryName ? ` / ${expense.relatedAccessoryName}` : ''}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-slate-600">غير مرتبط بعنصر محدد</p>
-                  )}
-                </div>
-                <p className="text-sm font-bold text-rose-700">- {formatAmount(expense.amount)}</p>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold ${categoryBadgeClasses[expense.category]}`}>
-                  {formatExpenseCategoryLabel(expense.category)}
-                </span>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {formatExpensePaymentMethodLabel(expense.paymentMethod)}
-                </span>
-              </div>
-
-              <dl className="mt-4 text-sm text-slate-700">
-                <dt className="text-slate-500">تاريخ المصروف</dt>
-                <dd>{formatDate(expense.expenseDate)}</dd>
-              </dl>
-
-              {expense.notes ? (
-                <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">{expense.notes}</p>
-              ) : null}
-            </article>
-          ))}
-        </div>
+        <DataTable
+          rows={filteredExpenses}
+          columns={expenseColumns}
+          rowKey={(expense) => expense.id}
+          caption="سجل المصروفات"
+        />
       )}
 
       <AddExpenseModal open={showCreateModal} onClose={() => setShowCreateModal(false)} onCreated={handleCreated} />

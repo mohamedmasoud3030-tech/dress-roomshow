@@ -19,10 +19,10 @@
 | 1 | Establish canonical page foundations | IMPLEMENTED BUT NOT VERIFIED | the app shell and representative inventory page now share a consistent frame, header action slot, button semantics, and recoverable state action without behavior change | `PageContainer`, PageHeader action/status slots, Button/IconButton, FormActions, ErrorState, Modal close action, representative inventory header | typecheck/lint/full test/build passed; browser/device rendered pass remains external |
 | 2 | Migrate representative reservation journey end-to-end | IMPLEMENTED BUT NOT VERIFIED | reservation index and wizard now use the shared filter/action/error foundations with ordered validation and recovery | reservation index, `CreateReservationModal`, `Stepper`, `SearchableSelect`, `ValidationSummary`, `Button` | reservation happy/blocked/idempotency/rollback + DOM/static render passed; browser/device journey remains external |
 | 3 | Migrate delivery/return/service risk path | NOT STARTED | daily high-risk physical workflow is a clear queue and safe detail sheet | delivery-return, condition photos, service queue, late fee/deposit status | delivery/return/service/finance/audit/rollback + mobile camera fallback |
-| 4 | Migrate inventory and customer indexes | NOT STARTED | browse cards/operations list/detail have explicit hierarchy and phone actions | inventory, accessories, customers, detail links, view mode | lifecycle/archive/code/image/customer history tests + responsive evidence |
-| 5 | Split admin settings safely | NOT STARTED | admin finds profile, documents, accounts, and data safety without long scroll | conceptual sections/nested routes with `/preferences` compatibility | admin/staff permission, backup/restore/reset, deep-link/redirect tests |
-| 6 | Standardize financial ledgers and reconciliation | NOT STARTED | payment/sale/expense/daily close semantics visible and comparable | `DataTable`, `KeyValueList`, reconciliation layout | full financial regression, print, daily-close, mobile table strategy |
-| 7 | Reports and audit decision surfaces | NOT STARTED | reports answer decisions; audit reads as timeline; no vanity cards | report/inventory performance/audit | report source reconciliation, export, accessible table/chart equivalence |
+| 4 | Migrate inventory and customer indexes | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | browse cards/operations list/detail have explicit hierarchy and phone actions | inventory, accessories, customers, detail links, view mode | lifecycle/archive/code/image/customer history tests + responsive evidence |
+| 5 | Split admin settings safely | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | admin finds profile, documents, accounts, and data safety without long scroll | conceptual section anchors with `/preferences` compatibility; nested routes remain deferred | admin/staff permission, backup/restore/reset, deep-link/redirect tests |
+| 6 | Standardize financial ledgers and reconciliation | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | payment/expense/audit comparison surfaces now have a phone-safe table transformation | `DataTable`, `KeyValueList`, payment/expense/audit surfaces, daily-close action semantics | full financial regression, print, daily-close, mobile table strategy |
+| 7 | Reports and audit decision surfaces | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | inventory performance and audit use shared comparison surfaces without changing report sources | report/inventory performance/audit | report source reconciliation, export, accessible table/chart equivalence |
 | 8 | Public storefront content hierarchy refinement | NOT STARTED | shorter phone journey with category → catalogue → CTA and accessible detail | public sections, filters, shortlist, piece detail | anonymous public projection/privacy, route, CTA, phone/tablet/desktop |
 | 9 | Remove obsolete wrappers/duplicate patterns | NOT STARTED | smaller maintainable interface layer | only proven dead components after graph/test audit | `git grep`, route smoke, full suite/build |
 
@@ -69,6 +69,9 @@
 5. Migrated inventory, delivery/return, customers, accessories, appointments, availability, payments, expenses, reminders, inventory performance, service, stocktake, and waitlist action surfaces to canonical `Button`/`PageHeader` semantics without changing commands, routes, permissions, or data writes.
 6. Added URL-safe settings section navigation for backup, storage, images, operations, about, and danger-zone areas while preserving `/preferences`.
 7. Added regression coverage for the shell frame, action/status slots, loading semantics, form action usage, reservation and operational action surfaces, settings navigation, and safe-area behavior.
+8. Added `DataTable` and `KeyValueList` primitives with a deliberate desktop-table to phone-card transformation; adopted them in payments, expenses, audit, and inventory-performance surfaces.
+9. Added a compatibility-preserving `/customers/:id` detail route linked from the customer index for identity, conduct, measurements, and reservation history.
+10. Added daily-close idempotency-key protection and canonical loading action semantics without changing the close/reopen commands.
 
 ### Changed files
 
@@ -95,6 +98,14 @@
 - `src/features/stocktake/StocktakePage.tsx`
 - `src/features/waitlist/WaitlistPage.tsx`
 - `src/features/preferences/PreferencesPage.tsx`
+- `src/features/audit/AuditLogPage.tsx`
+- `src/features/dresses/SalesLedgerPage.tsx`
+- `src/features/reports/DailyClosingPage.tsx`
+- `src/features/reports/InventoryPerformancePage.tsx`
+- `src/features/customers/CustomerDetailsPage.tsx`
+- `src/app/router/AppRoutes.tsx`
+- `src/app/router/routePages.ts`
+- `src/components/shared/DataTable.tsx`
 - `tests/mobile-polish-regression.test.mjs`
 
 ### Evidence

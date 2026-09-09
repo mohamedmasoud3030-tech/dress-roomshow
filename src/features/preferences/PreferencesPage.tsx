@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Cloud, DatabaseBackup, Download, HardDrive, RefreshCw, RotateCcw, Save, Upload } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { StorageCapacityIndicator } from '../../components/shared/StorageCapacityIndicator';
@@ -214,8 +215,14 @@ export function PreferencesPage() {
         </div>
         <p className="mt-3 text-sm leading-6 text-slate-600">صدّري نسخة قبل أي استيراد أو تصفير. الاستيراد يستبدل البيانات الحالية فقط بعد تأكيد صريح.</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <button type="button" onClick={() => void exportBackup()} disabled={isExporting} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"><Download aria-hidden="true" className="h-4 w-4" />{isExporting ? 'جارٍ تجهيز النسخة...' : 'تنزيل نسخة احتياطية'}</button>
-          <button type="button" onClick={() => importInput.current?.click()} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-stone-100"><Upload aria-hidden="true" className="h-4 w-4" />استعادة نسخة احتياطية</button>
+          <Button type="button" onClick={() => void exportBackup()} disabled={isExporting} loading={isExporting} loadingLabel="جارٍ تجهيز النسخة...">
+            <Download aria-hidden="true" className="h-4 w-4" />
+            تنزيل نسخة احتياطية
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => importInput.current?.click()}>
+            <Upload aria-hidden="true" className="h-4 w-4" />
+            استعادة نسخة احتياطية
+          </Button>
           <input ref={importInput} type="file" accept="application/json,.json" className="hidden" onChange={(event) => void importBackup(event.target.files?.[0])} />
 
         </div>
@@ -228,7 +235,10 @@ export function PreferencesPage() {
         </div>
         <p className="mt-3 text-sm leading-6 text-slate-600">يحتفظ الخادم بآخر ٢٠ نسخة تلقائيًا. الاستعادة من هنا تستبدل البيانات الحالية بعد تأكيد صريح، وهي محمية بنفس تحقق الاستيراد وتراجعه.</p>
         <div className="mt-4">
-          <button type="button" onClick={() => void refreshCloudCopies()} disabled={cloudCopies.status === 'loading'} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-800 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60"><RefreshCw aria-hidden="true" className="h-4 w-4" />{cloudCopies.status === 'loading' ? 'جارٍ التحميل...' : 'تحديث القائمة'}</button>
+          <Button type="button" variant="secondary" onClick={() => void refreshCloudCopies()} loading={cloudCopies.status === 'loading'} loadingLabel="جارٍ التحميل...">
+            <RefreshCw aria-hidden="true" className="h-4 w-4" />
+            تحديث القائمة
+          </Button>
         </div>
         {cloudCopies.status === 'unavailable' && (
           <p className="mt-4 rounded-xl bg-stone-50 p-3 text-sm text-slate-600">قائمة نسخ الخادم غير متاحة الآن. تحققي من الاتصال بالإنترنت ثم أعيدي التحميل.</p>
@@ -245,8 +255,14 @@ export function PreferencesPage() {
                   <p className="mt-1 text-xs text-slate-500">الحجم: {formatCopyBytes(copy.bytes)}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => void downloadCloudCopy(copy.name)} disabled={busyCopy !== null} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-60"><Download aria-hidden="true" className="h-4 w-4" />تنزيل</button>
-                  <button type="button" onClick={() => void restoreCloudCopy(copy.name)} disabled={busyCopy !== null} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"><RotateCcw aria-hidden="true" className="h-4 w-4" />{busyCopy === copy.name ? 'جارٍ التنفيذ...' : 'استعادة'}</button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => void downloadCloudCopy(copy.name)} disabled={busyCopy !== null}>
+                    <Download aria-hidden="true" className="h-4 w-4" />
+                    تنزيل
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => void restoreCloudCopy(copy.name)} disabled={busyCopy !== null} loading={busyCopy === copy.name} loadingLabel="جارٍ التنفيذ..." className="border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100">
+                    <RotateCcw aria-hidden="true" className="h-4 w-4" />
+                    استعادة
+                  </Button>
                 </div>
               </li>
             ))}
@@ -287,10 +303,10 @@ export function PreferencesPage() {
         </div>
         <p className="mt-3 text-sm leading-6 text-slate-600">استخدمي هذه العملية مرة واحدة إذا كانت لديك صور قديمة كثيرة، لتقليل احتمالات امتلاء المساحة أثناء العمل.</p>
         <div className="mt-4 flex flex-wrap gap-3">
-          <button type="button" onClick={() => void migrateImages()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+          <Button type="button" onClick={() => void migrateImages()}>
             <HardDrive aria-hidden="true" className="h-4 w-4" />
             تحسين حفظ الصور القديمة
-          </button>
+          </Button>
           {!isIndexedDBAvailable() && (
             <p className="self-center text-xs font-bold text-amber-700">هذا الجهاز لا يدعم نقل الصور القديمة تلقائيًا.</p>
           )}
@@ -393,7 +409,10 @@ export function PreferencesPage() {
         <p className="mt-3 rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">
           يقترح النظام قيمة رسوم التأخير عند تسجيل الاسترجاع، ويظل بإمكانك تعديلها أو إلغاؤها. صفر في الحد الأقصى يعني بلا سقف.
         </p>
-        <button type="button" onClick={savePreferences} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800"><Save aria-hidden="true" className="h-4 w-4" />حفظ الإعدادات</button>
+        <Button type="button" onClick={savePreferences} className="mt-4">
+          <Save aria-hidden="true" className="h-4 w-4" />
+          حفظ الإعدادات
+        </Button>
       </article>
 
       <AccountSettings />
@@ -430,7 +449,10 @@ export function PreferencesPage() {
       <article id="danger-zone" className="scroll-mt-24 rounded-2xl border-2 border-rose-300 bg-rose-50 p-5 shadow-sm">
         <h2 className="text-lg font-black text-rose-900">منطقة الخطر</h2>
         <p className="mt-2 text-sm leading-6 text-rose-800">تصفير البيانات يمسح سجلات التشغيل من مساحة المعرض. نزّلي نسخة احتياطية حديثة وتحققي من حفظها قبل المتابعة.</p>
-        <button type="button" onClick={resetAllData} className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-500 bg-white px-4 py-2 text-sm font-bold text-rose-800 hover:bg-rose-100"><RotateCcw aria-hidden="true" className="h-4 w-4" />تصفير جميع البيانات</button>
+        <Button type="button" variant="danger" onClick={resetAllData} className="mt-4">
+          <RotateCcw aria-hidden="true" className="h-4 w-4" />
+          تصفير جميع البيانات
+        </Button>
       </article>
     </section>
   );

@@ -56,6 +56,12 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   const customersPage = await readFile(join(sourceRoot, 'features/customers/CustomersPage.tsx'), 'utf8');
   const accessoriesPage = await readFile(join(sourceRoot, 'features/accessories/AccessoriesPage.tsx'), 'utf8');
   const preferencesPage = await readFile(join(sourceRoot, 'features/preferences/PreferencesPage.tsx'), 'utf8');
+  const auditPage = await readFile(join(sourceRoot, 'features/audit/AuditLogPage.tsx'), 'utf8');
+  const salesLedgerPage = await readFile(join(sourceRoot, 'features/dresses/SalesLedgerPage.tsx'), 'utf8');
+  const dailyClosingPage = await readFile(join(sourceRoot, 'features/reports/DailyClosingPage.tsx'), 'utf8');
+  const dataTable = await readFile(join(sourceRoot, 'components/shared/DataTable.tsx'), 'utf8');
+  const customerDetailsPage = await readFile(join(sourceRoot, 'features/customers/CustomerDetailsPage.tsx'), 'utf8');
+  const appRoutes = await readFile(join(sourceRoot, 'app/router/AppRoutes.tsx'), 'utf8');
 
   assert.match(pageContainer, /safe-area-inset-bottom/);
   assert.match(pageHeader, /actions\?: ReactNode/);
@@ -75,6 +81,18 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   assert.match(preferencesPage, /aria-label="أقسام الإعدادات"/);
   assert.match(preferencesPage, /id="data-backup"/);
   assert.match(preferencesPage, /id="danger-zone"/);
+  assert.match(auditPage, /<DataTable/);
+  assert.match(auditPage, /مسح الفلاتر/);
+  assert.match(salesLedgerPage, /actions=\{/);
+  assert.match(dailyClosingPage, /idempotencyKey: submissionKey/);
+  assert.match(dailyClosingPage, /loading=\{isClosing\}/);
+  assert.match(dataTable, /md:hidden/);
+  assert.match(dataTable, /hidden overflow-x-auto/);
+  assert.match(dataTable, /priority\?: 'primary' \| 'secondary' \| 'optional'/);
+  assert.match(customerDetailsPage, /CustomerConductPanel/);
+  assert.match(customerDetailsPage, /MeasurementsPanel/);
+  assert.match(customerDetailsPage, /سجل الحجوزات/);
+  assert.match(appRoutes, /path="customers\/:id"/);
 
   const markup = renderToStaticMarkup(
     React.createElement(

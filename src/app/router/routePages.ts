@@ -14,6 +14,7 @@ export const AuditLogPage = lazyNamed(() => import('../../features/audit/AuditLo
 export const AvailabilitySearchPage = lazyNamed(() => import('../../features/availability/AvailabilitySearchPage'), 'AvailabilitySearchPage');
 export const AppointmentsPage = lazyNamed(() => import('../../features/appointments/AppointmentsPage'), 'AppointmentsPage');
 export const CustomersPage = lazyNamed(() => import('../../features/customers/CustomersPage'), 'CustomersPage');
+export const CustomerDetailsPage = lazyNamed(() => import('../../features/customers/CustomerDetailsPage'), 'CustomerDetailsPage');
 export const DashboardWithClosingAlertPage = lazyNamed(() => import('../../features/dashboard/DashboardWithClosingAlertPage'), 'DashboardWithClosingAlertPage');
 export const DeliveryReturnPage = lazyNamed(() => import('../../features/delivery-return/DeliveryReturnPage'), 'DeliveryReturnPage');
 export const DressesPage = lazyNamed(() => import('../../features/dresses/DressesPage'), 'DressesPage');

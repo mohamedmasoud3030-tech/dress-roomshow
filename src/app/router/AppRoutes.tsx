@@ -13,6 +13,7 @@ import {
   AuditLogPage,
   AvailabilitySearchPage,
   CustomersPage,
+  CustomerDetailsPage,
   DailyClosingPage,
   DesignDetailsPage,
   DashboardWithClosingAlertPage,
@@ -77,6 +78,7 @@ export function AppRoutes() {
         <Route path="availability" element={<AvailabilitySearchPage />} />
         <Route path="accessories" element={<AccessoriesPage />} />
         <Route path="customers" element={<CustomersPage />} />
+        <Route path="customers/:id" element={<CustomerDetailsPage />} />
         <Route path="reservations" element={<ReservationsPage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="delivery-return" element={<DeliveryReturnPage />} />

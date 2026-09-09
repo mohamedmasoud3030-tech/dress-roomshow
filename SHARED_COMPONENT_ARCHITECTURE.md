@@ -161,14 +161,15 @@
 
 #### `DataTable`
 
-- **Status:** planned for payments, expenses, sales, audit, reports, performance.
-- **Contract:** column definitions with priority (`primary`, `secondary`, `detail`), sort/filter hooks, empty/loading, row action region, responsive transform.
-- **Mobile:** default transform to priority list/cards; contained horizontal table only when comparison is the job.
-- **Accessibility:** semantic table, caption/label, `aria-sort`, row focus/action semantics.
+- **Status:** implemented and used by the audit log; migrate additional comparison-heavy report surfaces incrementally.
+- **Contract:** column definitions with priority (`primary`, `secondary`, `optional`), row key, caption, empty state, and responsive transform. Domain renderers retain labels/actions.
+- **Mobile:** default transform to priority-labelled cards; contained horizontal table is kept on desktop for comparison.
+- **Accessibility:** semantic table, caption when supplied, labelled mobile list, and visible text values; sortable headers remain feature-owned until a real sortable table is migrated.
 
 #### `DetailField` / `KeyValueList`
 
-- **Responsibility:** stable label/value grouping, status/value formatting, long content handling.
+- **Status:** implemented as a small label/value primitive for detail and reconciliation surfaces.
+- **Responsibility:** stable label/value grouping, status/value formatting, and long content handling.
 - **Rules:** required/unknown/empty values are explicit; not a generic form field.
 
 #### `Stat`, `Badge`, `StatusIndicator`

@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { ClipboardList, Download } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
-import {
-  SECONDARY_BUTTON_CLASS_NAME,
-  CARD_CLASS_NAME,
-} from '../../shared/domain/uiConstants';
-import { buildAuditCsv, ledgerFileName } from '../reports/ledgerExports';
+import { Button } from '../../components/shared/Button';
+import { DataTable } from '../../components/shared/DataTable';
+import { EmptyState } from '../../components/shared/StateViews';
+import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
 import { PageHeader } from '../../components/shared/PageHeader';
+import { buildAuditCsv, ledgerFileName } from '../reports/ledgerExports';
 import { filterAuditLog, getAuditLog } from './audit.service';
-import type { AuditActionType, AuditEntityType, AuditLogFilters } from './audit.types';
+import type { AuditActionType, AuditEntityType, AuditLogEntry, AuditLogFilters } from './audit.types';
 
 const entityLabels: Record<AuditEntityType, string> = {
   customer: 'عميلة',
@@ -48,63 +48,120 @@ const actionLabels: Record<AuditActionType, string> = {
   delete: 'حذف نهائي',
 };
 
-const field = 'min-h-11 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
+const entityOptions: Array<{ value: AuditEntityType | 'all'; label: string }> = [
+  { value: 'all', label: 'كل الأقسام' },
+  ...Object.entries(entityLabels).map(([value, label]) => ({ value: value as AuditEntityType, label })),
+];
+const actionOptions: Array<{ value: AuditActionType | 'all'; label: string }> = [
+  { value: 'all', label: 'كل الحركات' },
+  ...Object.entries(actionLabels).map(([value, label]) => ({ value: value as AuditActionType, label })),
+];
+
+function formatTimestamp(value: string): string {
+  return new Date(value).toLocaleString('ar-OM');
+}
+
+const auditColumns = [
+  {
+    key: 'summary',
+    header: 'الحركة',
+    priority: 'primary' as const,
+    render: (entry: AuditLogEntry) => <span className="font-bold text-slate-950">{entry.summary}</span>,
+  },
+  {
+    key: 'entity',
+    header: 'القسم',
+    priority: 'secondary' as const,
+    render: (entry: AuditLogEntry) => entityLabels[entry.entityType],
+  },
+  {
+    key: 'action',
+    header: 'نوع الحركة',
+    priority: 'secondary' as const,
+    render: (entry: AuditLogEntry) => <span className="font-semibold">{actionLabels[entry.action]}</span>,
+  },
+  {
+    key: 'operator',
+    header: 'بواسطة',
+    priority: 'secondary' as const,
+    render: (entry: AuditLogEntry) => entry.performedBy ?? 'غير مسجّل',
+  },
+  {
+    key: 'timestamp',
+    header: 'التاريخ والوقت',
+    priority: 'secondary' as const,
+    render: (entry: AuditLogEntry) => <time dateTime={entry.timestamp}>{formatTimestamp(entry.timestamp)}</time>,
+  },
+  {
+    key: 'entity-id',
+    header: 'المعرف',
+    priority: 'optional' as const,
+    render: (entry: AuditLogEntry) => <span dir="ltr">{entry.entityId}</span>,
+  },
+];
 
 export function AuditLogPage() {
   const entries = useMemo(() => getAuditLog(), []);
   const [filters, setFilters] = useState<AuditLogFilters>({ search: '', entityType: 'all', action: 'all' });
   const filteredEntries = useMemo(() => filterAuditLog(entries, filters), [entries, filters]);
+  const hasActiveFilters = filters.search !== '' || filters.entityType !== 'all' || filters.action !== 'all';
 
-
-  /**
-   * Exports exactly what the filters show: the accountant asks for a period or
-   * a subset, and an unfiltered dump makes her redo the narrowing.
-   */
   const handleExport = () => {
     downloadCsv(ledgerFileName('سجل-التدقيق'), buildAuditCsv(filteredEntries));
   };
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <PageHeader eyebrow="الرقابة" title="سجل التدقيق" />
-        <button type="button" onClick={handleExport} className={SECONDARY_BUTTON_CLASS_NAME}>
-          <Download aria-hidden="true" className="h-5 w-5" />
-          تصدير CSV
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="الرقابة"
+        title="سجل التدقيق"
+        actions={(
+          <Button type="button" variant="secondary" onClick={handleExport}>
+            <Download aria-hidden="true" className="h-5 w-5" />
+            تصدير CSV
+          </Button>
+        )}
+      />
 
-      <div className={`grid gap-3 md:grid-cols-[1fr_190px_190px] ${CARD_CLASS_NAME}`}>
-        <input value={filters.search} onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))} placeholder="ابحثي في ملخص الحركة أو رقم السجل" className={field} />
-        <select value={filters.entityType} onChange={(event) => setFilters((current) => ({ ...current, entityType: event.target.value as AuditLogFilters['entityType'] }))} className={field}>
-          <option value="all">كل الأقسام</option>
-          {Object.entries(entityLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-        <select value={filters.action} onChange={(event) => setFilters((current) => ({ ...current, action: event.target.value as AuditLogFilters['action'] }))} className={field}>
-          <option value="all">كل الحركات</option>
-          {Object.entries(actionLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-      </div>
+      <FilterBar>
+        <SearchFilter
+          label="البحث في سجل التدقيق"
+          value={filters.search}
+          onChange={(search) => setFilters((current) => ({ ...current, search }))}
+          placeholder="ابحثي في ملخص الحركة أو رقم السجل"
+        />
+        <SelectFilter
+          label="قسم الحركة"
+          value={filters.entityType}
+          onChange={(entityType) => setFilters((current) => ({ ...current, entityType }))}
+          options={entityOptions}
+        />
+        <SelectFilter
+          label="نوع الحركة"
+          value={filters.action}
+          onChange={(action) => setFilters((current) => ({ ...current, action }))}
+          options={actionOptions}
+        />
+        {hasActiveFilters ? (
+          <Button type="button" variant="quiet" size="sm" onClick={() => setFilters({ search: '', entityType: 'all', action: 'all' })} className="justify-self-start text-slate-600 hover:bg-stone-100 xl:justify-self-end">
+            مسح الفلاتر
+          </Button>
+        ) : null}
+      </FilterBar>
 
       {filteredEntries.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center shadow-sm">
-          <ClipboardList aria-hidden="true" className="mx-auto h-10 w-10 text-amber-700" />
-          <p className="mt-4 text-lg font-bold">لا توجد حركات مطابقة</p>
-          <p className="mt-2 text-sm text-slate-500">سيظهر هنا سجل الحركات الجديدة بعد تنفيذ العمليات التشغيلية.</p>
-        </div>
+        <EmptyState
+          icon={<ClipboardList aria-hidden="true" className="h-10 w-10" />}
+          title="لا توجد حركات مطابقة"
+          description="سيظهر هنا سجل الحركات الجديدة بعد تنفيذ العمليات التشغيلية."
+        />
       ) : (
-        <div className="space-y-3">
-          {filteredEntries.map((entry) => (
-            <article key={entry.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div><p className="font-bold text-slate-950">{entry.summary}</p><p className="mt-1 text-xs text-slate-500">{entityLabels[entry.entityType]} · {actionLabels[entry.action]} · {entry.entityId}</p>
-                  {/* Attribution is the question this log exists to answer. */}
-                  <p className="mt-1 text-xs font-bold text-slate-600">بواسطة: {entry.performedBy ?? 'غير مسجّل'}</p></div>
-                <time className="text-xs font-semibold text-slate-500">{new Date(entry.timestamp).toLocaleString('ar-OM')}</time>
-              </div>
-            </article>
-          ))}
-        </div>
+        <DataTable
+          rows={filteredEntries}
+          columns={auditColumns}
+          rowKey={(entry) => entry.id}
+          caption="سجل التدقيق"
+        />
       )}
     </section>
   );
