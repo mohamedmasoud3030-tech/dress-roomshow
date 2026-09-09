@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
+import { isLastOfCategory } from '../landingFlags';
 import type { Dress } from '../../../features/dresses/dress.types';
 import { INVENTORY_ITEM_TYPE_LABELS } from '../../../shared/domain/dressConstants';
 import { formatMoneyOMR } from '../../../shared/utils/format';
@@ -12,6 +13,7 @@ import {
 import { useShortlist } from '../useShortlist';
 import { DressPhoto } from './DressPhoto';
 import { Reveal } from './Reveal';
+import type { LandingDress } from '../landingDress.repository';
 import type { InventoryCategoryFilter, LandingProfile, LandingUsageFilter } from './types';
 
 type SortOrder = 'newest' | 'rent-asc' | 'rent-desc';
@@ -31,7 +33,7 @@ function rentValue(dress: Dress): number {
 
 type Props = {
   profile: LandingProfile;
-  dresses: Dress[];
+  dresses: LandingDress[];
   loading: boolean;
   loadError?: string | null;
   search: string;
@@ -41,6 +43,10 @@ type Props = {
   usageFilter: LandingUsageFilter;
   onUsageChange: (value: LandingUsageFilter) => void;
   inventoryCategories: readonly InventoryCategoryFilter[];
+  newOnly: boolean;
+  onNewOnlyChange: (value: boolean) => void;
+  /** Codes currently shown under "وصل حديثاً". */
+  newArrivalCodes: ReadonlySet<string>;
 };
 
 function InventoryCard({
@@ -50,13 +56,17 @@ function InventoryCard({
   index,
   saved,
   onToggleSave,
+  allDresses,
+  isNew,
 }: {
-  dress: Dress;
+  dress: LandingDress;
   profile: LandingProfile;
-  onZoom: (dress: Dress) => void;
+  onZoom: (dress: LandingDress) => void;
   index: number;
   saved: boolean;
-  onToggleSave: (dress: Dress) => void;
+  onToggleSave: (dress: LandingDress) => void;
+  allDresses: readonly Dress[];
+  isNew: boolean;
 }) {
   const typeLabel = INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress'];
   const bookingItem = { code: dress.code, name: dress.name, size: dress.size, color: dress.color };
@@ -79,6 +89,11 @@ function InventoryCard({
           />
 
           <div className="absolute right-3 top-3 flex flex-col gap-1.5">
+            {isNew ? (
+              <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[0.65rem] font-black text-slate-950">
+                جديد
+              </span>
+            ) : null}
             {dress.isForRent ? (
               <span className="rounded-full bg-slate-950/85 px-2.5 py-1 text-[0.65rem] font-black text-amber-200 backdrop-blur">
                 للإيجار
@@ -131,6 +146,11 @@ function InventoryCard({
               المقاس <span dir="ltr">{dress.size}</span>
             </span>
             <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700">{dress.color}</span>
+            {isLastOfCategory(dress, allDresses) ? (
+              <span className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-amber-800">
+                القطعة الوحيدة في فئتها
+              </span>
+            ) : null}
           </div>
 
           <div className="mt-auto flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
@@ -189,7 +209,7 @@ function QuickView({
   profile: LandingProfile;
   onClose: () => void;
   saved: boolean;
-  onToggleSave: (dress: Dress) => void;
+  onToggleSave: (dress: LandingDress) => void;
 }) {
   const bookingItem = { code: dress.code, name: dress.name, size: dress.size, color: dress.color };
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage(bookingItem));
@@ -327,8 +347,11 @@ export function LandingInventory({
   usageFilter,
   onUsageChange,
   inventoryCategories,
+  newOnly,
+  onNewOnlyChange,
+  newArrivalCodes,
 }: Props) {
-  const [zoomed, setZoomed] = useState<Dress | null>(null);
+  const [zoomed, setZoomed] = useState<LandingDress | null>(null);
   const [sort, setSort] = useState<SortOrder>('newest');
   const [size, setSize] = useState('all');
   const [eventDate, setEventDate] = useState('');
@@ -341,12 +364,13 @@ export function LandingInventory({
   );
 
   const sorted = useMemo(() => {
-    const list = size === 'all' ? dresses : dresses.filter((dress) => dress.size === size);
+    const base = newOnly ? dresses.filter((dress) => newArrivalCodes.has(dress.code)) : dresses;
+    const list = size === 'all' ? base : base.filter((dress) => dress.size === size);
     if (sort === 'newest') return list;
     return [...list].sort((a, b) =>
       sort === 'rent-asc' ? rentValue(a) - rentValue(b) : rentValue(b) - rentValue(a),
     );
-  }, [dresses, size, sort]);
+  }, [dresses, size, sort, newOnly, newArrivalCodes]);
 
   const availableSizes = useMemo(
     () => [...new Set(dresses.map((dress) => dress.size).filter(Boolean))].sort(),
@@ -499,6 +523,19 @@ export function LandingInventory({
                 </button>
               );
             })}
+            <button
+              type="button"
+              onClick={() => onNewOnlyChange(!newOnly)}
+              aria-pressed={newOnly}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black transition ${
+                newOnly
+                  ? 'border-amber-400 bg-amber-400 text-slate-950'
+                  : 'border-slate-200 text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              <Sparkles aria-hidden="true" className="h-3 w-3" />
+              وصل حديثاً
+            </button>
             <span className="mr-auto pl-1 text-xs font-bold text-slate-500">
               {sorted.length} قطعة
             </span>
@@ -556,6 +593,8 @@ export function LandingInventory({
               onZoom={setZoomed}
               saved={shortlist.has(dress.code)}
               onToggleSave={(item) => shortlist.toggle(item.code)}
+              allDresses={dresses}
+              isNew={newArrivalCodes.has(dress.code)}
             />
           ))}
         </div>

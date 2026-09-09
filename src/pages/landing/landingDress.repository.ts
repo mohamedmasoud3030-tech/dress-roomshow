@@ -2,6 +2,14 @@ import { isSupabaseConfigured } from '../../lib/supabaseClient';
 import { getSupabaseConfig } from '../../config/env';
 import { getDresses } from '../../features/dresses/dress.service';
 import type { Dress, DressCategory, InventoryItemType } from '../../features/dresses/dress.types';
+
+/**
+ * A catalogue piece as the public storefront sees it.
+ *
+ * `updatedAt` is not part of the operator's domain type: only the public page
+ * needs it, and only to answer "what arrived recently?".
+ */
+export type LandingDress = Dress & { updatedAt?: string };
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
 
 /**
@@ -34,6 +42,7 @@ type SupabaseDressRow = {
   is_for_sale: boolean;
   item_type: string | null;
   images: string[] | null;
+  updated_at: string | null;
 };
 
 function normalizeCategory(value: string | null): DressCategory {
@@ -44,7 +53,7 @@ function normalizeItemType(value: string | null): InventoryItemType {
   return value && KNOWN_ITEM_TYPES.has(value as InventoryItemType) ? (value as InventoryItemType) : 'dress';
 }
 
-function mapSupabaseRowToDress(row: SupabaseDressRow): Dress {
+function mapSupabaseRowToDress(row: SupabaseDressRow): LandingDress {
   const images = (row.images ?? []).filter((image) => typeof image === 'string');
 
   return {
@@ -66,6 +75,7 @@ function mapSupabaseRowToDress(row: SupabaseDressRow): Dress {
     images: [...new Set(images)],
     barcode: row.code,
     timesRented: 0,
+    updatedAt: row.updated_at ?? undefined,
   };
 }
 
@@ -79,7 +89,7 @@ export class LandingInventoryError extends Error {
 const CATALOGUE_COLUMNS = [
   'id', 'code', 'name', 'description', 'category', 'color', 'size', 'item_type',
   'rental_price', 'sale_price', 'security_deposit_amount', 'status', 'is_for_rent',
-  'is_for_sale', 'images',
+  'is_for_sale', 'images', 'updated_at',
 ].join(',');
 
 export const LANDING_FETCH_TIMEOUT_MS = 12_000;
@@ -92,7 +102,7 @@ export async function fetchAvailableDressesFromSupabase({
   getConfig: typeof getSupabaseConfig;
   fetcher: typeof fetch;
   timeoutMs: number;
-}> = {}): Promise<Dress[]> {
+}> = {}): Promise<LandingDress[]> {
   const { url, publishableKey } = getConfig();
   const endpoint = new URL('/rest/v1/catalogue_items', url);
   endpoint.searchParams.set('select', CATALOGUE_COLUMNS);
@@ -127,14 +137,14 @@ export async function fetchAvailableDressesFromSupabase({
   }
 }
 
-function getAvailableDressesFromLocalStorage(): Dress[] {
+function getAvailableDressesFromLocalStorage(): LandingDress[] {
   return getDresses().filter((dress) => dress.status === 'available');
 }
 
 export type LandingInventorySource = 'supabase' | 'local';
 
 export type LandingInventoryResult = {
-  dresses: Dress[];
+  dresses: LandingDress[];
   source: LandingInventorySource;
   /** Set when Supabase was configured but the request failed and we fell back locally. */
   warning?: string;
@@ -142,8 +152,8 @@ export type LandingInventoryResult = {
 
 export type LandingInventoryDependencies = Partial<{
   isSupabaseConfigured: () => boolean;
-  fetchAvailableDressesFromSupabase: () => Promise<Dress[]>;
-  getAvailableDressesFromLocalStorage: () => Dress[];
+  fetchAvailableDressesFromSupabase: () => Promise<LandingDress[]>;
+  getAvailableDressesFromLocalStorage: () => LandingDress[];
 }>;
 
 /**

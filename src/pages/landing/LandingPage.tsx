@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { MessageCircle } from 'lucide-react';
-import type { Dress } from '../../features/dresses/dress.types';
+import type { LandingDress } from './landingDress.repository';
+import { getNewArrivals } from './landingFlags';
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
 import { getShowroomProfile } from '../../features/preferences/showroomProfile.service';
 import { landingShowroomProfile, type LandingShowroomProfile } from './landingContent';
@@ -16,6 +17,7 @@ import { LandingHeader } from './components/LandingHeader';
 import { LandingInstagram } from './components/LandingInstagram';
 import { LandingHero } from './components/LandingHero';
 import { LandingInventory } from './components/LandingInventory';
+import { LandingNewArrivals } from './components/LandingNewArrivals';
 import { LandingSteps } from './components/LandingSteps';
 import { LandingValueStrip } from './components/LandingValueStrip';
 import type { InventoryCategoryFilter, LandingUsageFilter } from './components/types';
@@ -38,12 +40,13 @@ function getShowroomProfileSafely(): LandingShowroomProfile {
 }
 
 export function LandingPage() {
-  const [dresses, setDresses] = useState<Dress[]>([]);
+  const [dresses, setDresses] = useState<LandingDress[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<InventoryCategoryFilter>('all');
   const [usageFilter, setUsageFilter] = useState<LandingUsageFilter>('all');
+  const [newOnly, setNewOnly] = useState(false);
   const [profile, setProfile] = useState<LandingShowroomProfile>(() => getShowroomProfileSafely());
   const [progress, setProgress] = useState(0);
   const [showTop, setShowTop] = useState(false);
@@ -114,6 +117,18 @@ export function LandingPage() {
         : 'all',
     );
     setSearch('');
+    setNewOnly(false);
+    document.getElementById('available-dresses')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
+  const newArrivals = useMemo(() => getNewArrivals(dresses), [dresses]);
+  const newArrivalCodes = useMemo(
+    () => new Set(newArrivals.map((dress) => dress.code)),
+    [newArrivals],
+  );
+  const showNewArrivals = useCallback(() => {
+    setNewOnly(true);
+    setSearch('');
     document.getElementById('available-dresses')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
@@ -147,6 +162,7 @@ export function LandingPage() {
             dresses={dresses}
             onSelectCategory={selectCategory}
           />
+          <LandingNewArrivals profile={profile} dresses={newArrivals} onSelect={showNewArrivals} />
           <LandingInventory
             profile={profile}
             dresses={filteredDresses}
@@ -159,6 +175,9 @@ export function LandingPage() {
             usageFilter={usageFilter}
             onUsageChange={setUsageFilter}
             inventoryCategories={inventoryCategories}
+            newOnly={newOnly}
+            onNewOnlyChange={setNewOnly}
+            newArrivalCodes={newArrivalCodes}
           />
           <LandingInstagram profile={profile} dresses={dresses} />
           <LandingAboutServices profile={profile} dresses={dresses} />
