@@ -3,7 +3,7 @@ import { Cloud, DatabaseBackup, Download, HardDrive, RefreshCw, RotateCcw, Save,
 import { PageHeader } from '../../components/shared/PageHeader';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { StorageCapacityIndicator } from '../../components/shared/StorageCapacityIndicator';
-import { isIndexedDBAvailable } from '../../services/imageStorage.service';
+import { isIndexedDBAvailable } from '@platform/images';
 import { getAppPreferences, type AppPreferences } from './preferences.service';
 import {
   importDatabaseBackupCommand,

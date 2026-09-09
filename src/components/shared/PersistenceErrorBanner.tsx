@@ -1,4 +1,4 @@
-import type { PersistenceFailureContent } from '../../services/persistenceErrorMessage';
+import type { PersistenceFailureContent } from '@platform/storage';
 
 type PersistenceErrorBannerProps = {
   content: PersistenceFailureContent;

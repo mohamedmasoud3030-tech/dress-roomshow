@@ -175,7 +175,7 @@ test('architecture boundary: payment and reservation services must not reference
     join(sourceRoot, 'features/finance/finance.service.ts'),
     join(sourceRoot, 'features/payments/payment.service.ts'),
     join(sourceRoot, 'features/reservations/reservation.service.ts'),
-    join(sourceRoot, 'features/finance/canonicalFinance.ts'),
+    join(sourceRoot, 'shared/utils/financialCalculations.js'),
   ];
   const offenders = [];
   for (const filePath of criticalServices) {

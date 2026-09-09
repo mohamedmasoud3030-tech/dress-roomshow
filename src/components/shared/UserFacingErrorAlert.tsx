@@ -1,4 +1,4 @@
-import { getPersistenceFailureContent, getUserFacingErrorMessage } from '../../services/persistenceErrorMessage';
+import { getPersistenceFailureContent, getUserFacingErrorMessage } from '@platform/storage';
 import { PersistenceErrorBanner } from './PersistenceErrorBanner';
 
 type UserFacingErrorAlertProps = {

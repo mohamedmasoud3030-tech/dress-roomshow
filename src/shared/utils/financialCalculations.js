@@ -53,8 +53,8 @@ export function calculateReturnSettlement(input) {
   // Support both legacy and new inputs
   const isLegacy = 'depositAmount' in input && !('securityDepositAmount' in input);
   if (isLegacy) {
-    const depositAmount = normalizeAmount(input.depositAmount);
-    const depositCollected = Math.min(normalizeAmount(input.depositCollected), depositAmount);
+    const depositAmount = normalizeAmount(input.depositAmount); // legacy compat
+    const depositCollected = Math.min(normalizeAmount(input.depositCollected), depositAmount); // legacy compat
     const totalCollected = normalizeAmount(input.totalCollected);
     const previouslyRefundedAmount = normalizeAmount(input.previouslyRefundedAmount);
     const previouslyRefundedDepositAmount = Math.min(
@@ -75,7 +75,7 @@ export function calculateReturnSettlement(input) {
       availableDepositAmount,
       retainedDepositAmount,
       refundAmount: Math.max(availableDepositAmount - retainedDepositAmount, 0),
-      settledDepositAmount: depositAmount,
+      settledDepositAmount: depositAmount, // legacy compat
     };
   }
 

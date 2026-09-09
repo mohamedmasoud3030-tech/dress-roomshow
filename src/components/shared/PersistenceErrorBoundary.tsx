@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { getPersistenceFailureContent } from '../../services/persistenceErrorMessage';
+import { getPersistenceFailureContent } from '@platform/storage';
 import { PersistenceErrorBanner } from './PersistenceErrorBanner';
 
 type PersistenceErrorBoundaryProps = {

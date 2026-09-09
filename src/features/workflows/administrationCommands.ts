@@ -4,7 +4,7 @@ import {
   resetDatabase,
   type LocalDatabaseBackup,
 } from '../../services/localDatabase';
-import { migrateImagesToIndexedDB } from '../../services/imageMigration.service';
+import { migrateImagesToIndexedDB } from '@engines/persistence';
 import { recordAudit } from '../audit/audit.service';
 import {
   addConductNote,
