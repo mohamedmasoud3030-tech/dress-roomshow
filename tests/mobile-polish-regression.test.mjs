@@ -63,6 +63,8 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   const customerDetailsPage = await readFile(join(sourceRoot, 'features/customers/CustomerDetailsPage.tsx'), 'utf8');
   const appRoutes = await readFile(join(sourceRoot, 'app/router/AppRoutes.tsx'), 'utf8');
   const conditionCapture = await readFile(join(sourceRoot, 'features/delivery-return/ConditionPhotoCapture.tsx'), 'utf8');
+  const serviceQueue = await readFile(join(sourceRoot, 'features/service/ServiceQueuePage.tsx'), 'utf8');
+  const serviceModal = await readFile(join(sourceRoot, 'features/service/CompleteServiceTaskModal.tsx'), 'utf8');
 
   assert.match(pageContainer, /safe-area-inset-bottom/);
   assert.match(pageHeader, /actions\?: ReactNode/);
@@ -97,6 +99,10 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   assert.match(conditionCapture, /capture="environment"/);
   assert.match(conditionCapture, /اختيار صورة من الجهاز/);
   assert.match(conditionCapture, /بديل يدوي/);
+  assert.match(serviceQueue, /<FilterBar>/);
+  assert.match(serviceQueue, /مسح الفلاتر/);
+  assert.match(serviceQueue, /<Button/);
+  assert.match(serviceModal, /loading=\{isSubmitting\}/);
 
   const markup = renderToStaticMarkup(
     React.createElement(

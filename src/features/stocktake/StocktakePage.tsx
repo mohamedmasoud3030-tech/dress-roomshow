@@ -6,7 +6,7 @@ import { Section } from '../../components/shared/Section';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
-import { AMBER_FOCUS_RING_CLASS_NAME, FORM_FIELD_CLASS_NAME } from '../../shared/domain/formConstants';
+import { FORM_FIELD_CLASS_NAME } from '../../shared/domain/formConstants';
 import {
   buildStocktakeReport,
   getOpenStocktakeSession,
@@ -171,22 +171,14 @@ export function StocktakePage() {
           description="امسحي الباركود أو اكتبي الكود ثم اضغطي Enter. تكرار نفس القطعة لا يسبب خطأ."
           action={
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={handleComplete}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-3 text-sm font-bold text-white transition hover:bg-emerald-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-              >
+              <Button type="button" size="sm" onClick={handleComplete} className="min-h-11 bg-emerald-600 hover:bg-emerald-700">
                 <ClipboardCheck aria-hidden="true" className="h-4 w-4" />
                 إقفال الجرد
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-              >
+              </Button>
+              <Button type="button" variant="secondary" size="sm" onClick={handleCancel}>
                 <XCircle aria-hidden="true" className="h-4 w-4" />
                 إلغاء
-              </button>
+              </Button>
             </div>
           }
         >
@@ -211,14 +203,10 @@ export function StocktakePage() {
                 className={FORM_FIELD_CLASS_NAME}
               />
             </label>
-            <button
-              type="button"
-              onClick={() => setShowScanner(true)}
-              className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-            >
+            <Button type="button" variant="secondary" onClick={() => setShowScanner(true)}>
               <ScanLine aria-hidden="true" className="h-4 w-4" />
               كاميرا المسح
-            </button>
+            </Button>
           </form>
         </Section>
       )}
@@ -278,14 +266,16 @@ export function StocktakePage() {
                       <p className="truncate text-sm font-bold text-slate-950">{finding.name}</p>
                       <p className="mt-0.5 truncate text-xs text-slate-600">{finding.code}</p>
                     </div>
-                    <button
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="sm"
                       onClick={() => handleRemove(finding.kind, finding.itemId)}
                       aria-label={`إزالة مسح ${finding.code}`}
-                      className={`inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                      className="min-w-10 shrink-0 px-0 text-slate-600"
                     >
                       <Trash2 aria-hidden="true" className="h-4 w-4" />
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>

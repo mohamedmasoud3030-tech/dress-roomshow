@@ -18,7 +18,7 @@
 | 0 | Restore phone touch and basic public contact reliability | VERIFIED COMPLETE | forms scroll/tap on phone; public actions no longer depend on hover; contact data is consistent | `Modal`, public inventory controls, profile defaults/legacy repair, targeted tests | mobile regression, profile/print tests, `787/787`, typecheck/lint/build |
 | 1 | Establish canonical page foundations | IMPLEMENTED BUT NOT VERIFIED | the app shell and representative inventory page now share a consistent frame, header action slot, button semantics, and recoverable state action without behavior change | `PageContainer`, PageHeader action/status slots, Button/IconButton, FormActions, ErrorState, Modal close action, representative inventory header | typecheck/lint/full test/build passed; browser/device rendered pass remains external |
 | 2 | Migrate representative reservation journey end-to-end | IMPLEMENTED BUT NOT VERIFIED | reservation index and wizard now use the shared filter/action/error foundations with ordered validation and recovery | reservation index, `CreateReservationModal`, `Stepper`, `SearchableSelect`, `ValidationSummary`, `Button` | reservation happy/blocked/idempotency/rollback + DOM/static render passed; browser/device journey remains external |
-| 3 | Migrate delivery/return/service risk path | NOT STARTED | daily high-risk physical workflow is a clear queue and safe detail sheet | delivery-return, condition photos, service queue, late fee/deposit status | delivery/return/service/finance/audit/rollback + mobile camera fallback |
+| 3 | Migrate delivery/return/service risk path | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | daily high-risk physical workflow is a clear queue and safe detail sheet | delivery-return, condition photos, service queue, late fee/deposit status, explicit camera fallback | delivery/return/service/finance/audit/rollback + mobile camera fallback |
 | 4 | Migrate inventory and customer indexes | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | browse cards/operations list/detail have explicit hierarchy and phone actions | inventory, accessories, customers, detail links, view mode | lifecycle/archive/code/image/customer history tests + responsive evidence |
 | 5 | Split admin settings safely | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | admin finds profile, documents, accounts, and data safety without long scroll | conceptual section anchors with `/preferences` compatibility; nested routes remain deferred | admin/staff permission, backup/restore/reset, deep-link/redirect tests |
 | 6 | Standardize financial ledgers and reconciliation | PARTIAL — IMPLEMENTED BUT NOT VERIFIED | payment/expense/audit comparison surfaces now have a phone-safe table transformation | `DataTable`, `KeyValueList`, payment/expense/audit surfaces, daily-close action semantics | full financial regression, print, daily-close, mobile table strategy |
@@ -74,6 +74,8 @@
 10. Added daily-close idempotency-key protection and canonical loading action semantics without changing the close/reopen commands.
 11. Added an explicit camera fallback path for condition evidence: camera capture remains the default and manual device selection is visible when permission or hardware access is unavailable.
 12. Continued inventory detail action migration to canonical `Button` semantics for dress and design detail operations.
+13. Completed a service-queue pass with shared filter/reset semantics and canonical action/loading buttons for start, complete, and cancel paths.
+14. Standardized the active stocktake session actions and scan/remove controls on the shared button semantics while keeping the hands-free scan loop unchanged.
 
 ### Changed files
 
@@ -107,6 +109,11 @@
 - `src/features/reports/DailyClosingPage.tsx`
 - `src/features/reports/InventoryPerformancePage.tsx`
 - `src/features/delivery-return/ConditionPhotoCapture.tsx`
+- `src/features/service/ServiceQueuePage.tsx`
+- `src/features/service/OpenServiceTaskModal.tsx`
+- `src/features/service/CompleteServiceTaskModal.tsx`
+- `src/features/service/CancelServiceTaskModal.tsx`
+- `src/features/stocktake/StocktakePage.tsx`
 - `src/features/customers/CustomerDetailsPage.tsx`
 - `src/app/router/AppRoutes.tsx`
 - `src/app/router/routePages.ts`

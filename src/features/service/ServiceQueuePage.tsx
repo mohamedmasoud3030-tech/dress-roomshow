@@ -5,6 +5,7 @@ import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { EmptyState } from '../../components/shared/StateViews';
+import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
 import { DRESS_STATUS_LABELS } from '../../shared/domain/dressConstants';
 import { getTodayISO } from '../../shared/utils/date';
 import { formatMoneyOMR } from '../../shared/utils/format';
@@ -28,8 +29,14 @@ const statusStyles: Record<ServiceTask['status'], string> = {
   cancelled: 'bg-slate-100 text-slate-500 ring-slate-200',
 };
 
-const field =
-  'min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
+const serviceTypeOptions = [
+  { value: 'all' as const, label: 'كل الأنواع' },
+  ...Object.entries(SERVICE_TASK_TYPE_LABELS).map(([value, label]) => ({ value: value as ServiceTaskFilters['type'], label })),
+];
+const serviceStatusOptions = [
+  { value: 'all' as const, label: 'كل الحالات' },
+  ...Object.entries(SERVICE_TASK_STATUS_LABELS).map(([value, label]) => ({ value: value as ServiceTaskFilters['status'], label })),
+];
 
 /** A cancelled task returns the piece to the state it had before the work. */
 function afterCancelledStatus(task: ServiceTask): string {
@@ -50,6 +57,7 @@ export function ServiceQueuePage() {
   const filtered = useMemo(() => filterServiceTasks(tasks, filters), [tasks, filters]);
   const summary = useMemo(() => summarizeServiceQueue(tasks), [tasks]);
   const today = getTodayISO();
+  const hasActiveFilters = filters.search !== '' || filters.type !== 'all' || filters.status !== 'all';
 
   const refresh = (message: string) => {
     setTasks(getServiceTasks());
@@ -91,43 +99,31 @@ export function ServiceQueuePage() {
         <SummaryCard label="متأخرة" value={String(summary.overdue)} />
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <label className="text-sm font-bold text-slate-700">
-          بحث
-          <input
-            value={filters.search}
-            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-            placeholder="رقم العمل أو كود القطعة"
-            className={field}
-          />
-        </label>
-        <label className="text-sm font-bold text-slate-700">
-          نوع الخدمة
-          <select
-            value={filters.type}
-            onChange={(event) => setFilters((current) => ({ ...current, type: event.target.value as ServiceTaskFilters['type'] }))}
-            className={field}
-          >
-            <option value="all">كل الأنواع</option>
-            {Object.entries(SERVICE_TASK_TYPE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm font-bold text-slate-700">
-          الحالة
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ServiceTaskFilters['status'] }))}
-            className={field}
-          >
-            <option value="all">كل الحالات</option>
-            {Object.entries(SERVICE_TASK_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <FilterBar>
+        <SearchFilter
+          label="البحث في طابور الخدمة"
+          value={filters.search}
+          onChange={(search) => setFilters((current) => ({ ...current, search }))}
+          placeholder="رقم العمل أو كود القطعة"
+        />
+        <SelectFilter
+          label="نوع الخدمة"
+          value={filters.type}
+          onChange={(type) => setFilters((current) => ({ ...current, type }))}
+          options={serviceTypeOptions}
+        />
+        <SelectFilter
+          label="حالة عمل الخدمة"
+          value={filters.status}
+          onChange={(status) => setFilters((current) => ({ ...current, status }))}
+          options={serviceStatusOptions}
+        />
+        {hasActiveFilters ? (
+          <Button type="button" variant="quiet" size="sm" onClick={() => setFilters({ search: '', type: 'all', status: 'all' })} className="justify-self-start text-slate-600 hover:bg-stone-100 xl:justify-self-end">
+            مسح الفلاتر
+          </Button>
+        ) : null}
+      </FilterBar>
 
       {filtered.length === 0 ? (
         <EmptyState
@@ -184,28 +180,16 @@ export function ServiceQueuePage() {
                 ) : (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {task.status === 'open' ? (
-                      <button
-                        type="button"
-                        onClick={() => handleStart(task)}
-                        className="min-h-10 rounded-xl border border-slate-300 px-3 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
-                      >
+                      <Button type="button" variant="secondary" size="sm" onClick={() => handleStart(task)}>
                         بدء التنفيذ
-                      </button>
+                      </Button>
                     ) : null}
-                    <button
-                      type="button"
-                      onClick={() => setCompletingTask(task)}
-                      className="min-h-10 rounded-xl bg-slate-950 px-3 text-sm font-bold text-white transition hover:bg-slate-800"
-                    >
+                    <Button type="button" size="sm" onClick={() => setCompletingTask(task)}>
                       إنهاء وتحديد حالة القطعة
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setCancellingTask(task)}
-                      className="min-h-10 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-700 transition hover:bg-rose-50"
-                    >
+                    </Button>
+                    <Button type="button" variant="danger" size="sm" onClick={() => setCancellingTask(task)}>
                       إلغاء العمل
-                    </button>
+                    </Button>
                   </div>
                 )}
               </article>
