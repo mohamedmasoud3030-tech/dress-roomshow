@@ -9,7 +9,7 @@ export function AppHeader() {
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" aria-hidden="true" className="h-10 w-10 rounded-xl shadow-sm lg:hidden" />
           <div>
-            <p className="text-xs font-extrabold tracking-[0.2em] text-amber-700">LENA</p>
+            <p className="text-xs font-extrabold tracking-[0.2em] text-amber-700">CARMEN GALLERY</p>
             <h2 className="mt-1 text-lg font-extrabold text-slate-950 sm:text-xl">إدارة المعرض</h2>
           </div>
         </div>

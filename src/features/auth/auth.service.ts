@@ -3,7 +3,7 @@ import { getSupabaseClient } from '../../lib/supabaseClient';
 import type { Profile } from './auth.model';
 
 /**
- * Real access control for LENA.
+ * Real access control for CARMEN GALLERY.
  *
  * The showroom previously had no server, so "who is using the app" was just
  * an attributed display name (`operator.service.ts`) with no gate at all —

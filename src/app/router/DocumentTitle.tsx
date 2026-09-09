@@ -16,7 +16,7 @@ export function DocumentTitle() {
   const { pathname } = useLocation();
   useEffect(() => {
     const label = TITLES.find(([pattern]) => pattern.test(pathname))?.[1] ?? 'إدارة المعرض';
-    document.title = `${label} | LENA`;
+    document.title = `${label} | CARMEN GALLERY`;
   }, [pathname]);
   return null;
 }

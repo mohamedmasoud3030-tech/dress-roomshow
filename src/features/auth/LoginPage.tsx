@@ -73,7 +73,7 @@ export function LoginPage() {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
             <Lock aria-hidden="true" className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-black text-slate-950">LENA</h1>
+          <h1 className="text-xl font-black text-slate-950">CARMEN GALLERY</h1>
           <p className="mt-1 text-sm text-slate-600">تسجيل الدخول لإدارة المعرض</p>
         </div>
 

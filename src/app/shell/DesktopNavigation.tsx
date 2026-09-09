@@ -11,7 +11,7 @@ export function DesktopNavigation() {
         <div className="flex items-center gap-3">
           <img src="/favicon.svg" alt="" aria-hidden="true" className="h-12 w-12 rounded-2xl bg-amber-300/10 shadow-lg" />
           <div>
-            <p className="text-2xl font-extrabold tracking-[0.22em] text-amber-300">LENA</p>
+            <p className="text-2xl font-extrabold tracking-[0.22em] text-amber-300">CARMEN</p>
           </div>
         </div>
         <h1 className="mt-5 text-2xl font-extrabold">إدارة المعرض</h1>

@@ -31,7 +31,7 @@ export function DressPhoto({
         <div aria-hidden="true" className="absolute -bottom-14 -left-8 h-44 w-44 rounded-full bg-amber-300/30" />
         <div className="relative text-center text-amber-950">
           <Sparkles aria-hidden="true" className="mx-auto h-8 w-8" />
-          <p className="mt-2 text-lg font-black tracking-[0.2em]">LENA</p>
+          <p className="mt-2 text-lg font-black tracking-[0.2em]">CARMEN</p>
           {fallbackLabel ? <p className="mt-1 text-xs font-bold text-amber-800">{fallbackLabel}</p> : null}
         </div>
       </div>

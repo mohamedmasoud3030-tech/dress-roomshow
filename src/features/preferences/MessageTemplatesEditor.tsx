@@ -36,7 +36,7 @@ const PREVIEW_VARIABLES = buildTemplateVariables({
   returnTime: '08:00 مساءً',
   remainingAmount: 45,
   accessoryNames: ['طرحة طويلة', 'تاج'],
-  brandName: 'LENA',
+  brandName: 'CARMEN GALLERY',
 });
 
 const KINDS: ReminderKind[] = ['pickup_tomorrow', 'return_tomorrow', 'overdue_return', 'outstanding_balance'];

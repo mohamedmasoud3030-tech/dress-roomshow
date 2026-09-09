@@ -19,7 +19,7 @@ export function AboutSupportCard() {
         <div>
           <h2 className="text-lg font-bold text-slate-950">عن التطبيق والدعم</h2>
           <p className="mt-1 text-sm text-slate-600">
-            LENA — نظام تشغيل المعرض. الإصدار الحالي: <span dir="ltr" className="font-bold text-slate-800">{build.label}</span>
+            CARMEN GALLERY — نظام تشغيل المعرض. الإصدار الحالي: <span dir="ltr" className="font-bold text-slate-800">{build.label}</span>
           </p>
         </div>
       </div>

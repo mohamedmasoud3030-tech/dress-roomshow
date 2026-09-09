@@ -46,7 +46,7 @@ export type LandingShowroomProfile = {
 };
 
 export const landingShowroomProfile: LandingShowroomProfile = {
-  brandName: 'LENA للمعرض',
+  brandName: 'CARMEN GALLERY',
   shortTagline: 'معرض فساتين وحقائب وإكسسوارات للمناسبات',
   heroTitle: 'اختاري إطلالتك من المعرض قبل الزيارة',
   heroDescription:
