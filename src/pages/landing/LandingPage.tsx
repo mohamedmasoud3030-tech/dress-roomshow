@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MessageCircle } from 'lucide-react';
 import type { Dress } from '../../features/dresses/dress.types';
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
 import { getShowroomProfile } from '../../features/preferences/showroomProfile.service';
@@ -14,6 +15,7 @@ import { LandingHeader } from './components/LandingHeader';
 import { LandingHero } from './components/LandingHero';
 import { LandingInventory } from './components/LandingInventory';
 import { LandingSteps } from './components/LandingSteps';
+import { LandingValueStrip } from './components/LandingValueStrip';
 import type { InventoryCategoryFilter, LandingUsageFilter } from './components/types';
 import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from './landingWhatsapp';
 
@@ -64,14 +66,14 @@ export function LandingPage() {
         setDresses([]);
         setLoadError('تعذر تحميل المعروض الحالي. جرّبي تحديث الصفحة أو تواصلي معنا مباشرة.');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     void load();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const filteredDresses = useMemo(() => {
@@ -89,50 +91,71 @@ export function LandingPage() {
     });
   }, [dresses, search, selectedCategory, usageFilter]);
 
+  /** A category tile filters the catalogue and walks the visitor down to it. */
+  const selectCategory = useCallback((category: string) => {
+    setSelectedCategory(
+      (inventoryCategories as readonly string[]).includes(category)
+        ? (category as InventoryCategoryFilter)
+        : 'all',
+    );
+    setSearch('');
+    document.getElementById('available-dresses')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, []);
+
   const rentableCount = dresses.filter((dress) => dress.isForRent).length;
   const saleCount = dresses.filter((dress) => dress.isForSale).length;
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
 
   return (
-    <div className="min-h-screen bg-stone-50 pb-20 text-slate-900 lg:pb-0" dir="rtl">
+    <div className="min-h-screen bg-[#faf8f4] text-slate-900" dir="rtl">
       <LandingHeader profile={profile} />
 
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <main>
         <LandingHero
           profile={profile}
-          total={dresses.length}
+          dresses={dresses}
           rentableCount={rentableCount}
           saleCount={saleCount}
         />
-        <LandingCategories profile={profile} />
-        <LandingInventory
-          profile={profile}
-          dresses={filteredDresses}
-          loading={loading}
-          loadError={loadError}
-          search={search}
-          onSearchChange={setSearch}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          usageFilter={usageFilter}
-          onUsageChange={setUsageFilter}
-          inventoryCategories={inventoryCategories}
-        />
-        <LandingAboutServices profile={profile} />
-        <LandingSteps profile={profile} />
-        <LandingFaq profile={profile} />
-        <LandingContact profile={profile} />
+        <LandingValueStrip profile={profile} />
+
+        <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
+          <LandingCategories
+            profile={profile}
+            dresses={dresses}
+            onSelectCategory={selectCategory}
+          />
+          <LandingInventory
+            profile={profile}
+            dresses={filteredDresses}
+            loading={loading}
+            loadError={loadError}
+            search={search}
+            onSearchChange={setSearch}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            usageFilter={usageFilter}
+            onUsageChange={setUsageFilter}
+            inventoryCategories={inventoryCategories}
+          />
+          <LandingAboutServices profile={profile} dresses={dresses} />
+          <LandingSteps profile={profile} />
+          <LandingFaq profile={profile} />
+          <LandingContact profile={profile} />
+        </div>
       </main>
 
       <LandingFooter profile={profile} />
+
       {appointmentLink ? (
         <a
           href={appointmentLink}
           target="_blank"
           rel="noopener noreferrer"
-          className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 text-sm font-black text-white shadow-xl lg:hidden"
+          className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-amber-300 to-amber-500 px-5 text-sm font-black text-slate-950 shadow-2xl shadow-amber-900/30 lg:hidden"
         >
-          طلب موعد عبر واتساب
+          <MessageCircle aria-hidden="true" className="h-4 w-4" />
+          احجزي موعد عبر واتساب
         </a>
       ) : null}
     </div>

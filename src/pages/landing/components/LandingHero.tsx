@@ -1,102 +1,148 @@
-import { CalendarDays, ChevronLeft, Gem, PackageOpen, Shirt, Sparkles } from 'lucide-react';
+import { ArrowDown, CalendarDays, ShieldCheck, Sparkles, Stars } from 'lucide-react';
+import type { Dress } from '../../../features/dresses/dress.types';
 import type { LandingProfile } from './types';
+import { DressPhoto } from './DressPhoto';
+import { Reveal } from './Reveal';
 import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from '../landingWhatsapp';
+
+type Props = {
+  profile: LandingProfile;
+  dresses: Dress[];
+  rentableCount: number;
+  saleCount: number;
+};
 
 /**
  * The shop window.
  *
- * Deliberately NOT a dark SaaS hero and NOT a fake stock image: a bridal
- * showroom reads like a boutique window — warm ivory, honest numbers about what
- * is actually available right now, and the same amber/slate language used
- * across the operator app. Real dress photos live in the "المعروض الآن"
- * section below, straight from the showroom inventory.
+ * Built as a boutique front page: real catalogue photography on a dark stage,
+ * the showroom's own headline, and honest live numbers about what is actually
+ * available. No stock imagery — every photo here comes from the inventory the
+ * operator manages in the app.
  */
-export function LandingHero({ profile, total, rentableCount, saleCount }: { profile: LandingProfile; total: number; rentableCount: number; saleCount: number }) {
+export function LandingHero({ profile, dresses, rentableCount, saleCount }: Props) {
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
+  const photos = dresses.filter((dress) => dress.images[0]).slice(0, 3);
 
   const stats = [
-    { value: total, label: 'قطعة متاحة الآن' },
-    { value: rentableCount, label: 'متاح للإيجار' },
-    { value: saleCount, label: 'متاح للبيع' },
-  ];
-
-  const services = [
-    { icon: Shirt, label: 'إيجار فساتين' },
-    { icon: PackageOpen, label: 'بيع فساتين' },
-    { icon: Gem, label: 'إكسسوارات وملحقات' },
-    { icon: CalendarDays, label: 'مواعيد تجربة' },
+    { value: dresses.length, label: 'قطعة معروضة الآن' },
+    { value: rentableCount, label: 'جاهزة للإيجار' },
+    { value: saleCount, label: 'متاحة للبيع' },
   ];
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-amber-100 bg-gradient-to-br from-amber-50 via-stone-50 to-amber-100/70 px-6 py-10 shadow-sm lg:px-10">
-      {/* Subtle warm glow — never a busy pattern. */}
-      <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-28 -right-20 h-80 w-80 rounded-full bg-amber-100/40 blur-3xl" />
+    <section id="top" className="relative overflow-hidden bg-[#0b0b12] text-white">
+      {/* Stage lighting — warm gold, never a busy pattern. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div className="absolute -right-32 -top-40 h-[30rem] w-[30rem] rounded-full bg-amber-500/20 blur-[120px]" />
+        <div className="absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-amber-400/10 blur-[120px]" />
+        <div className="absolute inset-y-0 left-1/2 hidden w-px bg-gradient-to-b from-transparent via-white/10 to-transparent lg:block" />
+      </div>
 
-      <div className="relative grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-        <div>
-          <p className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-1.5 text-xs font-extrabold text-amber-900 shadow-sm">
-            <Sparkles aria-hidden="true" className="h-3.5 w-3.5 text-amber-600" />
-            {profile.shortTagline}
-          </p>
-          <h2 className="mt-5 max-w-2xl text-3xl font-black leading-snug text-slate-950 sm:text-4xl lg:text-[2.6rem] lg:leading-[1.25]">
-            {profile.heroTitle}
-          </h2>
-          <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-            {profile.heroDescription}
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            {appointmentLink ? (
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 sm:pt-32 lg:px-8 lg:pb-24 lg:pt-40">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+          {/* Copy */}
+          <Reveal>
+            <p className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-1.5 text-xs font-extrabold text-amber-200">
+              <Stars aria-hidden="true" className="h-3.5 w-3.5" />
+              {profile.shortTagline}
+            </p>
+
+            <h1 className="mt-6 text-[2.1rem] font-black leading-[1.25] tracking-tight sm:text-5xl lg:text-[3.6rem] lg:leading-[1.18]">
+              <span className="bg-gradient-to-l from-white via-amber-100 to-amber-300 bg-clip-text text-transparent">
+                {profile.heroTitle}
+              </span>
+            </h1>
+
+            <p className="mt-5 max-w-xl text-[0.95rem] leading-8 text-slate-300 sm:text-base">
+              {profile.heroDescription}
+            </p>
+
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              {appointmentLink ? (
+                <a
+                  href={appointmentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-l from-amber-300 to-amber-500 px-7 py-4 text-sm font-black text-slate-950 shadow-xl shadow-amber-900/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-amber-900/50"
+                >
+                  <CalendarDays aria-hidden="true" className="h-4 w-4" />
+                  احجزي موعد تجربة
+                </a>
+              ) : null}
               <a
-                href={appointmentLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-950/10 transition duration-200 hover:-translate-y-0.5 hover:bg-slate-800"
+                href="#available-dresses"
+                className="group inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border border-white/20 bg-white/5 px-7 py-4 text-sm font-black text-white backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
               >
-                <CalendarDays className="h-4 w-4" />
-                اطلبي موعد تجربة
+                <Sparkles aria-hidden="true" className="h-4 w-4 text-amber-300" />
+                شاهدي المعروض
+                <ArrowDown aria-hidden="true" className="h-4 w-4 transition group-hover:translate-y-0.5" />
               </a>
-            ) : null}
-            <a
-              href="#available-dresses"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-800 transition hover:bg-stone-100"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              شاهدي المعروض الحالي
-            </a>
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-amber-100 bg-white/80 p-6 shadow-lg shadow-amber-900/5 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <img src="/favicon.svg" alt="" aria-hidden="true" className="h-12 w-12 rounded-2xl bg-amber-300/10 shadow-sm" />
-            <div>
-              <p className="text-lg font-black text-slate-950">{profile.brandName}</p>
-              <p className="text-xs font-bold text-amber-700">حسب ما هو معروض فعلياً في المحل</p>
             </div>
-          </div>
 
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            {stats.map((stat) => (
-              <div key={stat.label} className="rounded-2xl border border-amber-100 bg-white p-4 text-center shadow-sm">
-                <p className="text-2xl font-black text-slate-950 sm:text-3xl">{stat.value}</p>
-                <p className="mt-1 text-xs font-bold leading-5 text-slate-500">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+            {/* Live numbers straight from the catalogue */}
+            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-3 sm:gap-5">
+              {stats.map((stat) => (
+                <div key={stat.label} className="border-r-2 border-amber-400/40 pr-3 sm:pr-4">
+                  <dt className="text-2xl font-black text-amber-300 sm:text-4xl">{stat.value}</dt>
+                  <dd className="mt-1 text-[0.7rem] font-bold leading-5 text-slate-400 sm:text-xs">
+                    {stat.label}
+                  </dd>
+                </div>
+              ))}
+            </dl>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            {services.map((service) => (
-              <div key={service.label} className="flex items-center gap-2.5 rounded-xl bg-stone-50 p-3">
-                <span className="rounded-lg bg-amber-50 p-2 text-amber-700">
-                  <service.icon aria-hidden="true" className="h-4 w-4" />
-                </span>
-                <span className="text-xs font-bold text-slate-700">{service.label}</span>
+            <p className="mt-8 inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+              <ShieldCheck aria-hidden="true" className="h-4 w-4 text-emerald-400" />
+              المعروض محدّث لحظياً من مخزون المعرض
+            </p>
+          </Reveal>
+
+          {/* Photo stage */}
+          <Reveal delay={120} className="relative">
+            <div className="grid grid-cols-5 gap-3 sm:gap-4">
+              <div className="col-span-3 space-y-3 sm:space-y-4">
+                <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
+                  <DressPhoto
+                    src={photos[0]?.images[0]}
+                    alt={photos[0]?.name ?? 'فستان من معروض المعرض'}
+                    className="aspect-[3/4] w-full transition duration-700 hover:scale-[1.04]"
+                    fallbackLabel={photos[0]?.category ?? 'المعروض'}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
+              <div className="col-span-2 space-y-3 sm:space-y-4">
+                <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
+                  <DressPhoto
+                    src={photos[1]?.images[0]}
+                    alt={photos[1]?.name ?? 'قطعة من معروض المعرض'}
+                    className="aspect-[4/5] w-full transition duration-700 hover:scale-[1.04]"
+                    fallbackLabel={photos[1]?.category ?? 'المعروض'}
+                  />
+                </div>
+                <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-amber-300/30">
+                  <DressPhoto
+                    src={photos[2]?.images[0]}
+                    alt={photos[2]?.name ?? 'قطعة من معروض المعرض'}
+                    className="aspect-[4/5] w-full transition duration-700 hover:scale-[1.04]"
+                    fallbackLabel={photos[2]?.category ?? 'المعروض'}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Floating promise card */}
+            <div className="absolute -bottom-6 right-0 hidden rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-md sm:block">
+              <p className="text-xs font-bold text-amber-200">زيارة منظمة</p>
+              <p className="mt-1 text-sm font-black text-white">جرّبي القطعة قبل القرار</p>
+              <p className="mt-1 text-[0.7rem] text-slate-300">بموعد مسبق ودون ازدحام</p>
+            </div>
+          </Reveal>
         </div>
       </div>
+
+      {/* Bottom fade into the cream body */}
+      <div aria-hidden="true" className="h-16 bg-gradient-to-b from-[#0b0b12] to-[#faf8f4]" />
     </section>
   );
 }

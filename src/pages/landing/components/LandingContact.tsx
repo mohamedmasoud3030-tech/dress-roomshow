@@ -1,82 +1,177 @@
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Clock, Instagram, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from '../landingWhatsapp';
 import type { LandingProfile } from './types';
+import { Reveal } from './Reveal';
+
+function ContactRow({
+  icon: Icon,
+  label,
+  children,
+  tone = 'amber',
+}: {
+  icon: typeof Phone;
+  label: string;
+  children: React.ReactNode;
+  tone?: 'amber' | 'emerald';
+}) {
+  const toneClass = tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700';
+  return (
+    <div className="flex items-start gap-4 rounded-2xl p-4 transition hover:bg-slate-50">
+      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${toneClass}`}>
+        <Icon aria-hidden="true" className="h-5 w-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[0.7rem] font-bold text-slate-500">{label}</span>
+        <span className="mt-1 block">{children}</span>
+      </span>
+    </div>
+  );
+}
 
 export function LandingContact({ profile }: { profile: LandingProfile }) {
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
   const primaryPhoneHref = `tel:${profile.contact.phone.replace(/\s+/g, '')}`;
   const primaryEmailHref = `mailto:${profile.contact.email}`;
+  const instagramHandle = profile.contact.instagram.replace(/^@/, '');
+  const mapsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+    profile.contact.address,
+  )}`;
 
   return (
-    <section id="contact" className="mt-12 grid gap-6 lg:grid-cols-[1fr_0.8fr]">
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <p className="text-sm font-bold text-amber-700">تواصل معنا</p>
-        <h2 className="mt-2 text-2xl font-black text-slate-950">يسعدنا تواصلك</h2>
-        <p className="mt-3 text-sm leading-7 text-slate-600">تواصلي معنا لحجز موعد، التأكد من توفر قطعة، أو الاستفسار عن المقاسات والأسعار.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-600">الهاتف</p>
-            <a href={primaryPhoneHref} className="mt-2 block font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.phone}</a>
-            {profile.contact.alternatePhones?.map((phone) => (
-              <a key={phone} href={`tel:${phone.replace(/\s+/g, '')}`} className="mt-1 block text-sm text-slate-600 underline-offset-2 hover:underline" dir="ltr">{phone}</a>
-            ))}
-          </div>
-          {profile.contact.whatsapp ? (
-            <div className="rounded-xl bg-stone-50 p-4">
-              <p className="text-xs font-semibold text-slate-600">واتساب</p>
-              {appointmentLink ? (
-                <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-2 block font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.whatsapp}</a>
-              ) : (
-                <p className="mt-2 block font-bold text-slate-900" dir="ltr">{profile.contact.whatsapp}</p>
-              )}
+    <section id="contact" className="mt-24 scroll-mt-24 sm:mt-32">
+      <Reveal>
+        <div className="overflow-hidden rounded-[2rem] bg-[#0b0b12] text-white">
+          <div className="grid lg:grid-cols-[0.95fr_1.05fr]">
+            {/* Invitation */}
+            <div className="relative overflow-hidden p-8 sm:p-10 lg:p-12">
+              <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+                <div className="absolute -bottom-20 -right-16 h-64 w-64 rounded-full bg-amber-500/20 blur-[100px]" />
+              </div>
+              <div className="relative">
+                <p className="text-xs font-black tracking-[0.2em] text-amber-300">تواصلي معنا</p>
+                <h2 className="mt-3 text-3xl font-black sm:text-4xl">يسعدنا تجهيز إطلالتك</h2>
+                <p className="mt-4 text-sm leading-8 text-slate-300">
+                  أرسلي طلب الموعد عبر واتساب وسنؤكد لكِ الوقت وتوفر القطعة، أو اتصلي بنا خلال
+                  ساعات العمل لأي استفسار.
+                </p>
+
+                {appointmentLink ? (
+                  <a
+                    href={appointmentLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-8 inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-l from-amber-300 to-amber-500 px-7 py-4 text-sm font-black text-slate-950 shadow-xl shadow-amber-900/30 transition hover:-translate-y-0.5"
+                  >
+                    <MessageCircle aria-hidden="true" className="h-4 w-4" />
+                    احجزي موعدك عبر واتساب
+                  </a>
+                ) : (
+                  <p className="mt-8 rounded-2xl border border-white/15 bg-white/5 p-4 text-sm text-slate-300">
+                    أضيفي رقم واتساب من إعدادات المعرض ليظهر زر الحجز هنا.
+                  </p>
+                )}
+
+                <div className="mt-10 flex items-center gap-2 text-xs font-bold text-slate-400">
+                  <Clock aria-hidden="true" className="h-4 w-4 text-amber-300" />
+                  {profile.contact.workingHours}
+                </div>
+              </div>
             </div>
-          ) : null}
-          <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-600">البريد الإلكتروني</p>
-            <a href={primaryEmailHref} className="mt-2 block break-all font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.email}</a>
-            {profile.contact.alternateEmail && (
-              <a href={`mailto:${profile.contact.alternateEmail}`} className="mt-1 block break-all text-sm text-slate-600 underline-offset-2 hover:underline" dir="ltr">{profile.contact.alternateEmail}</a>
-            )}
-          </div>
-          <div className="rounded-xl bg-stone-50 p-4">
-            <p className="text-xs font-semibold text-slate-600">إنستجرام</p>
-            <p className="mt-2 font-bold text-slate-900">{profile.contact.instagram}</p>
-          </div>
-          <div className="rounded-xl bg-stone-50 p-4 sm:col-span-2">
-            <p className="text-xs font-semibold text-slate-600">ساعات العمل</p>
-            <p className="mt-2 font-bold text-slate-900">{profile.contact.workingHours}</p>
+
+            {/* Details */}
+            <div className="border-t border-white/10 bg-white/[0.03] p-4 sm:p-8 lg:border-r lg:border-t-0">
+              <div className="grid gap-1">
+                <ContactRow icon={Phone} label="الهاتف">
+                  <a
+                    href={primaryPhoneHref}
+                    className="block text-base font-black text-white underline-offset-4 hover:underline"
+                    dir="ltr"
+                  >
+                    {profile.contact.phone}
+                  </a>
+                  {profile.contact.alternatePhones?.map((phone) => (
+                    <a
+                      key={phone}
+                      href={`tel:${phone.replace(/\s+/g, '')}`}
+                      className="mt-0.5 block text-sm text-slate-400 underline-offset-4 hover:underline"
+                      dir="ltr"
+                    >
+                      {phone}
+                    </a>
+                  ))}
+                </ContactRow>
+
+                {profile.contact.whatsapp ? (
+                  <ContactRow icon={MessageCircle} label="واتساب" tone="emerald">
+                    {appointmentLink ? (
+                      <a
+                        href={appointmentLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-base font-black text-white underline-offset-4 hover:underline"
+                        dir="ltr"
+                      >
+                        {profile.contact.whatsapp}
+                      </a>
+                    ) : (
+                      <span className="block text-base font-black text-white" dir="ltr">
+                        {profile.contact.whatsapp}
+                      </span>
+                    )}
+                  </ContactRow>
+                ) : null}
+
+                <ContactRow icon={Mail} label="البريد الإلكتروني">
+                  <a
+                    href={primaryEmailHref}
+                    className="block break-all text-sm font-bold text-white underline-offset-4 hover:underline"
+                    dir="ltr"
+                  >
+                    {profile.contact.email}
+                  </a>
+                  {profile.contact.alternateEmail ? (
+                    <a
+                      href={`mailto:${profile.contact.alternateEmail}`}
+                      className="mt-0.5 block break-all text-xs text-slate-400 underline-offset-4 hover:underline"
+                      dir="ltr"
+                    >
+                      {profile.contact.alternateEmail}
+                    </a>
+                  ) : null}
+                </ContactRow>
+
+                {profile.contact.instagram ? (
+                  <ContactRow icon={Instagram} label="إنستجرام">
+                    <a
+                      href={`https://instagram.com/${instagramHandle}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block text-sm font-bold text-white underline-offset-4 hover:underline"
+                      dir="ltr"
+                    >
+                      {profile.contact.instagram}
+                    </a>
+                  </ContactRow>
+                ) : null}
+
+                <ContactRow icon={MapPin} label="العنوان">
+                  <span className="block text-sm font-semibold leading-7 text-white">
+                    {profile.contact.address}
+                  </span>
+                  <a
+                    href={mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-1.5 inline-block text-xs font-black text-amber-300 underline-offset-4 hover:underline"
+                  >
+                    افتحي الموقع على الخريطة
+                  </a>
+                </ContactRow>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="rounded-xl bg-amber-50 p-3 text-amber-700"><MapPin className="h-5 w-5" /></div>
-          <div>
-            <h3 className="text-lg font-black text-slate-950">العنوان</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">{profile.contact.address}</p>
-          </div>
-        </div>
-        <div className="mt-6 flex items-start gap-3">
-          <div className="rounded-xl bg-emerald-50 p-3 text-emerald-700"><Phone className="h-5 w-5" /></div>
-          <div>
-            <h3 className="text-lg font-black text-slate-950">الحجز والاستفسار</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">أرسلي طلب الموعد عبر واتساب، وسنؤكد لكِ الوقت وتوفر القطعة.</p>
-            {appointmentLink ? (
-              <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800">طلب موعد عبر واتساب</a>
-            ) : (
-              <p className="mt-4 text-sm font-bold text-slate-600">أضيفي رقم واتساب من إعدادات المعرض ليظهر زر الحجز هنا.</p>
-            )}
-          </div>
-        </div>
-        <div className="mt-6 flex items-start gap-3">
-          <div className="rounded-xl bg-amber-50 p-3 text-amber-700"><Mail className="h-5 w-5" /></div>
-          <div>
-            <h3 className="text-lg font-black text-slate-950">البريد الإلكتروني</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-600">للاستفسارات الرسمية أو التعاون التجاري.</p>
-            <a href={primaryEmailHref} className="mt-2 inline-block break-all text-sm font-bold text-slate-900 underline-offset-2 hover:underline" dir="ltr">{profile.contact.email}</a>
-          </div>
-        </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
