@@ -1,5 +1,6 @@
 import { Suspense, lazy, useMemo, useState } from 'react';
 import { Barcode, Gem, Plus, Search } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
@@ -10,11 +11,7 @@ import {
   ACCESSORY_STATUS_LABELS,
   ACCESSORY_STATUS_STYLES,
 } from '../../shared/domain/accessoryConstants';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import {
-  PRIMARY_BUTTON_CLASS_NAME,
-  SECONDARY_BUTTON_CLASS_NAME,
-  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
   ALERT_STYLES,
   ALERT_BASE_CLASS_NAME,
   SUMMARY_GRID_CLASS_NAME,
@@ -84,23 +81,14 @@ function AccessoryCard({
       )}
 
       <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
-        <button
-          type="button"
-          onClick={() => setShowBarcode((current) => !current)}
-          aria-expanded={showBarcode}
-          className={`inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={() => setShowBarcode((current) => !current)} aria-expanded={showBarcode}>
           <Barcode aria-hidden="true" className="h-4 w-4" />
           {showBarcode ? 'إخفاء الباركود' : 'الباركود والطباعة'}
-        </button>
+        </Button>
         {accessory.status !== 'retired' && (
-          <button
-            type="button"
-            onClick={() => onRetire(accessory)}
-            className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-700 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" variant="quiet" size="sm" onClick={() => onRetire(accessory)} className="text-slate-500 hover:bg-rose-50 hover:text-rose-700">
             إخراج من المخزون
-          </button>
+          </Button>
         )}
       </div>
     </article>
@@ -154,30 +142,22 @@ export function AccessoriesPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="الملحقات"
-          title="إدارة الملحقات"
-        />
-        <div className="flex flex-wrap gap-3">
-          <button
-            type="button"
-            onClick={() => { setFeedback(null); setError(null); setShowScanner(true); }}
-            className={SECONDARY_BUTTON_CLASS_NAME}
-          >
-            <Barcode aria-hidden="true" className="h-5 w-5" />
-            مسح باركود ملحق
-          </button>
-          <button
-            type="button"
-            onClick={() => { setFeedback(null); setError(null); setShowCreateModal(true); }}
-            className={PRIMARY_BUTTON_CLASS_NAME}
-          >
-            <Plus aria-hidden="true" className="h-5 w-5" />
-            ملحق جديد
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="الملحقات"
+        title="إدارة الملحقات"
+        actions={(
+          <>
+            <Button type="button" variant="secondary" onClick={() => { setFeedback(null); setError(null); setShowScanner(true); }}>
+              <Barcode aria-hidden="true" className="h-5 w-5" />
+              مسح باركود ملحق
+            </Button>
+            <Button type="button" onClick={() => { setFeedback(null); setError(null); setShowCreateModal(true); }}>
+              <Plus aria-hidden="true" className="h-5 w-5" />
+              ملحق جديد
+            </Button>
+          </>
+        )}
+      />
 
       {feedback && (
         <div role="status" className={`${ALERT_STYLES.success} ${ALERT_BASE_CLASS_NAME}`}>
@@ -283,14 +263,10 @@ export function AccessoriesPage() {
             ? 'أضيفي أول ملحق ليحصل على كود مخزون ثابت وباركود قابل للطباعة والمسح.'
             : 'غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.'}
           action={accessories.length === 0 ? (
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
-            >
+            <Button type="button" size="sm" onClick={() => setShowCreateModal(true)}>
               <Plus aria-hidden="true" className="h-4 w-4" />
               إضافة أول ملحق
-            </button>
+            </Button>
           ) : undefined}
         />
       )}

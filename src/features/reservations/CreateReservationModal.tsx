@@ -3,8 +3,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { z } from 'zod';
 import { Plus, Trash2 } from 'lucide-react';
+import { Button, IconButton } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
+import { ValidationSummary, type ValidationSummaryItem } from '../../components/shared/ValidationSummary';
 import { DEFAULT_RESERVATION_DAYS, MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import { FORM_ERROR_CLASS_NAME, FORM_FIELD_CLASS_NAME, FORM_LABEL_CLASS_NAME } from '../../shared/domain/formConstants';
 import { getTodayISO } from '../../shared/utils/date';
@@ -39,6 +41,14 @@ const reservationSchema = z.object({
   returnDate: z.string().min(1, 'حددي تاريخ الإرجاع.'),
   returnTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'وقت الإرجاع غير صالح.'),
   notes: z.string().max(MAX_NOTES_LENGTH, `الملاحظات يجب ألا تتجاوز ${MAX_NOTES_LENGTH} حرف.`).optional(),
+}).superRefine((values, context) => {
+  if (values.pickupDate && values.returnDate && values.returnDate <= values.pickupDate) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['returnDate'],
+      message: 'يجب أن يكون تاريخ الإرجاع بعد تاريخ الاستلام.',
+    });
+  }
 });
 
 type ReservationFormValues = z.infer<typeof reservationSchema>;
@@ -252,6 +262,61 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
 
   const hasSelectedLine = lines.some((line) => Boolean(line.dressId));
 
+  const validationItems = [
+    errors.customerId?.message ? { id: 'customer', label: 'العميلة', message: errors.customerId.message, onSelect: () => goToStep(0) } : null,
+    errors.pickupDate?.message ? { id: 'pickup-date', label: 'تاريخ الاستلام', message: errors.pickupDate.message, onSelect: () => goToStep(1) } : null,
+    errors.pickupTime?.message ? { id: 'pickup-time', label: 'وقت الاستلام', message: errors.pickupTime.message, onSelect: () => goToStep(1) } : null,
+    errors.returnDate?.message ? { id: 'return-date', label: 'تاريخ الإرجاع', message: errors.returnDate.message, onSelect: () => goToStep(1) } : null,
+    errors.returnTime?.message ? { id: 'return-time', label: 'وقت الإرجاع', message: errors.returnTime.message, onSelect: () => goToStep(1) } : null,
+    errors.notes?.message ? { id: 'notes', label: 'الملاحظات', message: errors.notes.message, onSelect: () => goToStep(3) } : null,
+  ].filter(Boolean) as ValidationSummaryItem[];
+
+  const focusFirstInvalid = () => {
+    if (typeof window === 'undefined') return;
+    window.setTimeout(() => {
+      document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+    }, 0);
+  };
+
+  const validateLineEntries = () => {
+    if (!hasSelectedLine) {
+      setSubmitError('أضيفي قطعة واحدة على الأقل قبل مراجعة الحجز.');
+      return false;
+    }
+    if (lines.some((line) => !line.dressId)) {
+      setSubmitError('اختاري قطعة لكل بند أو احذفي البند الفارغ قبل المتابعة.');
+      return false;
+    }
+
+    const selectedIds = lines.map((line) => line.dressId);
+    if (new Set(selectedIds).size !== selectedIds.length) {
+      setSubmitError('لا يمكن إضافة القطعة نفسها أكثر من مرة داخل الحجز.');
+      return false;
+    }
+
+    const invalidLine = lines.find((line) => {
+      const dress = dresses.find((item) => item.id === line.dressId);
+      const rentalPrice = Number(line.rentalPrice);
+      const securityDepositAmount = Number(line.securityDepositAmount);
+      const bookingAdvanceAmount = Number(line.bookingAdvanceAmount || 0);
+      return !dress
+        || line.rentalPrice.trim() === ''
+        || !Number.isFinite(rentalPrice)
+        || rentalPrice < 0
+        || rentalPrice > dress.rentalPrice
+        || !Number.isFinite(securityDepositAmount)
+        || securityDepositAmount < 0
+        || !Number.isFinite(bookingAdvanceAmount)
+        || bookingAdvanceAmount < 0;
+    });
+
+    if (invalidLine) {
+      setSubmitError('راجعي قيمة الإيجار والتأمين ودفعة الحجز؛ يجب أن تكون أرقاماً صحيحة غير سالبة، ولا يتجاوز الإيجار السعر المسجل.');
+      return false;
+    }
+    return true;
+  };
+
   const goToNextStep = async () => {
     setSubmitError(null);
 
@@ -275,29 +340,27 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
     }
 
     if (currentStep === 2) {
-      if (!hasSelectedLine) {
-        setSubmitError('اختاري قطعة واحدة على الأقل قبل مراجعة الحجز.');
-        return;
-      }
-      nextStep();
+      if (validateLineEntries()) nextStep();
     }
   };
 
   const handleInvalidSubmit = (fieldErrors: FieldErrors<ReservationFormValues>) => {
     if (fieldErrors.customerId) {
       goToStep(0);
+      focusFirstInvalid();
       return;
     }
     if (fieldErrors.pickupDate || fieldErrors.pickupTime || fieldErrors.returnDate || fieldErrors.returnTime) {
       goToStep(1);
+      focusFirstInvalid();
       return;
     }
     goToStep(3);
+    focusFirstInvalid();
   };
 
   const onSubmit = (formValues: ReservationFormValues) => {
-    if (lines.length === 0 || lines.every((l) => !l.dressId)) {
-      setSubmitError('اختاري قطعة واحدة على الأقل.');
+    if (!validateLineEntries()) {
       goToStep(2);
       return;
     }
@@ -351,6 +414,7 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
         {submitError !== null && (
           <UserFacingErrorAlert error={submitError} fallback="تعذر إنشاء الحجز. حاولي مرة أخرى." />
         )}
+        <ValidationSummary items={validationItems} />
 
         {currentStep === 0 && (
           <section id={`${fieldId}-panel-customer`} aria-labelledby={`${fieldId}-step-customer`}>
@@ -366,9 +430,9 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
               unavailableText="لا توجد عميلات مسجلات بعد."
             />
             {customers.length === 0 && (
-              <button type="button" onClick={() => setShowAddCustomer(true)} className="mt-4 min-h-11 w-full rounded-xl border border-amber-300 bg-amber-50 px-4 text-sm font-bold text-amber-900">
+              <Button type="button" variant="secondary" className="mt-4 w-full border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100" onClick={() => setShowAddCustomer(true)}>
                 إضافة عميلة الآن والعودة للحجز
-              </button>
+              </Button>
             )}
           </section>
         )}
@@ -410,14 +474,10 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
           <section id={`${fieldId}-panel-items`} aria-labelledby={`${fieldId}-step-items`} className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">القطع</h3>
-            <button
-              type="button"
-              onClick={addLine}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-slate-950 px-3 text-xs font-bold text-white transition hover:bg-slate-800"
-            >
+            <Button type="button" size="sm" onClick={addLine}>
               <Plus aria-hidden="true" className="h-3.5 w-3.5" />
               إضافة قطعة
-            </button>
+            </Button>
           </div>
 
           {lines.length === 0 && (
@@ -426,9 +486,9 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
             </p>
           )}
           {dresses.length === 0 && (
-            <button type="button" onClick={() => setShowAddDress(true)} className="min-h-11 w-full rounded-xl border border-amber-300 bg-amber-50 px-4 text-sm font-bold text-amber-900">
+            <Button type="button" variant="secondary" className="w-full border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100" onClick={() => setShowAddDress(true)}>
               إضافة قطعة مخزون الآن والعودة للحجز
-            </button>
+            </Button>
           )}
 
           {lines.map((entry) => {
@@ -459,14 +519,15 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
                     />
                   </div>
                   {lines.length > 1 && (
-                    <button
+                    <IconButton
                       type="button"
+                      label="حذف القطعة"
+                      variant="quiet"
                       onClick={() => removeLine(entry.key)}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-500 transition hover:bg-rose-50 hover:text-rose-700"
-                      aria-label="حذف القطعة"
+                      className="text-slate-500 hover:bg-rose-50 hover:text-rose-700"
                     >
                       <Trash2 aria-hidden="true" className="h-4 w-4" />
-                    </button>
+                    </IconButton>
                   )}
                 </div>
 
@@ -576,42 +637,38 @@ export function CreateReservationModal({ open, onClose, onCreated, prefill }: Cr
         )}
 
         <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={closeModal}
-            className="min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-          >
+          <Button type="button" variant="secondary" onClick={closeModal}>
             إلغاء
-          </button>
+          </Button>
           {currentStep > 0 && (
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => {
                 setSubmitError(null);
                 previousStep();
               }}
-              className="min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
             >
               السابق
-            </button>
+            </Button>
           )}
           {currentStep < RESERVATION_STEPS.length - 1 ? (
-            <button
+            <Button
               type="button"
               onClick={() => void goToNextStep()}
               disabled={currentStep === 0 && customers.length === 0}
-              className="min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
             >
               التالي
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
               type="submit"
-              disabled={isSubmitting || !hasSelectedLine}
-              className="min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
+              loading={isSubmitting}
+              loadingLabel="جارٍ الحفظ..."
+              disabled={!hasSelectedLine}
             >
-              {isSubmitting ? 'جارٍ الحفظ...' : 'إنشاء الحجز'}
-            </button>
+              إنشاء الحجز
+            </Button>
           )}
         </div>
       </form>

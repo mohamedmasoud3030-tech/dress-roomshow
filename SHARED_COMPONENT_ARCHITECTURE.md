@@ -20,8 +20,9 @@
 | `Section` | KEEP | heading/description/action/content grouping | use for page regions, not every card | P0 |
 | `FilterBar`, `SearchFilter`, `SelectFilter` | KEEP / IMPROVE | search/filter region and label semantics | standardize date/status/filter reset | P0 |
 | `FormField`, `TextField`, `MoneyField`, `SelectField`, `TextAreaField` | KEEP / IMPROVE | labels, IDs, hints, validation wiring | migrate hand-built forms gradually | P0 |
-| `FormActions` | KEEP / IMPROVE | save/cancel/loading action placement | sticky mobile option for long forms | P0 |
-| `Modal` | KEEP / IMPROVE | dialog focus/scroll/keyboard lifecycle | current touch fix; add mobile sheet variants only if repeated | P0 |
+| `FormActions` | KEEP / IMPROVE | save/cancel/loading action placement | migrated to canonical `Button`; sticky mobile option for long forms | P0 |
+| `ValidationSummary` | KEEP / ADD | cross-field error index for long forms/wizards | implemented for reservation wizard; inline errors remain authoritative | P1 |
+| `Modal` | KEEP / IMPROVE | dialog focus/scroll/keyboard lifecycle | current touch fix; close action uses `IconButton`; add mobile sheet variants only if repeated | P0 |
 | `SearchableSelect` | KEEP | searchable combobox/listbox for large option sets | maintain native select for small fixed sets | P0 |
 | `Stepper` | KEEP | validated multi-step progress/navigation | reservation only currently; make semantics generic | P1 |
 | `ViewModeToggle` | KEEP | explicit grid/list preference | only where both patterns serve a task | P1 |

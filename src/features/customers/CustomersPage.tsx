@@ -3,9 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import { Archive, CircleAlert, Download, Plus, Search, Trash2 } from 'lucide-react';
 import { downloadCsv } from '@platform/download';
 import {
-  PRIMARY_BUTTON_CLASS_NAME,
-  SECONDARY_BUTTON_CLASS_NAME,
-  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
   SEARCH_INPUT_CLASS_NAME,
   SELECT_INPUT_CLASS_NAME,
   ALERT_STYLES,
@@ -14,6 +11,7 @@ import {
   CARD_CLASS_NAME,
 } from '../../shared/domain/uiConstants';
 import { buildCustomersCsv, ledgerFileName } from '../reports/ledgerExports';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { formatMoneyOMR } from '../../shared/utils/format';
@@ -206,27 +204,28 @@ export function CustomersPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="العميلات"
-          title="إدارة العميلات"
-        />
-        <button type="button" onClick={handleExport} className={SECONDARY_BUTTON_CLASS_NAME}>
-          <Download aria-hidden="true" className="h-5 w-5" />
-          تصدير CSV
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setFeedback(null);
-            setShowCreateModal(true);
-          }}
-          className={PRIMARY_BUTTON_CLASS_NAME}
-        >
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          إضافة عميلة
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="العميلات"
+        title="إدارة العميلات"
+        actions={(
+          <>
+            <Button type="button" variant="secondary" onClick={handleExport}>
+              <Download aria-hidden="true" className="h-5 w-5" />
+              تصدير CSV
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                setFeedback(null);
+                setShowCreateModal(true);
+              }}
+            >
+              <Plus aria-hidden="true" className="h-5 w-5" />
+              إضافة عميلة
+            </Button>
+          </>
+        )}
+      />
 
       {actionError && (
         <div role="alert" className={`${ALERT_STYLES.danger} ${ALERT_BASE_CLASS_NAME}`}>
@@ -333,14 +332,10 @@ export function CustomersPage() {
             {customers.length === 0 ? 'ابدئي بإضافة أول عميلة وحفظ بيانات التواصل والمقاسات.' : 'غيّري البحث أو الفلاتر الحالية لعرض نتائج أخرى.'}
           </p>
           {customers.length === 0 && (
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}
-            >
+            <Button type="button" size="sm" onClick={() => setShowCreateModal(true)}>
               <Plus aria-hidden="true" className="h-4 w-4" />
               إضافة أول عميلة
-            </button>
+            </Button>
           )}
         </div>
       )}

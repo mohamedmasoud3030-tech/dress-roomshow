@@ -17,7 +17,7 @@
 |---:|---|---|---|---|---|
 | 0 | Restore phone touch and basic public contact reliability | VERIFIED COMPLETE | forms scroll/tap on phone; public actions no longer depend on hover; contact data is consistent | `Modal`, public inventory controls, profile defaults/legacy repair, targeted tests | mobile regression, profile/print tests, `786/786`, typecheck/lint/build |
 | 1 | Establish canonical page foundations | IMPLEMENTED BUT NOT VERIFIED | the app shell and representative inventory page now share a consistent frame, header action slot, button semantics, and recoverable state action without behavior change | `PageContainer`, PageHeader action/status slots, Button/IconButton, FormActions, ErrorState, Modal close action, representative inventory header | typecheck/lint/full test/build passed; browser/device rendered pass remains external |
-| 2 | Migrate representative reservation journey end-to-end | NOT STARTED | staff can create reservation on phone with clear steps, errors, summary, and recovery | reservation index, `CreateReservationModal`, `Stepper`, `SearchableSelect`, `FormActions` | reservation happy/blocked/idempotency/rollback + DOM + keyboard/touch |
+| 2 | Migrate representative reservation journey end-to-end | IMPLEMENTED BUT NOT VERIFIED | reservation index and wizard now use the shared filter/action/error foundations with ordered validation and recovery | reservation index, `CreateReservationModal`, `Stepper`, `SearchableSelect`, `ValidationSummary`, `Button` | reservation happy/blocked/idempotency/rollback + DOM/static render passed; browser/device journey remains external |
 | 3 | Migrate delivery/return/service risk path | NOT STARTED | daily high-risk physical workflow is a clear queue and safe detail sheet | delivery-return, condition photos, service queue, late fee/deposit status | delivery/return/service/finance/audit/rollback + mobile camera fallback |
 | 4 | Migrate inventory and customer indexes | NOT STARTED | browse cards/operations list/detail have explicit hierarchy and phone actions | inventory, accessories, customers, detail links, view mode | lifecycle/archive/code/image/customer history tests + responsive evidence |
 | 5 | Split admin settings safely | NOT STARTED | admin finds profile, documents, accounts, and data safety without long scroll | conceptual sections/nested routes with `/preferences` compatibility | admin/staff permission, backup/restore/reset, deep-link/redirect tests |
@@ -66,8 +66,8 @@
 2. Extended `PageHeader` with backwards-compatible `actions` and `status` slots.
 3. Added forwarded-ref `Button` and `IconButton` primitives with variants, touch-safe sizes, focus ring, disabled/loading semantics, and accessible icon labels.
 4. Migrated shared `FormActions`, `ErrorState`, and the `Modal` close action to the canonical button semantics.
-5. Migrated the inventory page header action group to the `PageHeader` action slot without changing commands, routes, permissions, or data writes.
-6. Added regression coverage for the shell frame, action/status slots, loading semantics, form action usage, and safe-area behavior.
+5. Migrated inventory, delivery/return, customers, and accessories page action groups to the `PageHeader` action slot without changing commands, routes, permissions, or data writes.
+6. Added regression coverage for the shell frame, action/status slots, loading semantics, form action usage, reservation and operational action surfaces, and safe-area behavior.
 
 ### Changed files
 
@@ -79,6 +79,10 @@
 - `src/components/shared/Modal.tsx`
 - `src/components/shared/StateViews.tsx`
 - `src/features/dresses/DressesPage.tsx`
+- `src/features/delivery-return/DeliveryReturnPage.tsx`
+- `src/features/delivery-return/DeliveryReturnModal.tsx`
+- `src/features/customers/CustomersPage.tsx`
+- `src/features/accessories/AccessoriesPage.tsx`
 - `tests/mobile-polish-regression.test.mjs`
 
 ### Evidence
@@ -92,8 +96,8 @@
 
 ### Remaining implementation work
 
-1. Extend the foundation to filter/reset contracts and the remaining route families.
-2. Begin milestone 2 with the reservation journey; do not mark this foundation fully verified until a browser/device rendered pass is available.
+1. Extend the foundation to the remaining route families and filter/reset contracts.
+2. Complete browser/device verification for the foundation and reservation journey when the external runtime becomes available.
 
 ### Acceptance
 
@@ -103,19 +107,42 @@
 
 ## Milestone 2 — reservation journey
 
-### Implementation
+**Status: IMPLEMENTED BUT NOT VERIFIED**
 
-- Keep `/reservations` route and reservation service.
-- Replace only the modal shell/field assembly with `WizardFormTemplate`/canonical fields.
-- Keep `Stepper` step IDs and validation contract; add validation summary and first-error focus.
-- Preserve customer/item context across nested add flows and recoverable errors.
-- Move reservation details to a route-compatible sheet/detail surface only after tests exist.
+### Implemented change set
+
+- Kept `/reservations`, reservation services, command boundaries, idempotency, conflict checks, print contract, and nested add flows unchanged.
+- Migrated the reservation index header/actions and filters to `PageHeader`, `Button`, `FilterBar`, `SearchFilter`, and `SelectFilter`.
+- Preserved search/status/timing filters in the URL and added an explicit clear-filters action.
+- Added `ValidationSummary` for long-form errors while retaining inline field errors.
+- Added schema-level cross-field date validation in addition to step validation.
+- Added first-invalid focus after a failed final submit.
+- Added line validation before review: missing line, duplicate item, invalid values, and rental price above the item price are blocked before the commit step.
+- Migrated wizard actions, add-item actions, cancel, and line removal to canonical button semantics with loading/double-submit protection.
+
+### Changed files
+
+- `src/features/reservations/ReservationsPage.tsx`
+- `src/features/reservations/CreateReservationModal.tsx`
+- `src/components/shared/ValidationSummary.tsx`
+- `tests/mobile-polish-regression.test.mjs`
+- `SHARED_COMPONENT_ARCHITECTURE.md`
+
+### Evidence
+
+- Reservation/UI targeted tests: passed.
+- `npm run typecheck`: passed.
+- `npm run lint`: passed.
+- Full `npm test`: 787 tests passed, 0 failed.
+- `npm run build`: passed.
+- Browser/device rendered journey: **BLOCKED BY OWNER OR EXTERNAL ACTION** because Chromium/system libraries are unavailable in this workspace.
 
 ### Acceptance
 
-- Customer → dates → items → summary works on 360px portrait, 390px portrait, tablet, laptop.
-- Overlap, invalid period, payment/advance, duplicate submit, forced rollback remain exact.
+- Customer → dates → items → summary has ordered validation and preserved context.
+- Overlap, invalid period, payment/advance, duplicate submit, forced rollback remain under existing service/command contracts.
 - Contract print and history still reference stable reservation/item snapshots.
+
 
 ## Milestone 3 — delivery/return/service
 

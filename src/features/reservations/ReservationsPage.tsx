@@ -1,20 +1,16 @@
 import { useMemo, useState } from 'react';
-import { CalendarCheck, CircleAlert, Download, Plus, Printer, Search, Shirt, UserRound, XCircle } from 'lucide-react';
+import { CalendarCheck, CircleAlert, Download, Plus, Printer, Shirt, UserRound, XCircle } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { downloadCsv } from '@platform/download';
 import {
-  PRIMARY_BUTTON_CLASS_NAME,
-  SECONDARY_BUTTON_CLASS_NAME,
-  COMPACT_PRIMARY_BUTTON_CLASS_NAME,
-  SEARCH_INPUT_CLASS_NAME,
-  SELECT_INPUT_CLASS_NAME,
   ALERT_STYLES,
   ALERT_BASE_CLASS_NAME,
   SUMMARY_GRID_CLASS_NAME,
   CARD_GRID_CLASS_NAME,
-  CARD_CLASS_NAME,
 } from '../../shared/domain/uiConstants';
 import { buildReservationsCsv, ledgerFileName } from '../reports/ledgerExports';
+import { Button } from '../../components/shared/Button';
+import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { EmptyState } from '../../components/shared/StateViews';
 import { SummaryCard } from '../../components/shared/SummaryCard';
@@ -139,9 +135,19 @@ function ReservationCard({ reservation, onCancel, onPrint }: { reservation: Rese
       {reservation.notes && <p className="mt-4 rounded-xl bg-stone-50 p-3 text-sm leading-6 text-slate-600">{reservation.notes}</p>}
       <ReservationAccessoriesPanel reservation={reservation} />
       <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-4">
-        <button type="button" onClick={() => onPrint(reservation)} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"><Printer aria-hidden="true" className="h-4 w-4" />طباعة العقد</button>
+        <Button type="button" variant="secondary" size="sm" onClick={() => onPrint(reservation)}>
+          <Printer aria-hidden="true" className="h-4 w-4" />
+          طباعة العقد
+        </Button>
       </div>
-      {canCancel && <div className="mt-2 flex justify-end"><button type="button" onClick={() => onCancel(reservation.id)} className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-500 transition hover:bg-rose-50 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"><XCircle aria-hidden="true" className="h-4 w-4" />إلغاء الحجز</button></div>}
+      {canCancel && (
+        <div className="mt-2 flex justify-end">
+          <Button type="button" variant="quiet" size="sm" onClick={() => onCancel(reservation.id)} className="text-slate-500 hover:bg-rose-50 hover:text-rose-700">
+            <XCircle aria-hidden="true" className="h-4 w-4" />
+            إلغاء الحجز
+          </Button>
+        </div>
+      )}
     </article>
   );
 }
@@ -151,9 +157,11 @@ export function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>(() => getReservations());
   const [filters, setFilters] = useState<ReservationFilters>(() => {
     const timing = searchParams.get('timing');
+    const status = searchParams.get('status');
+    const safeStatus = status && Object.prototype.hasOwnProperty.call(RESERVATION_STATUS_LABELS, status) ? status as ReservationFilters['status'] : 'all';
     return {
       search: searchParams.get('search') ?? '',
-      status: 'all',
+      status: safeStatus,
       timing: timing === 'today' || timing === 'upcoming' || timing === 'overdue' ? timing : 'all',
     };
   });
@@ -171,6 +179,18 @@ export function ReservationsPage() {
   const summary = useMemo(() => summarizeReservations(reservations), [reservations]);
   const openCreateModal = () => { setFeedback(null); const nextParams = new URLSearchParams(searchParams); nextParams.set('new', '1'); setSearchParams(nextParams); };
   const closeCreateModal = () => { const nextParams = new URLSearchParams(searchParams); nextParams.delete('new'); setSearchParams(nextParams, { replace: true }); };
+  const updateFilters = (updates: Partial<ReservationFilters>) => {
+    const nextFilters = { ...filters, ...updates };
+    setFilters(nextFilters);
+    const nextParams = new URLSearchParams(searchParams);
+    for (const [key, value] of Object.entries(nextFilters)) {
+      if (value === 'all' || value === '') nextParams.delete(key);
+      else nextParams.set(key, value);
+    }
+    setSearchParams(nextParams, { replace: true });
+  };
+  const clearFilters = () => updateFilters({ search: '', status: 'all', timing: 'all' });
+  const hasActiveFilters = filters.search !== '' || filters.status !== 'all' || filters.timing !== 'all';
   const handleCreated = (reservation: Reservation) => { setReservations((current) => [reservation, ...current]); setFeedback({ tone: 'success', message: `تم إنشاء الحجز ${reservation.reservationNumber} بنجاح.` }); };
   const handleCancel = (id: string) => {
     const reservation = reservations.find((item) => item.id === id);
@@ -185,7 +205,7 @@ export function ReservationsPage() {
     catch (error: unknown) { setFeedback({ tone: 'danger', message: error instanceof Error ? error.message : 'تعذر إلغاء الحجز.' }); }
   };
   const handleOpenFromCalendar = (reservation: Reservation) => {
-    setFilters({ search: reservation.reservationNumber, status: 'all', timing: 'all' });
+    updateFilters({ search: reservation.reservationNumber, status: 'all', timing: 'all' });
     setFeedback({ tone: 'success', message: `تم فتح الحجز ${reservation.reservationNumber} من التقويم.` });
   };
   const handleExport = () => {
@@ -198,17 +218,22 @@ export function ReservationsPage() {
   };
 
   return <section className="space-y-6">
-    <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-      <PageHeader eyebrow="الحجوزات" title="إدارة الحجوزات" />
-      <button type="button" onClick={openCreateModal} className={PRIMARY_BUTTON_CLASS_NAME}>
-        <Plus aria-hidden="true" className="h-5 w-5" />
-        حجز جديد
-      </button>
-      <button type="button" onClick={handleExport} className={SECONDARY_BUTTON_CLASS_NAME}>
-        <Download aria-hidden="true" className="h-5 w-5" />
-        تصدير CSV
-      </button>
-    </div>
+    <PageHeader
+      eyebrow="الحجوزات"
+      title="إدارة الحجوزات"
+      actions={(
+        <>
+          <Button type="button" variant="secondary" onClick={handleExport}>
+            <Download aria-hidden="true" className="h-5 w-5" />
+            تصدير CSV
+          </Button>
+          <Button type="button" variant="primary" onClick={openCreateModal}>
+            <Plus aria-hidden="true" className="h-5 w-5" />
+            حجز جديد
+          </Button>
+        </>
+      )}
+    />
     {feedback && (
       <div
         role="status"
@@ -223,47 +248,39 @@ export function ReservationsPage() {
       <SummaryCard label="عمليات اليوم" value={summary.today} hint="استلام أو إرجاع" />
       <SummaryCard label="متأخرة" value={summary.overdue} tone={summary.overdue > 0 ? 'danger' : 'default'} />
     </div>
-    <div className={CARD_CLASS_NAME}>
-      <div className="grid gap-3 lg:grid-cols-[1fr_190px_190px]">
-        <label className="relative block">
-          <span className="sr-only">البحث في الحجوزات</span>
-          <Search aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-          <input
-            type="search"
-            value={filters.search}
-            onChange={(event) => setFilters((current) => ({ ...current, search: event.target.value }))}
-            placeholder="ابحثي برقم الحجز أو العميلة أو العنصر"
-            className={SEARCH_INPUT_CLASS_NAME}
-          />
-        </label>
-        <label>
-          <span className="sr-only">حالة الحجز</span>
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((current) => ({ ...current, status: event.target.value as ReservationFilters['status'] }))}
-            className={SELECT_INPUT_CLASS_NAME}
-          >
-            <option value="all">كل الحالات</option>
-            {Object.entries(RESERVATION_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span className="sr-only">توقيت الحجز</span>
-          <select
-            value={filters.timing}
-            onChange={(event) => setFilters((current) => ({ ...current, timing: event.target.value as ReservationFilters['timing'] }))}
-            className={SELECT_INPUT_CLASS_NAME}
-          >
-            <option value="all">كل المواعيد</option>
-            <option value="today">اليوم</option>
-            <option value="upcoming">القادمة</option>
-            <option value="overdue">المتأخرة</option>
-          </select>
-        </label>
-      </div>
-    </div>
+    <FilterBar>
+      <SearchFilter
+        label="البحث في الحجوزات"
+        value={filters.search}
+        onChange={(search) => updateFilters({ search })}
+        placeholder="ابحثي برقم الحجز أو العميلة أو العنصر"
+      />
+      <SelectFilter
+        label="حالة الحجز"
+        value={filters.status}
+        onChange={(status) => updateFilters({ status })}
+        options={[
+          { value: 'all', label: 'كل الحالات' },
+          ...Object.entries(RESERVATION_STATUS_LABELS).map(([value, label]) => ({ value: value as ReservationFilters['status'], label })),
+        ]}
+      />
+      <SelectFilter
+        label="توقيت الحجز"
+        value={filters.timing}
+        onChange={(timing) => updateFilters({ timing })}
+        options={[
+          { value: 'all', label: 'كل المواعيد' },
+          { value: 'today', label: 'اليوم' },
+          { value: 'upcoming', label: 'القادمة' },
+          { value: 'overdue', label: 'المتأخرة' },
+        ]}
+      />
+      {hasActiveFilters ? (
+        <Button type="button" variant="quiet" size="sm" onClick={clearFilters} className="justify-self-start text-slate-600 hover:bg-stone-100 xl:justify-self-end">
+          مسح الفلاتر
+        </Button>
+      ) : null}
+    </FilterBar>
     <ReservationCalendar reservations={reservations} onOpenReservation={handleOpenFromCalendar} />
     {filteredReservations.length > 0 ? (
       <div className={CARD_GRID_CLASS_NAME}>
@@ -278,10 +295,10 @@ export function ReservationsPage() {
           title="لا توجد حجوزات حتى الآن"
           description="ابدئي بإنشاء أول حجز وربطه بعميلة وقطعة وفترة واضحة."
           action={
-            <button type="button" onClick={openCreateModal} className={COMPACT_PRIMARY_BUTTON_CLASS_NAME}>
+            <Button type="button" size="sm" onClick={openCreateModal}>
               <Plus aria-hidden="true" className="h-4 w-4" />
               إنشاء أول حجز
-            </button>
+            </Button>
           }
         />
       )

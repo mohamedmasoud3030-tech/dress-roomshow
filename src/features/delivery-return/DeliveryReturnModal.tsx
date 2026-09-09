@@ -1,10 +1,10 @@
 import type { FormEvent } from 'react';
 import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import { Button } from '../../components/shared/Button';
 import { Modal } from '../../components/shared/Modal';
 import { UserFacingErrorAlert } from '../../components/shared/UserFacingErrorAlert';
 import { MAX_NOTES_LENGTH, MIN_ZERO_AMOUNT, MONEY_STEP } from '../../shared/domain/businessRules';
 import {
-  AMBER_FOCUS_RING_CLASS_NAME,
   STACKED_FORM_FIELD_CLASS_NAME,
   STACKED_FORM_LABEL_CLASS_NAME,
 } from '../../shared/domain/formConstants';
@@ -285,20 +285,22 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
         )}
 
         <div className="grid gap-3 rounded-3xl bg-slate-950 p-2 text-sm font-bold text-white sm:grid-cols-2">
-          <button
+          <Button
             type="button"
+            variant={form.operation === 'delivery' ? 'primary' : 'quiet'}
             onClick={() => updateOperation('delivery')}
-            className={`min-h-11 rounded-2xl px-4 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${form.operation === 'delivery' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+            className={form.operation === 'delivery' ? 'rounded-2xl bg-amber-300 text-slate-950 hover:bg-amber-200' : 'rounded-2xl text-slate-300 hover:bg-white/10 hover:text-white'}
           >
             تسليم فستان للعميلة
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant={form.operation === 'return' ? 'primary' : 'quiet'}
             onClick={() => updateOperation('return')}
-            className={`min-h-11 rounded-2xl px-4 transition ${AMBER_FOCUS_RING_CLASS_NAME} ${form.operation === 'return' ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+            className={form.operation === 'return' ? 'rounded-2xl bg-amber-300 text-slate-950 hover:bg-amber-200' : 'rounded-2xl text-slate-300 hover:bg-white/10 hover:text-white'}
           >
             استرجاع فستان من العميلة
-          </button>
+          </Button>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[1.3fr_1fr]">
@@ -434,13 +436,15 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
                   <span className="mt-1.5 block rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium leading-5 text-amber-900">
                     {lateFeeSuggestion.explanation}
                     {lateFeeSuggestion.amount > 0 && parseAmount(form.lateFee) !== lateFeeSuggestion.amount && (
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
+                        size="sm"
                         onClick={() => setForm((current) => ({ ...current, lateFee: String(lateFeeSuggestion.amount) }))}
-                        className={`mt-2 inline-flex min-h-11 items-center rounded-xl border border-amber-300 bg-white px-3 text-xs font-bold text-amber-900 transition hover:bg-amber-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+                        className="mt-2 border-amber-300 bg-white text-xs text-amber-900 hover:bg-amber-100"
                       >
                         تطبيق {lateFeeSuggestion.amount} ر.ع
-                      </button>
+                      </Button>
                     )}
                   </span>
                 )}
@@ -535,20 +539,17 @@ export function DeliveryReturnModal({ open, onClose, onCompleted }: Props) {
         )}
 
         <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
-          <button
-            type="button"
-            onClick={close}
-            className={`min-h-11 rounded-xl border border-slate-300 px-5 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-          >
+          <Button type="button" variant="secondary" onClick={close}>
             إلغاء
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            disabled={reservations.length === 0 || isSubmitting}
-            className={`min-h-11 rounded-xl bg-slate-950 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 ${AMBER_FOCUS_RING_CLASS_NAME}`}
+            loading={isSubmitting}
+            loadingLabel="جارٍ الحفظ…"
+            disabled={reservations.length === 0}
           >
-            {isSubmitting ? 'جارٍ الحفظ…' : 'حفظ العملية'}
-          </button>
+            حفظ العملية
+          </Button>
         </div>
       </form>
       {showScanner && (

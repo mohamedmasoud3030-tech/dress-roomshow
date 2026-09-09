@@ -51,6 +51,10 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   const buttons = await readFile(join(sourceRoot, 'components/shared/Button.tsx'), 'utf8');
   const shell = await readFile(join(sourceRoot, 'app/shell/AppShell.tsx'), 'utf8');
   const forms = await readFile(join(sourceRoot, 'components/shared/FormField.tsx'), 'utf8');
+  const deliveryPage = await readFile(join(sourceRoot, 'features/delivery-return/DeliveryReturnPage.tsx'), 'utf8');
+  const deliveryModal = await readFile(join(sourceRoot, 'features/delivery-return/DeliveryReturnModal.tsx'), 'utf8');
+  const customersPage = await readFile(join(sourceRoot, 'features/customers/CustomersPage.tsx'), 'utf8');
+  const accessoriesPage = await readFile(join(sourceRoot, 'features/accessories/AccessoriesPage.tsx'), 'utf8');
 
   assert.match(pageContainer, /safe-area-inset-bottom/);
   assert.match(pageHeader, /actions\?: ReactNode/);
@@ -60,6 +64,13 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
   assert.match(shell, /<PageContainer>/);
   assert.match(forms, /<Button/);
   assert.match(forms, /type="submit"/);
+  assert.match(deliveryPage, /actions=\{/);
+  assert.match(deliveryPage, /مسح الفلاتر/);
+  assert.match(deliveryModal, /loading=\{isSubmitting\}/);
+  assert.match(deliveryModal, /SearchableSelect/);
+  assert.match(customersPage, /actions=\{/);
+  assert.match(accessoriesPage, /actions=\{/);
+  assert.match(accessoriesPage, /<Button/);
 
   const markup = renderToStaticMarkup(
     React.createElement(
@@ -81,6 +92,8 @@ test('shared page foundations keep actions, spacing, and form semantics consiste
 
 test('the reservation modal is a real validated four-panel wizard', async () => {
   const modal = await readFile(join(sourceRoot, 'features/reservations/CreateReservationModal.tsx'), 'utf8');
+  const page = await readFile(join(sourceRoot, 'features/reservations/ReservationsPage.tsx'), 'utf8');
+  const summary = await readFile(join(sourceRoot, 'components/shared/ValidationSummary.tsx'), 'utf8');
 
   for (const step of [0, 1, 2, 3]) {
     assert.match(modal, new RegExp(`currentStep === ${step}`), `step ${step} needs its own panel`);
@@ -88,7 +101,16 @@ test('the reservation modal is a real validated four-panel wizard', async () => 
   assert.match(modal, /trigger\('customerId', \{ shouldFocus: true \}\)/, 'customer selection must be validated before advancing');
   assert.match(modal, /\['pickupDate', 'pickupTime', 'returnDate', 'returnTime'\]/, 'the complete period must be validated before advancing');
   assert.match(modal, /returnDate <= pickupDate/, 'the wizard must reject a non-forward rental period');
+  assert.match(modal, /superRefine/, 'cross-field date validation must also run on final submit');
   assert.match(modal, /if \(!hasSelectedLine\)/, 'the review step must not open without an item');
+  assert.match(modal, /validateLineEntries/, 'line prices, duplicates, and missing items must be blocked before review');
+  assert.match(modal, /focusFirstInvalid/, 'invalid submission must return focus to the first invalid control');
+  assert.match(modal, /<ValidationSummary/, 'long-form errors need a visible summary as well as inline messages');
+  assert.match(modal, /loading=\{isSubmitting\}/, 'the final action must expose the busy state');
+  assert.match(page, /<FilterBar>/, 'reservation filters must use the shared filter region');
+  assert.match(page, /updateFilters/, 'filter state must survive query-string navigation');
+  assert.match(summary, /role="alert"/, 'the validation summary must be announced');
+  assert.match(summary, /onSelect/, 'summary items must return the operator to the relevant step');
   assert.match(modal, />\s*السابق\s*</, 'the operator must be able to go back without losing entered data');
   assert.match(modal, />\s*التالي\s*</, 'the wizard needs an explicit forward action');
   assert.match(modal, /resetStep\(\)/, 'reopening the modal must start at the first step');

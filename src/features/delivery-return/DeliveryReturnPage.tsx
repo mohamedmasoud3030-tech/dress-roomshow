@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
+import { Button } from '../../components/shared/Button';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { EmptyState } from '../../components/shared/StateViews';
 import { FilterBar, SearchFilter, SelectFilter } from '../../components/shared/FilterBar';
-import { AMBER_FOCUS_RING_CLASS_NAME } from '../../shared/domain/formConstants';
 import { ACCESSORY_RETURN_CONDITION_LABELS, getReservationAccessoryViews } from '../accessories/reservationAccessory.service';
 import { formatMoneyOMR } from '../../shared/utils/format';
 import { DeliveryReturnModal } from './DeliveryReturnModal';
@@ -99,6 +99,7 @@ export function DeliveryReturnPage() {
     () => summarizeDeliveryReturnRecords(records),
     [records],
   );
+  const hasActiveFilters = filters.search !== '' || filters.status !== 'all';
 
   const handleCompleted = (record: DeliveryReturnRecord) => {
     setRecords(getDeliveryReturnRecords());
@@ -107,20 +108,16 @@ export function DeliveryReturnPage() {
 
   return (
     <section className="min-w-0 space-y-6">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <PageHeader
-          eyebrow="التسليم والاسترجاع"
-          title="إدارة التسليم والاسترجاع"
-        />
-        <button
-          type="button"
-          onClick={() => { setFeedback(null); setShowCreateModal(true); }}
-          className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-slate-800 ${AMBER_FOCUS_RING_CLASS_NAME}`}
-        >
-          <Plus aria-hidden="true" className="h-5 w-5" />
-          عملية تسليم / استرجاع
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="التسليم والاسترجاع"
+        title="إدارة التسليم والاسترجاع"
+        actions={(
+          <Button type="button" onClick={() => { setFeedback(null); setShowCreateModal(true); }} className="min-h-11">
+            <Plus aria-hidden="true" className="h-5 w-5" />
+            عملية تسليم / استرجاع
+          </Button>
+        )}
+      />
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 
@@ -144,6 +141,11 @@ export function DeliveryReturnPage() {
           onChange={(status) => setFilters((current) => ({ ...current, status }))}
           options={statusOptions}
         />
+        {hasActiveFilters ? (
+          <Button type="button" variant="quiet" size="sm" onClick={() => setFilters({ search: '', status: 'all' })} className="justify-self-start text-slate-600 hover:bg-stone-100 xl:justify-self-end">
+            مسح الفلاتر
+          </Button>
+        ) : null}
       </FilterBar>
 
       {filteredRecords.length === 0 ? (
