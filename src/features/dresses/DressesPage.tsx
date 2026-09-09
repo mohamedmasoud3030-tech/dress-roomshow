@@ -42,7 +42,10 @@ function DressCard({ dress }: { dress: Dress }) {
   const primaryImage = dress.images[0];
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <Link
+      to={`/inventory/${dress.code}`}
+      className={`block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md ${AMBER_FOCUS_RING_CLASS_NAME}`}
+    >
       {primaryImage ? (
         <img
           src={primaryImage}
@@ -112,7 +115,7 @@ function DressCard({ dress }: { dress: Dress }) {
           <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">تأجر {dress.timesRented} مرات</span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 

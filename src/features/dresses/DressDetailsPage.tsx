@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Archive, ArrowRight, Layers, Link2, Trash2 } from 'lucide-react';
+import { Archive, ArrowRight, Image as ImageIcon, Layers, Link2, Trash2 } from 'lucide-react';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { SummaryCard } from '../../components/shared/SummaryCard';
 import { DRESS_STATUS_LABELS, DRESS_STATUS_STYLES, INVENTORY_ITEM_TYPE_LABELS } from '../../shared/domain/dressConstants';
@@ -12,6 +12,7 @@ import { getBarcodeEngineEnvironmentNote, getBarcodeRuntimeSupportStatus } from 
 import { getDressDeletionBlockers, getDresses } from './dress.service';
 import { archiveDressCommand, deleteDressCommand } from '../workflows';
 import { AssignToDesignModal } from './AssignToDesignModal';
+import { EditDressImagesModal } from './EditDressImagesModal';
 import { useAuth } from '../auth/AuthContext';
 
 export function DressDetailsPage() {
@@ -19,11 +20,14 @@ export function DressDetailsPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const [refreshKey, setRefreshKey] = useState(0);
   const dress = getDresses().find((item) => item.code === code);
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [showAssign, setShowAssign] = useState(false);
+  const [showImages, setShowImages] = useState(false);
   const [assignFeedback, setAssignFeedback] = useState<string | null>(null);
+  void refreshKey;
   const deletionBlockers = dress ? getDressDeletionBlockers(dress.code) : [];
   const canHardDelete = isAdmin && Boolean(dress) && deletionBlockers.length === 0;
 
@@ -161,6 +165,15 @@ export function DressDetailsPage() {
         </p>
       ) : null}
 
+      {showImages && dress ? (
+        <EditDressImagesModal
+          open={showImages}
+          dress={dress}
+          onClose={() => setShowImages(false)}
+          onSaved={() => setRefreshKey((current) => current + 1)}
+        />
+      ) : null}
+
       <AssignToDesignModal
         open={showAssign}
         dressCode={dress.code}
@@ -185,6 +198,15 @@ export function DressDetailsPage() {
               لا توجد صورة رئيسية لهذا العنصر
             </div>
           )}
+
+          <button
+            type="button"
+            onClick={() => setShowImages(true)}
+            className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-stone-100"
+          >
+            <ImageIcon aria-hidden="true" className="h-4 w-4" />
+            {primaryImage ? 'تغيير صور العنصر' : 'إضافة صور للعنصر'}
+          </button>
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>

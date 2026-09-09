@@ -52,7 +52,14 @@ function saveDressesToStorage(dresses: Dress[]): void {
   writeCollection<Dress>(INVENTORY_COLLECTION, normalized);
 }
 
-async function syncCreatedDressBestEffort(dress: Dress): Promise<void> {
+/**
+ * Uploads local (data-URL) images to the catalogue bucket and swaps them for
+ * their public URLs in one command.
+ *
+ * The local compressed copies are left in place until the upload succeeds, so a
+ * piece keeps its photo on a device that has not reached the network yet.
+ */
+async function syncDressImagesBestEffort(dress: Dress): Promise<void> {
   let publicImageUrls: string[] = [];
   try {
     if (dress.images.length > 0) {
@@ -64,13 +71,38 @@ async function syncCreatedDressBestEffort(dress: Dress): Promise<void> {
     // The local compressed images stay intact and can be retried later.
   }
 
-  if (publicImageUrls.length > 0) {
-    const { runCommand } = await import('@engines/workflows');
-    runCommand(
-      { name: 'inventory.images', idempotencyKey: `images:${dress.id}` },
-      () => updateDress(dress.code, { images: publicImageUrls }),
-    );
-  }
+  if (publicImageUrls.length === 0) return;
+  if (publicImageUrls.length === dress.images.length
+    && publicImageUrls.every((url, index) => url === dress.images[index])) return;
+
+  const { runCommand } = await import('@engines/workflows');
+  // The key has to differ per attempt: the server answers a repeated key with
+  // the first result, so a stable key would make every later photo change a
+  // silent no-op.
+  runCommand(
+    { name: 'inventory.images', idempotencyKey: `images:${dress.id}:${generateId()}` },
+    () => updateDress(dress.code, { images: publicImageUrls }),
+  );
+}
+
+/**
+ * Replaces the photographs of a piece that already exists.
+ *
+ * Photos could previously only be attached at the moment a piece was created:
+ * the uploader lived solely in the "add item" dialog and the details screen was
+ * read-only, so any piece added in a hurry - or imported - could never receive
+ * a picture. A showroom rents on looks, so that made the inventory unusable for
+ * the one job it exists for.
+ */
+export async function saveDressImages(code: string, images: string[]): Promise<Dress | null> {
+  const { runCommand } = await import('@engines/workflows');
+  const updated = runCommand(
+    { name: 'inventory.images', idempotencyKey: `images:edit:${code}:${generateId()}` },
+    () => updateDress(code, { images }),
+  ) ?? null;
+
+  if (updated) await syncDressImagesBestEffort(updated);
+  return getDressByCode(code) ?? null;
 }
 
 /**
@@ -156,7 +188,7 @@ export function addDress(input: AddDressServiceInput): Dress {
 
   dresses.push(newDress);
   saveDressesToStorage(dresses);
-  void syncCreatedDressBestEffort(newDress);
+  void syncDressImagesBestEffort(newDress);
   recordAudit({
     action: 'create',
     entityType: 'dress',
