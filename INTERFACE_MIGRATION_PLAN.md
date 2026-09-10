@@ -1,6 +1,6 @@
 # Interface Migration Plan
 
-**Status:** IMPLEMENTED BUT NOT VERIFIED for the full architecture; the first safe milestone below is implemented. Remaining milestones are NOT STARTED unless marked otherwise. Browser/device-only evidence is BLOCKED BY OWNER OR EXTERNAL ACTION in this workspace.
+**Status:** IMPLEMENTED; headless Chromium rendering has been verified for the public landing and login surfaces at mobile and desktop viewports. Physical device/touch/camera evidence remains external. Remaining milestones are NOT STARTED unless marked otherwise.
 
 ## Migration principles
 
@@ -279,6 +279,17 @@
 - [ ] Run affected tests, `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`.
 - [ ] Review complete diff for secrets, direct storage writes, broken role gates, and route drift.
 - [ ] Push one bounded commit; only then mark the milestone VERIFIED COMPLETE.
+
+## Latest headless visual verification
+
+- Chromium headless rendered `/landing` at `390x844` and `1440x900`, plus `/login` at `390x844`.
+- All three responses returned HTTP 200 with the expected page titles.
+- No browser console errors or page errors were captured during the waits.
+- Mobile and desktop screenshots were inspected for clipping, broken layout, and action visibility; no layout overflow was observed.
+- The login screenshot honestly displayed the missing `VITE_SUPABASE_PUBLISHABLE_KEY` runtime configuration warning; this is an environment configuration gap, not a rendering failure.
+- The public landing screenshot contains large empty regions because the current public catalogue data is empty; the empty-state and footer still render correctly.
+- Verification used Chromium with locally extracted Debian runtime libraries because the workspace image does not install the browser system libraries globally.
+- Physical device/touch/camera/print/PWA evidence remains external.
 
 ## External blockers
 
