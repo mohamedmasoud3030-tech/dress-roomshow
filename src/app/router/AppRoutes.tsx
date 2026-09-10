@@ -34,6 +34,9 @@ import {
   ServiceQueuePage,
   StocktakePage,
   WaitlistPage,
+  SetupPage,
+  PrivacyPage,
+  TermsPage,
 } from './routePages';
 
 export function AppRoutes() {
@@ -43,6 +46,9 @@ export function AppRoutes() {
       <Route path="/landing" element={<LandingPage />} />
       <Route path="/piece/:code" element={<LandingPiecePage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/setup" element={<SetupPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/" element={<RootGate />}>
         <Route element={<AppShell />}>
           <Route index element={<DashboardWithClosingAlertPage />} />

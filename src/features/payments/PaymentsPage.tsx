@@ -178,8 +178,8 @@ export function PaymentsPage() {
   return (
     <section className="min-w-0 space-y-6">
       <PageHeader
-        eyebrow="المدفوعات"
-        title="إدارة المدفوعات"
+        eyebrow="دفتر يدوي - لا يوجد دفع إلكتروني أونلاين"
+        title="دفتر التحصيل اليدوي (المدفوعات)"
         actions={(
           <>
             <Button type="button" variant="secondary" onClick={handleExport}>
@@ -193,6 +193,10 @@ export function PaymentsPage() {
           </>
         )}
       />
+
+      <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+        <strong>تنبيه:</strong> هذا الدفتر يسجل مدفوعات يدوية فقط (نقدي/بطاقة في المحل/تحويل). لا يوجد دفع إلكتروني أونلاين ولا بوابة بطاقات. كل حركة تُحفظ في الخادم مع منع التكرار.
+      </div>
 
       {feedback && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800">{feedback}</div>}
 

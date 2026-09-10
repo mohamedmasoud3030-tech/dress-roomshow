@@ -6,7 +6,6 @@ dist-ssr
 .env
 .env.local
 .env.production
-!.env.production
 .vite
 coverage
 src-tauri/target

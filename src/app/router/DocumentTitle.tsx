@@ -3,11 +3,11 @@ import { useBrandName } from '../../features/preferences/useBrandName';
 import { useLocation } from 'react-router-dom';
 
 const TITLES: Array<[RegExp, string]> = [
-  [/^\/landing/, 'معرض فساتين المناسبات'], [/^\/piece\//, 'صفحة القطعة'], [/^\/login/, 'تسجيل الدخول'],
+  [/^\/landing/, 'معرض فساتين المناسبات'], [/^\/setup/, 'تأسيس المعرض'], [/^\/privacy/, 'الخصوصية'], [/^\/terms/, 'الشروط'], [/^\/piece\//, 'صفحة القطعة'], [/^\/login/, 'تسجيل الدخول'],
   [/^\/inventory/, 'المخزون'], [/^\/designs/, 'التصاميم'], [/^\/availability/, 'المتاح في فترة'],
   [/^\/accessories/, 'الملحقات'], [/^\/customers/, 'العميلات'], [/^\/reservations/, 'الحجوزات'],
   [/^\/appointments/, 'المواعيد'], [/^\/delivery-return/, 'التسليم والاسترجاع'], [/^\/sales/, 'المبيعات والمرتجعات'],
-  [/^\/service/, 'طابور الخدمة'], [/^\/stocktake/, 'الجرد الدوري'], [/^\/payments/, 'المدفوعات'],
+  [/^\/service/, 'طابور الخدمة'], [/^\/stocktake/, 'الجرد الدوري'], [/^\/payments/, 'دفتر التحصيل اليدوي'],
   [/^\/expenses/, 'المصروفات'], [/^\/daily-closing/, 'إقفال اليومية'], [/^\/audit-log/, 'سجل التدقيق'],
   [/^\/reminders/, 'التذكيرات'], [/^\/waitlist/, 'قائمة الانتظار'], [/^\/reports/, 'التقارير'],
   [/^\/inventory-performance/, 'أداء المخزون'], [/^\/preferences/, 'الإعدادات'], [/^\/$/, 'لوحة التحكم'],

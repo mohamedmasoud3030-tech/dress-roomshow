@@ -132,7 +132,7 @@ export function RemindersPage() {
   return (
     <section className="min-w-0 space-y-6">
       <PageHeader
-        eyebrow="المتابعة"
+        eyebrow="يدوي - يفتح واتساب فقط"
         title="تذكيرات العميلات"
         actions={
           <Button
@@ -176,9 +176,8 @@ export function RemindersPage() {
         </div>
       )}
 
-      <p className="rounded-xl bg-stone-50 p-4 text-xs leading-6 text-slate-600">
-        الرسائل تُفتح في واتساب لمراجعتها قبل الإرسال، ولا تُرسل تلقائياً. التذكير الذي تتم متابعته يختفي لبقية اليوم،
-        ويعود في اليوم التالي إذا بقي سببه قائماً.
+      <p className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-xs leading-6 text-amber-900">
+        <strong>تنبيه:</strong> الرسائل تُفتح في واتساب عبر رابط wa.me لمراجعتها قبل الإرسال، ولا تُرسل تلقائياً عبر API. أنتِ ترسلينها يدوياً من هاتفك. التذكير الذي تتم متابعته يختفي لبقية اليوم، ويعود في اليوم التالي إذا بقي سببه قائماً.
       </p>
     </section>
   );

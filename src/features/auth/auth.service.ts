@@ -56,6 +56,57 @@ export async function signOut(): Promise<void> {
   if (error) throw new AuthError('تعذر تسجيل الخروج. حاولي مجدداً.');
 }
 
+export async function signUp(email: string, password: string, fullName: string): Promise<Session | null> {
+  const trimmedEmail = email.trim();
+  const trimmedName = fullName.trim();
+  if (!trimmedEmail) throw new AuthError('البريد الإلكتروني مطلوب.');
+  if (!password || password.length < 6) throw new AuthError('كلمة المرور يجب أن تكون 6 أحرف على الأقل.');
+  if (!trimmedName) throw new AuthError('الاسم الكامل مطلوب.');
+
+  const { data, error } = await getSupabaseClient().auth.signUp({
+    email: trimmedEmail,
+    password,
+    options: {
+      data: { full_name: trimmedName },
+    },
+  });
+
+  if (error) throw new AuthError(toFriendlyAuthMessage(error.message));
+  // Supabase may require email confirmation; session may be null
+  return data.session ?? null;
+}
+
+export async function claimFirstOwner(): Promise<Profile> {
+  const { data, error } = await getSupabaseClient().rpc('claim_first_owner');
+  if (error) {
+    if (error.message.includes('LENA_OWNER_ALREADY_BOOTSTRAPPED')) {
+      throw new AuthError('يوجد مديرة فعالة بالفعل. لا يمكن تأسيس حساب جديد كمديرة.');
+    }
+    if (error.message.includes('LENA_NOT_AUTHENTICATED')) {
+      throw new AuthError('يجب تسجيل الدخول أولاً.');
+    }
+    throw new AuthError(toFriendlyAuthMessage(error.message));
+  }
+  const row = data as { id: string; full_name: string; role: string; is_active: boolean } | null;
+  if (!row) throw new AuthError('تعذر تأسيس حساب المديرة.');
+  return {
+    id: row.id,
+    fullName: row.full_name,
+    role: row.role === 'admin' ? 'admin' : 'staff',
+    isActive: row.is_active,
+  };
+}
+
+export async function isFirstOwnerSetupNeeded(): Promise<boolean> {
+  try {
+    const { data, error } = await getSupabaseClient().rpc('is_first_owner_setup_needed');
+    if (error) return false;
+    return Boolean(data);
+  } catch {
+    return false;
+  }
+}
+
 export async function requestPasswordReset(email: string): Promise<void> {
   const normalizedEmail = email.trim();
   if (!normalizedEmail) throw new AuthError('اكتبي البريد الإلكتروني أولاً لإرسال رابط الاستعادة.');

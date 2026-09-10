@@ -62,7 +62,7 @@ export function LandingContact({ profile }: { profile: LandingProfile }) {
                 <h2 className="mt-3 text-3xl font-black sm:text-4xl">يسعدنا تجهيز إطلالتك</h2>
                 <p className="mt-4 text-sm leading-8 text-slate-300">
                   أرسلي طلب الموعد عبر واتساب وسنؤكد لكِ الوقت وتوفر القطعة، أو اتصلي بنا خلال
-                  ساعات العمل لأي استفسار.
+                  ساعات العمل لأي استفسار. الزر يفتح واتساب برابط يدوي فقط، الإرسال يتم من هاتفك وليس تلقائياً.
                 </p>
 
                 {appointmentLink ? (

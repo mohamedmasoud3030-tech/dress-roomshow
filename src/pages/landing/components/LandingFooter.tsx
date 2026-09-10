@@ -109,7 +109,12 @@ export function LandingFooter({ profile }: { profile: LandingProfile }) {
           <p>
             © {year} {profile.brandName} — جميع الحقوق محفوظة.
           </p>
-          <p>المعروض يحدّث تلقائياً من مخزون المعرض.</p>
+          <div className="flex flex-wrap gap-3">
+            <a href="/privacy" className="underline hover:text-white">الخصوصية</a>
+            <a href="/terms" className="underline hover:text-white">الشروط</a>
+            <a href="/setup" className="underline hover:text-white">تأسيس المعرض</a>
+            <span>المعروض يحدّث تلقائياً من مخزون المعرض.</span>
+          </div>
         </div>
       </div>
     </footer>

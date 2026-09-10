@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { Button } from '../../components/shared/Button';
 import { TextField } from '../../components/shared/FormField';
@@ -147,7 +147,11 @@ export function LoginPage() {
           >
             نسيت كلمة المرور
           </Button>
-          <p className="mt-4 text-center text-xs leading-5 text-slate-500">الحسابات الجديدة تنشئها مديرة المعرض. إذا كان حسابك موقوفًا، تواصلي معها لتفعيله.</p>
+          <p className="mt-4 text-center text-xs leading-5 text-slate-500">الحسابات الجديدة تنشئها مديرة المعرض. إذا كان حسابك موقوفًا، تواصلي معها لتفعيله. أول مرة؟ استخدمي صفحة التأسيس لإنشاء حساب المديرة.</p>
+          <div className="mt-3 flex justify-center gap-3 text-xs">
+            <Link to="/setup" className="font-bold text-amber-700 underline">تأسيس المعرض لأول مرة</Link>
+            <Link to="/landing" className="font-bold text-slate-600 underline">الصفحة العامة</Link>
+          </div>
         </form>
       </div>
     </main>

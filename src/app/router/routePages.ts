@@ -46,3 +46,7 @@ export const DressDetailsPage = lazy(async () => {
   const module = await import('../../features/dresses/DressDetailsPage');
   return { default: module.DressDetailsPage };
 });
+
+export const SetupPage = lazyNamed(() => import('../../pages/setup/SetupPage'), 'SetupPage');
+export const PrivacyPage = lazyNamed(() => import('../../pages/legal/PrivacyPage'), 'PrivacyPage');
+export const TermsPage = lazyNamed(() => import('../../pages/legal/PrivacyPage'), 'TermsPage');

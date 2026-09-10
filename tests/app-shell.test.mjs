@@ -22,7 +22,7 @@ test('app shell keeps the established navigation order and labels', async () => 
     ['/reservations', 'الحجوزات'],
     ['/appointments', 'المواعيد'],
     ['/delivery-return', 'التسليم والاسترجاع'],
-    ['/payments', 'المدفوعات'],
+    ['/payments', 'دفتر التحصيل اليدوي'],
     ['/expenses', 'المصروفات'],
     ['/daily-closing', 'إقفال اليومية'],
     ['/reports', 'التقارير'],

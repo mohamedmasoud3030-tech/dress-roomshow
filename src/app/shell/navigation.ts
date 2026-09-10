@@ -80,7 +80,7 @@ export const navigationGroups: readonly NavigationGroup[] = [
     items: [
       { to: '/delivery-return', label: 'التسليم والاسترجاع', shortLabel: 'تسليم', icon: PackageCheck, mobileQuick: true },
       { to: '/sales', label: 'المبيعات والمرتجعات', icon: Receipt },
-      { to: '/payments', label: 'المدفوعات', shortLabel: 'مدفوعات', icon: WalletCards, mobileQuick: true },
+      { to: '/payments', label: 'دفتر التحصيل اليدوي', shortLabel: 'مدفوعات', icon: WalletCards, mobileQuick: true },
       { to: '/expenses', label: 'المصروفات', icon: ReceiptText },
       { to: '/daily-closing', label: 'إقفال اليومية', icon: LockKeyhole },
     ],
