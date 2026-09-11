@@ -143,14 +143,15 @@ test('public catalogue stays customer-facing and sends an identifiable booking r
 
   await page.goto('/landing');
 
-  // Premium boutique design is compact: check for generic catalogue presence, not specific old headings
-  await expect(page.getByText(/المعروض/)).toBeVisible({ timeout: 15000 });
+  // Premium boutique design is compact: grouped catalogue uses "المعروض · X تصميم"
+  // Use first() to avoid strict-mode violation (multiple المعروض texts exist: nav, heading, FAQ)
+  await expect(page.getByRole('heading', { name: /المعروض/ }).first()).toBeVisible({ timeout: 15000 });
 
   // Old headings are optional for backward compat - new design uses "المعروض · X تصميم"
   const oldHeading1 = page.getByText('المعروض الآن');
   const oldHeading2 = page.getByRole('heading', { name: 'قطع جاهزة للطلب' });
-  const newHeading = page.getByText(/المعروض.*تصميم|المعروض.*قطعة/);
-  const hasOld1 = await oldHeading1.isVisible().catch(() => false);
+  const newHeading = page.getByRole('heading', { name: /المعروض/ });
+  const hasOld1 = await oldHeading1.first().isVisible().catch(() => false);
   const hasOld2 = await oldHeading2.isVisible().catch(() => false);
   const hasNew = await newHeading.first().isVisible().catch(() => false);
   // At least one catalogue heading must be visible
@@ -172,7 +173,7 @@ test('public catalogue stays customer-facing and sends an identifiable booking r
   } else {
     // Fallback: check that page shows either dresses or empty state, but not developer copy
     console.log('Dress heading not visible, checking fallback');
-    await expect(page.getByText(/لا توجد قطع مطابقة|لا نتائج|المعروض/)).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/لا توجد قطع مطابقة|لا نتائج|المعروض/).first()).toBeVisible({ timeout: 5000 });
   }
 
   for (const developerCopy of ['قابلة للتخصيص', 'لكل عميل يشتري التطبيق', 'متصل بالبيانات الفعلية', 'إعادة البيع']) {
