@@ -7,31 +7,28 @@
  * SUPABASE_URL=https://xxx.supabase.co SUPABASE_SERVICE_ROLE_KEY=xxx SUPABASE_DB_URL=postgres://... node scripts/setup-client-full.mjs
  */
 
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
 const supabaseUrl = process.env.SUPABASE_URL?.trim();
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-const dbUrl = process.env.SUPABASE_DB_URL?.trim(); // optional, for psql via API
+const dbUrl = process.env.SUPABASE_DB_URL?.trim();
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('❌ ضع SUPABASE_URL و SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }
 
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-
 const migrationsDir = join(process.cwd(), 'supabase/migrations');
-const files = readdirSync(migrationsDir).filter(f=>f.endsWith('.sql')).sort();
+const files = readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
 
 console.log(`📂 وجد ${files.length} migration`);
 
 for (const file of files) {
   console.log(`\n--- تطبيق ${file} ---`);
   const sql = readFileSync(join(migrationsDir, file), 'utf8');
-  // نستخدم supabase REST rpc لتطبيق SQL؟ لا يوجد endpoint مباشر
-  // لذلك نطبع تعليمات: يجب تشغيله عبر psql أو SQL Editor
-  // هنا نحاول عبر pg client إذا توفر SUPABASE_DB_URL
+  console.log(`   حجم الملف: ${sql.length} حرف - استخدم psql أو SQL Editor لتطبيقه`);
   if (dbUrl) {
-    // سنستخدم fetch إلى supabase SQL API غير موجود، لذا نطلب psql
     console.log('   استخدم psql لتطبيق هذا الملف');
   } else {
     console.log('   انسخه إلى SQL Editor في Dashboard');

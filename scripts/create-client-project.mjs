@@ -16,9 +16,6 @@
  * 4. يذكرك بتشغيل migrations
  */
 
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
-
 const token = process.env.SUPABASE_ACCESS_TOKEN?.trim();
 const orgId = process.env.SUPABASE_ORG_ID?.trim();
 const clientSlug = process.argv[2]?.trim();
@@ -94,7 +91,7 @@ for (let i=0;i<30;i++) {
     project = await api(`/v1/projects/${created.id}`);
     console.log(`   حالة: ${project.status} (${i*10}s)`);
     if (project.status === 'ACTIVE_HEALTHY' || project.status === 'ACTIVE') break;
-  } catch (e) {
+  } catch {
     console.log('   انتظار...');
   }
 }
