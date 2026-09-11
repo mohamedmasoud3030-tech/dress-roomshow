@@ -146,7 +146,7 @@ export function LandingHeader({ profile }: { profile: LandingProfile }) {
                     : 'border-[#0A0A0A] bg-[#0A0A0A] text-white hover:bg-[#0A0A0A]/90'
                 }`}
               >
-                <span>حجز موعد</span>
+                <span>تواصلي</span>
                 <span className="transition-transform duration-300 group-hover:translate-x-[-2px]">←</span>
               </a>
             ) : null}
@@ -159,9 +159,9 @@ export function LandingHeader({ profile }: { profile: LandingProfile }) {
                 className={`inline-flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 sm:hidden ${
                   isOverDark ? 'border-white bg-white text-[#0A0A0A]' : 'border-[#0A0A0A] bg-[#0A0A0A] text-white'
                 }`}
-                aria-label="حجز موعد"
+                aria-label="تواصلي عبر واتساب"
               >
-                <span className="text-[11px] font-bold">حجز</span>
+                <span className="text-[11px] font-bold">واتساب</span>
               </a>
             ) : null}
           </div>
@@ -222,7 +222,7 @@ export function LandingHeader({ profile }: { profile: LandingProfile }) {
                   rel="noopener noreferrer"
                   className="flex h-[56px] w-full items-center justify-center rounded-full bg-white text-[14px] font-medium tracking-[0.02em] text-[#0A0A0A]"
                 >
-                  حجز موعد تجربة خاصة
+                  تواصلي لتجربة خاصة
                 </a>
               ) : null}
             </div>

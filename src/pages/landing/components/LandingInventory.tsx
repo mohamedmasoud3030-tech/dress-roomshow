@@ -9,11 +9,7 @@ import {
   type Dress,
 } from '../../../features/dresses/dress.types';
 import { formatMoneyOMR, formatPercentOMR } from '../../../shared/utils/format';
-import {
-  buildAppointmentInquiryMessage,
-  buildLandingWhatsAppLink,
-  buildShortlistMessage,
-} from '../landingWhatsapp';
+import { buildLandingWhatsAppLink, buildShortlistMessage } from '../landingWhatsapp';
 import { useShortlist } from '../useShortlist';
 import { piecePath } from '../piecePath';
 import { DressPhoto } from './DressPhoto';
@@ -124,7 +120,6 @@ function InventoryCard({ group, profile, onZoom, saved, onToggleSave, isNew }: {
 
 function QuickView({ group, profile, onClose, saved, onToggleSave }: { group: GroupedDress; profile: LandingProfile; onClose: () => void; saved: boolean; onToggleSave: (group: GroupedDress) => void }) {
   const firstVariant = group.firstDress;
-  const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage({ code: firstVariant.code, name: group.name, size: group.sizes[0], color: group.colors[0] }));
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -160,7 +155,7 @@ function QuickView({ group, profile, onClose, saved, onToggleSave }: { group: Gr
 
             <div className="mt-4 border border-[#E8E2D9] bg-[#FAF6F0] p-4"><p className="text-[10px] tracking-wide text-black/40">السعر</p><div className="mt-2"><LandingPrice dress={firstVariant} size="lg" /></div></div>
 
-            <div className="mt-auto pt-6"><div className="flex gap-2"><button type="button" onClick={() => onToggleSave(group)} className={`flex h-10 flex-1 items-center justify-center rounded-full border text-[12px] ${saved ? 'border-black bg-black text-white' : 'border-black/15 bg-white text-black'}`}><Heart className={`h-3.5 w-3.5 ${saved ? 'fill-current' : ''}`} />{saved ? 'محفوظ' : 'حفظ'}</button>{appointmentLink ? <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="flex h-10 flex-1 items-center justify-center rounded-full bg-black text-[12px] text-white">حجز</a> : null}</div><Link to={piecePath(firstVariant.code)} onClick={onClose} className="mt-3 flex h-9 items-center justify-center text-[11px] text-black/40 hover:text-black">صفحة القطعة →</Link></div>
+            <div className="mt-auto pt-6"><div className="flex gap-2"><button type="button" onClick={() => onToggleSave(group)} className={`flex h-10 flex-1 items-center justify-center rounded-full border text-[12px] ${saved ? 'border-black bg-black text-white' : 'border-black/15 bg-white text-black'}`}><Heart className={`h-3.5 w-3.5 ${saved ? 'fill-current' : ''}`} />{saved ? 'محفوظ' : 'حفظ'}</button><Link to={piecePath(firstVariant.code)} onClick={onClose} className="flex h-10 flex-1 items-center justify-center rounded-full bg-black text-[12px] text-white">صفحة القطعة</Link></div><p className="mt-3 text-center text-[10px] text-black/40">التفاصيل الكاملة داخل صفحة القطعة</p></div>
           </div>
         </div>
       </div>

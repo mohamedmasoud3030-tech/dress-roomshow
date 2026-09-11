@@ -10,7 +10,7 @@ type Props = {
   saleCount: number;
 };
 
-export function LandingHero({ profile, dresses }: Props) {
+export function LandingHero({ profile, dresses, rentableCount }: Props) {
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
   const heroDress = dresses.find((d) => d.images[0]) ?? dresses[0];
 
@@ -35,11 +35,11 @@ export function LandingHero({ profile, dresses }: Props) {
           <div className="mt-7 flex items-center gap-3">
             {appointmentLink ? (
               <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center justify-center rounded-full bg-white px-5 text-[12px] font-medium text-[#0A0A0A] hover:bg-white/90">
-                حجز موعد
+                تواصلي
               </a>
             ) : null}
             <a href="#available-dresses" className="inline-flex h-9 items-center justify-center rounded-full border border-white/15 px-5 text-[12px] text-white/70 hover:border-white/25 hover:text-white">
-              المعروض · {dresses.length}
+              المعروض · {rentableCount}
             </a>
           </div>
         </div>

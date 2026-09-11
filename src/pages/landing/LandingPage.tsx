@@ -58,10 +58,18 @@ function normalizeName(name: string): string {
   return name.trim().toLowerCase();
 }
 
+/**
+ * Group ALL catalogue items (dresses, accessories, bags, shoes, veils, other)
+ * by design name + item type. This prevents merging a dress and an accessory
+ * that happen to share the same name, while still collapsing size/color variants
+ * of the same design into one premium card.
+ */
 function groupDressesByName(dresses: LandingDress[]): GroupedDress[] {
   const map = new Map<string, LandingDress[]>();
   for (const dress of dresses) {
-    const key = normalizeName(dress.name);
+    const normalized = normalizeName(dress.name);
+    const type = dress.itemType || 'dress';
+    const key = `${normalized}__${type}`;
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(dress);
   }
@@ -84,6 +92,9 @@ function groupDressesByName(dresses: LandingDress[]): GroupedDress[] {
       .sort()
       .reverse()[0];
 
+    const rentPrices = sortedVariants.map((v) => v.rentalPrice).filter((p) => p > 0);
+    const salePrices = sortedVariants.map((v) => v.salePrice).filter((p) => p > 0);
+
     groups.push({
       key,
       name: first.name,
@@ -95,8 +106,8 @@ function groupDressesByName(dresses: LandingDress[]): GroupedDress[] {
       sizes,
       colors,
       codes,
-      rentalPrice: Math.min(...sortedVariants.map((v) => v.rentalPrice).filter((p) => p > 0)),
-      salePrice: Math.min(...sortedVariants.map((v) => v.salePrice).filter((p) => p > 0)),
+      rentalPrice: rentPrices.length ? Math.min(...rentPrices) : 0,
+      salePrice: salePrices.length ? Math.min(...salePrices) : 0,
       isForRent: sortedVariants.some((v) => v.isForRent),
       isForSale: sortedVariants.some((v) => v.isForSale),
       images: first.images,
