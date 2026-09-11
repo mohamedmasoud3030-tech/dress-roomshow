@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
-import { ArrowDown, CalendarDays, ShieldCheck, Sparkles, Stars } from 'lucide-react';
 import type { Dress } from '../../../features/dresses/dress.types';
 import type { LandingProfile } from './types';
 import { DressPhoto } from './DressPhoto';
-import { Reveal } from './Reveal';
 import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from '../landingWhatsapp';
 
 type Props = {
@@ -13,169 +10,52 @@ type Props = {
   saleCount: number;
 };
 
-function useCountUp(target: number, duration = 1100): number {
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    if (target === 0) {
-      setValue(0);
-      return;
-    }
-    let frame = 0;
-    const start = performance.now();
-    const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
-      // easeOutCubic — fast start, gentle landing.
-      setValue(Math.round(target * (1 - (1 - progress) ** 3)));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [target, duration]);
-
-  return value;
-}
-
-function Stat({ value, label }: { value: number; label: string }) {
-  const shown = useCountUp(value);
-  return (
-    <div className="border-r-2 border-amber-400/40 pr-3 sm:pr-4">
-      <dt className="text-2xl font-black text-amber-300 sm:text-4xl">{shown}</dt>
-      <dd className="mt-1 text-[0.7rem] font-bold leading-5 text-slate-400 sm:text-xs">{label}</dd>
-    </div>
-  );
-}
-
-/**
- * The shop window.
- *
- * Built as a boutique front page: real catalogue photography on a dark stage,
- * the showroom's own headline, and honest live numbers about what is actually
- * available. No stock imagery — every photo here comes from the inventory the
- * operator manages in the app.
- */
-export function LandingHero({ profile, dresses, rentableCount, saleCount }: Props) {
+export function LandingHero({ profile, dresses }: Props) {
   const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
-  const photos = dresses.filter((dress) => dress.images[0]).slice(0, 3);
-
-  const stats = [
-    { value: dresses.length, label: 'قطعة معروضة الآن' },
-    { value: rentableCount, label: 'جاهزة للإيجار' },
-    { value: saleCount, label: 'متاحة للبيع' },
-  ];
+  const heroDress = dresses.find((d) => d.images[0]) ?? dresses[0];
 
   return (
-    <section id="top" className="relative overflow-hidden bg-[#0b0b12] text-white">
-      {/* Stage lighting — warm gold, never a busy pattern. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
-        <div className="absolute -right-32 -top-40 h-[30rem] w-[30rem] rounded-full bg-amber-500/20 blur-[120px]" />
-        <div className="absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full bg-amber-400/10 blur-[120px]" />
-        <div className="absolute inset-y-0 left-1/2 hidden w-px bg-gradient-to-b from-transparent via-white/10 to-transparent lg:block" />
-      </div>
+    <section id="top" className="relative bg-[#0A0A0A] text-[#FFFCF8]">
+      <div className="relative mx-auto grid max-w-[1600px] grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
+        {/* Copy - compact */}
+        <div className="flex flex-col justify-center px-6 pb-10 pt-[88px] sm:px-8 sm:pb-12 sm:pt-[96px] lg:px-10 lg:pb-14 xl:px-12">
+          <div className="flex items-center gap-2">
+            <span className="h-px w-6 bg-[#C9A86A]" />
+            <span className="text-[10px] tracking-[0.18em] text-[#C9A86A]">{profile.brandName} · صحار</span>
+          </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 sm:pt-32 lg:px-8 lg:pb-24 lg:pt-40">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-          {/* Copy */}
-          <Reveal>
-            <p className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-300/10 px-4 py-1.5 text-xs font-extrabold text-amber-200">
-              <Stars aria-hidden="true" className="h-3.5 w-3.5" />
-              {profile.shortTagline}
-            </p>
+          <h1 className="mt-5 max-w-[16ch] text-[32px] font-[300] leading-[1.05] tracking-[-0.03em] sm:text-[42px] lg:text-[48px]">
+            {profile.heroTitle}
+          </h1>
 
-            <h1 className="mt-6 text-[2.1rem] font-black leading-[1.25] tracking-tight sm:text-5xl lg:text-[3.6rem] lg:leading-[1.18]">
-              <span className="bg-gradient-to-l from-white via-amber-100 to-amber-300 bg-clip-text text-transparent">
-                {profile.heroTitle}
-              </span>
-            </h1>
+          <p className="mt-4 max-w-[36ch] text-[13px] font-[300] leading-[1.7] text-white/55">
+            {profile.heroDescription}
+          </p>
 
-            <p className="mt-5 max-w-xl text-[0.95rem] leading-8 text-slate-300 sm:text-base">
-              {profile.heroDescription}
-            </p>
-
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              {appointmentLink ? (
-                <a
-                  href={appointmentLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-l from-amber-300 to-amber-500 px-7 py-4 text-sm font-black text-slate-950 shadow-xl shadow-amber-900/30 transition duration-300 hover:-translate-y-0.5 hover:shadow-amber-900/50"
-                >
-                  <CalendarDays aria-hidden="true" className="h-4 w-4" />
-                  احجزي موعد تجربة
-                </a>
-              ) : null}
-              <a
-                href="#available-dresses"
-                className="group inline-flex min-h-14 items-center justify-center gap-2.5 rounded-2xl border border-white/20 bg-white/5 px-7 py-4 text-sm font-black text-white backdrop-blur transition duration-300 hover:-translate-y-0.5 hover:bg-white/10"
-              >
-                <Sparkles aria-hidden="true" className="h-4 w-4 text-amber-300" />
-                شاهدي المعروض
-                <ArrowDown aria-hidden="true" className="h-4 w-4 transition group-hover:translate-y-0.5" />
+          <div className="mt-7 flex items-center gap-3">
+            {appointmentLink ? (
+              <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center justify-center rounded-full bg-white px-5 text-[12px] font-medium text-[#0A0A0A] hover:bg-white/90">
+                حجز موعد
               </a>
-            </div>
+            ) : null}
+            <a href="#available-dresses" className="inline-flex h-9 items-center justify-center rounded-full border border-white/15 px-5 text-[12px] text-white/70 hover:border-white/25 hover:text-white">
+              المعروض · {dresses.length}
+            </a>
+          </div>
+        </div>
 
-            {/* Live numbers straight from the catalogue */}
-            <dl className="mt-10 grid max-w-lg grid-cols-3 gap-3 sm:gap-5">
-              {stats.map((stat) => (
-                <Stat key={stat.label} value={stat.value} label={stat.label} />
-              ))}
-            </dl>
-
-            <p className="mt-8 inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
-              <ShieldCheck aria-hidden="true" className="h-4 w-4 text-emerald-400" />
-              المعروض محدّث لحظياً من مخزون المعرض
-            </p>
-          </Reveal>
-
-          {/* Photo stage */}
-          <Reveal delay={120} className="relative">
-            <div className="grid grid-cols-5 gap-3 sm:gap-4">
-              <div className="col-span-3 space-y-3 sm:space-y-4">
-                <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
-                  <DressPhoto
-            brand={profile.brandName}
-                    src={photos[0]?.images[0]}
-                    alt={photos[0]?.name ?? 'فستان من معروض المعرض'}
-                    className="aspect-[3/4] w-full transition duration-700 hover:scale-[1.04]"
-                    fallbackLabel={photos[0]?.category ?? 'المعروض'}
-                    priority
-                  />
-                </div>
-              </div>
-              <div className="col-span-2 space-y-3 sm:space-y-4">
-                <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-white/15">
-                  <DressPhoto
-            brand={profile.brandName}
-                    src={photos[1]?.images[0]}
-                    alt={photos[1]?.name ?? 'قطعة من معروض المعرض'}
-                    className="aspect-[4/5] w-full transition duration-700 hover:scale-[1.04]"
-                    fallbackLabel={photos[1]?.category ?? 'المعروض'}
-                  />
-                </div>
-                <div className="overflow-hidden rounded-[1.75rem] ring-1 ring-amber-300/30">
-                  <DressPhoto
-            brand={profile.brandName}
-                    src={photos[2]?.images[0]}
-                    alt={photos[2]?.name ?? 'قطعة من معروض المعرض'}
-                    className="aspect-[4/5] w-full transition duration-700 hover:scale-[1.04]"
-                    fallbackLabel={photos[2]?.category ?? 'المعروض'}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Floating promise card */}
-            <div className="absolute -bottom-6 right-0 hidden rounded-2xl border border-white/15 bg-white/10 p-4 shadow-2xl backdrop-blur-md sm:block">
-              <p className="text-xs font-bold text-amber-200">زيارة منظمة</p>
-              <p className="mt-1 text-sm font-black text-white">جرّبي القطعة قبل القرار</p>
-              <p className="mt-1 text-[0.7rem] text-slate-300">بموعد مسبق ودون ازدحام</p>
-            </div>
-          </Reveal>
+        {/* Visual - compact */}
+        <div className="relative flex items-center justify-center bg-[#0E0E0E] px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
+          <div className="relative w-full max-w-[440px] aspect-[4/5] overflow-hidden bg-[#141414]">
+            {heroDress?.images[0] ? (
+              <DressPhoto brand={profile.brandName} src={heroDress.images[0]} alt={heroDress.name} className="h-full w-full object-cover" priority />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-white/20 text-[11px] tracking-[0.2em]">{profile.brandName}</div>
+            )}
+            <div className="absolute inset-0 border border-white/10 pointer-events-none m-2" />
+          </div>
         </div>
       </div>
-
-      {/* Bottom fade into the cream body */}
-      <div aria-hidden="true" className="h-16 bg-gradient-to-b from-[#0b0b12] to-[#faf8f4]" />
     </section>
   );
 }

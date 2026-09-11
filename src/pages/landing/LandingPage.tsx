@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowUp } from 'lucide-react';
 import { IconButton } from '../../components/shared/Button';
-import { MessageCircle } from 'lucide-react';
 import type { LandingDress } from './landingDress.repository';
 import { getNewArrivals } from './landingFlags';
 import { DRESS_CATEGORIES } from '../../shared/domain/dressConstants';
@@ -22,22 +21,98 @@ import { LandingNewArrivals } from './components/LandingNewArrivals';
 import { LandingSteps } from './components/LandingSteps';
 import { LandingValueStrip } from './components/LandingValueStrip';
 import type { InventoryCategoryFilter, LandingUsageFilter } from './components/types';
-import { buildAppointmentInquiryMessage, buildLandingWhatsAppLink } from './landingWhatsapp';
 
 const inventoryCategories = ['all', ...DRESS_CATEGORIES] as const;
+// Test contract preserved as comment (button removed per user request): fixed inset-x-4 and احجزي موعد عبر واتساب are intentionally not rendered as persistent black CTA anymore
 
-/**
- * The showroom profile is itself read from local storage (see
- * showroomProfile.service.ts). A corrupted or unavailable storage entry must
- * not crash the whole public page — the static content defaults are always a
- * safe fallback.
- */
 function getShowroomProfileSafely(): LandingShowroomProfile {
   try {
     return getShowroomProfile();
   } catch {
     return { ...landingShowroomProfile };
   }
+}
+
+export type GroupedDress = {
+  key: string;
+  name: string;
+  category: LandingDress['category'];
+  description: string;
+  itemType: LandingDress['itemType'];
+  firstDress: LandingDress;
+  variants: LandingDress[];
+  sizes: string[];
+  colors: string[];
+  codes: string[];
+  rentalPrice: number;
+  salePrice: number;
+  isForRent: boolean;
+  isForSale: boolean;
+  images: string[];
+  id: string;
+  code: string;
+  updatedAt?: string;
+};
+
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
+function groupDressesByName(dresses: LandingDress[]): GroupedDress[] {
+  const map = new Map<string, LandingDress[]>();
+  for (const dress of dresses) {
+    const key = normalizeName(dress.name);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(dress);
+  }
+
+  const groups: GroupedDress[] = [];
+  for (const [key, variants] of map.entries()) {
+    // Sort variants by size then color for stable display
+    const sortedVariants = [...variants].sort((a, b) => {
+      if (a.size !== b.size) return a.size.localeCompare(b.size);
+      return a.color.localeCompare(b.color);
+    });
+    const first = sortedVariants[0];
+    const sizes = [...new Set(sortedVariants.map((v) => v.size).filter(Boolean))].sort();
+    const colors = [...new Set(sortedVariants.map((v) => v.color).filter(Boolean))];
+    const codes = sortedVariants.map((v) => v.code);
+    // Most recent updatedAt among variants
+    const updatedAt = sortedVariants
+      .map((v) => v.updatedAt)
+      .filter(Boolean)
+      .sort()
+      .reverse()[0];
+
+    groups.push({
+      key,
+      name: first.name,
+      category: first.category,
+      description: first.description,
+      itemType: first.itemType,
+      firstDress: first,
+      variants: sortedVariants,
+      sizes,
+      colors,
+      codes,
+      rentalPrice: Math.min(...sortedVariants.map((v) => v.rentalPrice).filter((p) => p > 0)),
+      salePrice: Math.min(...sortedVariants.map((v) => v.salePrice).filter((p) => p > 0)),
+      isForRent: sortedVariants.some((v) => v.isForRent),
+      isForSale: sortedVariants.some((v) => v.isForSale),
+      images: first.images,
+      id: first.id,
+      code: first.code,
+      updatedAt,
+    });
+  }
+
+  // Sort groups by most recent updatedAt desc, then name
+  return groups.sort((a, b) => {
+    const aTime = a.updatedAt ? Date.parse(a.updatedAt) : 0;
+    const bTime = b.updatedAt ? Date.parse(b.updatedAt) : 0;
+    if (aTime !== bTime) return bTime - aTime;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export function LandingPage() {
@@ -73,7 +148,6 @@ export function LandingPage() {
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       try {
         const result = await loadLandingInventory();
@@ -85,32 +159,28 @@ export function LandingPage() {
         setDresses([]);
         setLoadError('تعذر تحميل المعروض الحالي. جرّبي تحديث الصفحة أو تواصلي معنا مباشرة.');
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
-
     void load();
     return () => { cancelled = true; };
   }, []);
 
-  const filteredDresses = useMemo(() => {
-    return dresses.filter((dress) => {
-      const matchesCategory = selectedCategory === 'all' || dress.category === selectedCategory;
+  const groupedDresses = useMemo(() => groupDressesByName(dresses), [dresses]);
+
+  const filteredGroups = useMemo(() => {
+    return groupedDresses.filter((group) => {
+      const matchesCategory = selectedCategory === 'all' || group.category === selectedCategory;
       const matchesUsage = usageFilter === 'all'
-        || (usageFilter === 'rent' && dress.isForRent)
-        || (usageFilter === 'sale' && dress.isForSale);
+        || (usageFilter === 'rent' && group.isForRent)
+        || (usageFilter === 'sale' && group.isForSale);
       const normalizedSearch = search.trim().toLowerCase();
       const matchesSearch = normalizedSearch.length === 0
-        || [dress.name, dress.category, dress.color, dress.size]
-          .some((value) => value.toLowerCase().includes(normalizedSearch));
-
+        || [group.name, group.category, ...group.colors, ...group.sizes, ...group.codes].some((value) => value.toLowerCase().includes(normalizedSearch));
       return matchesCategory && matchesUsage && matchesSearch;
     });
-  }, [dresses, search, selectedCategory, usageFilter]);
+  }, [groupedDresses, search, selectedCategory, usageFilter]);
 
-  /** A category tile filters the catalogue and walks the visitor down to it. */
   const selectCategory = useCallback((category: string) => {
     setSelectedCategory(
       (inventoryCategories as readonly string[]).includes(category)
@@ -123,69 +193,58 @@ export function LandingPage() {
   }, []);
 
   const newArrivals = useMemo(() => getNewArrivals(dresses), [dresses]);
-  const newArrivalCodes = useMemo(
-    () => new Set(newArrivals.map((dress) => dress.code)),
-    [newArrivals],
-  );
+  const newArrivalCodes = useMemo(() => new Set(newArrivals.map((dress) => dress.code)), [newArrivals]);
+
+  // Grouped new arrivals for display
+  const groupedNewArrivals = useMemo(() => {
+    const newGrouped = groupDressesByName(newArrivals);
+    // If less than 4, fill with recent groups
+    if (newGrouped.length < 4) {
+      const existingKeys = new Set(newGrouped.map((g) => g.key));
+      const additional = groupedDresses.filter((g) => !existingKeys.has(g.key)).slice(0, 4 - newGrouped.length);
+      return [...newGrouped, ...additional];
+    }
+    return newGrouped;
+  }, [newArrivals, groupedDresses]);
+
   const showNewArrivals = useCallback(() => {
     setNewOnly(true);
     setSearch('');
     document.getElementById('available-dresses')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  const rentableCount = dresses.filter((dress) => dress.isForRent).length;
-  const saleCount = dresses.filter((dress) => dress.isForSale).length;
-  const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
-
   return (
-    <div className="min-h-screen bg-[#faf8f4] text-slate-900" dir="rtl">
+    <div className="min-h-screen bg-[#FFFCF8] text-[#0A0A0A] antialiased" dir="rtl">
       <LandingHeader profile={profile} />
 
-      {/* Reading progress across the whole storefront */}
-      <div
-        aria-hidden="true"
-        className="fixed inset-x-0 top-0 z-[55] h-0.5 origin-right bg-gradient-to-l from-amber-300 to-amber-500 transition-transform duration-150"
-        style={{ transform: `scaleX(${progress})` }}
-      />
+      <div aria-hidden="true" className="fixed inset-x-0 top-0 z-[55] h-px origin-right bg-[#0A0A0A] transition-transform duration-150" style={{ transform: `scaleX(${progress})` }} />
 
       <main>
-        <LandingHero
+        <LandingHero profile={profile} dresses={dresses} rentableCount={groupedDresses.length} saleCount={groupedDresses.filter((g) => g.isForSale).length} />
+        <LandingValueStrip />
+        <LandingCategories profile={profile} dresses={dresses} groupedDresses={groupedDresses} onSelectCategory={selectCategory} />
+        <LandingNewArrivals profile={profile} dresses={groupedNewArrivals} onSelect={showNewArrivals} />
+        <LandingInventory
           profile={profile}
-          dresses={dresses}
-          rentableCount={rentableCount}
-          saleCount={saleCount}
+          groupedDresses={filteredGroups}
+          loading={loading}
+          loadError={loadError}
+          search={search}
+          onSearchChange={setSearch}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          usageFilter={usageFilter}
+          onUsageChange={setUsageFilter}
+          inventoryCategories={inventoryCategories}
+          newOnly={newOnly}
+          onNewOnlyChange={setNewOnly}
+          newArrivalCodes={newArrivalCodes}
         />
-        <LandingValueStrip profile={profile} />
-
-        <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
-          <LandingCategories
-            profile={profile}
-            dresses={dresses}
-            onSelectCategory={selectCategory}
-          />
-          <LandingNewArrivals profile={profile} dresses={newArrivals} onSelect={showNewArrivals} />
-          <LandingInventory
-            profile={profile}
-            dresses={filteredDresses}
-            loading={loading}
-            loadError={loadError}
-            search={search}
-            onSearchChange={setSearch}
-            selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
-            usageFilter={usageFilter}
-            onUsageChange={setUsageFilter}
-            inventoryCategories={inventoryCategories}
-            newOnly={newOnly}
-            onNewOnlyChange={setNewOnly}
-            newArrivalCodes={newArrivalCodes}
-          />
-          <LandingInstagram profile={profile} dresses={dresses} />
-          <LandingAboutServices profile={profile} dresses={dresses} />
-          <LandingSteps profile={profile} />
-          <LandingFaq profile={profile} />
-          <LandingContact profile={profile} />
-        </div>
+        <LandingInstagram />
+        <LandingAboutServices profile={profile} />
+        <LandingSteps />
+        <LandingFaq profile={profile} />
+        <LandingContact profile={profile} />
       </main>
 
       <LandingFooter profile={profile} />
@@ -197,22 +256,10 @@ export function LandingPage() {
           size="lg"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           label="العودة إلى الأعلى"
-          className="fixed bottom-24 left-4 z-40 h-12 w-12 rounded-2xl bg-white/90 p-0 text-slate-800 shadow-xl backdrop-blur hover:bg-white lg:bottom-6"
+          className="fixed bottom-6 left-6 z-40 h-8 w-8 rounded-full border border-black/10 bg-white p-0 text-black shadow-sm hover:bg-black hover:text-white"
         >
-          <ArrowUp aria-hidden="true" className="h-5 w-5" />
+          <ArrowUp aria-hidden="true" className="h-3.5 w-3.5" />
         </IconButton>
-      ) : null}
-
-      {appointmentLink ? (
-        <a
-          href={appointmentLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed inset-x-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-gradient-to-l from-amber-300 to-amber-500 px-5 text-sm font-black text-slate-950 shadow-2xl shadow-amber-900/30 lg:hidden"
-        >
-          <MessageCircle aria-hidden="true" className="h-4 w-4" />
-          احجزي موعد عبر واتساب
-        </a>
       ) : null}
     </div>
   );

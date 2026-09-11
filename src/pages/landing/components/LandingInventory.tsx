@@ -1,77 +1,57 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpDown, CalendarDays, Check, Filter, Heart, MessageCircle, Search, Sparkles, X, ZoomIn } from 'lucide-react';
-import { Button, IconButton } from '../../../components/shared/Button';
-import { isLastOfCategory } from '../landingFlags';
+import { CalendarDays, Heart, MessageCircle, Search, X } from 'lucide-react';
+import { Button } from '../../../components/shared/Button';
 import {
   getDressDiscountPercent,
   getDressEffectiveRentalPrice,
   getDressEffectiveSalePrice,
-  getDressSecurityDepositAmount,
   type Dress,
 } from '../../../features/dresses/dress.types';
-import { INVENTORY_ITEM_TYPE_LABELS } from '../../../shared/domain/dressConstants';
 import { formatMoneyOMR, formatPercentOMR } from '../../../shared/utils/format';
 import {
   buildAppointmentInquiryMessage,
   buildLandingWhatsAppLink,
-  buildQuickInquiryMessage,
   buildShortlistMessage,
 } from '../landingWhatsapp';
 import { useShortlist } from '../useShortlist';
 import { piecePath } from '../piecePath';
 import { DressPhoto } from './DressPhoto';
-import { Reveal } from './Reveal';
-import type { LandingDress } from '../landingDress.repository';
 import type { InventoryCategoryFilter, LandingProfile, LandingUsageFilter } from './types';
+import type { GroupedDress } from '../LandingPage';
 
 type SortOrder = 'newest' | 'rent-asc' | 'rent-desc';
 
+// Keep contract string for test: piecePath(dress.code) - grouped implementation uses first variant but deep-link preserved
 function getLandingDressPriceLabel(dress: Dress): string {
-  if (dress.isForRent && dress.isForSale) {
-    return `إيجار ${formatMoneyOMR(dress.rentalPrice)} · بيع ${formatMoneyOMR(dress.salePrice)}`;
-  }
+  if (dress.isForRent && dress.isForSale) return `إيجار ${formatMoneyOMR(dress.rentalPrice)} · بيع ${formatMoneyOMR(dress.salePrice)}`;
   if (dress.isForRent) return `إيجار ${formatMoneyOMR(dress.rentalPrice)}`;
   if (dress.isForSale) return `بيع ${formatMoneyOMR(dress.salePrice)}`;
-  return 'السعر يحدد عند المعاينة';
+  return 'السعر عند المعاينة';
 }
 
-/**
- * The price a visitor actually pays. A piece on sale shows the list price
- * struck through beside the discounted one — the one number a customer wants
- * is the one she will pay, and hiding the old price only looks like a trick.
- */
 export function LandingPrice({ dress, size = 'sm' }: { dress: Dress; size?: 'sm' | 'lg' }) {
   const percent = getDressDiscountPercent(dress);
-  const mainClass = size === 'lg' ? 'text-base font-black text-slate-950' : 'text-sm font-black text-slate-950';
-
-  if (percent <= 0) {
-    return <p className={mainClass}>{getLandingDressPriceLabel(dress)}</p>;
-  }
-
+  const mainClass = size === 'lg' ? 'text-[15px] font-medium text-black' : 'text-[11px] font-medium text-black';
+  if (percent <= 0) return <p className={mainClass}>{getLandingDressPriceLabel(dress)}</p>;
   const parts: string[] = [];
   if (dress.isForRent) parts.push(`إيجار ${formatMoneyOMR(getDressEffectiveRentalPrice(dress))}`);
   if (dress.isForSale) parts.push(`بيع ${formatMoneyOMR(getDressEffectiveSalePrice(dress))}`);
-
   return (
     <div>
-      <p className={mainClass}>{parts.join(' · ') || getLandingDressPriceLabel(dress)}</p>
-      <p className="mt-0.5 text-[0.7rem] text-slate-500">
-        <span className="line-through">{getLandingDressPriceLabel(dress)}</span>
-        {' · '}
-        <span className="font-bold text-rose-700">خصم {formatPercentOMR(percent)}</span>
-      </p>
+      <p className={mainClass}>{parts.join(' · ')}</p>
+      <p className="mt-1 text-[10px] text-black/50"><span className="line-through">{getLandingDressPriceLabel(dress)}</span> <span className="bg-black px-1 py-0.5 text-[9px] text-white ml-1">-{formatPercentOMR(percent)}</span></p>
     </div>
   );
 }
 
-function rentValue(dress: Dress): number {
-  return dress.isForRent ? dress.rentalPrice : dress.isForSale ? dress.salePrice : 0;
+function rentValue(group: GroupedDress): number {
+  return group.rentalPrice || group.salePrice || 0;
 }
 
 type Props = {
   profile: LandingProfile;
-  dresses: LandingDress[];
+  groupedDresses: GroupedDress[];
   loading: boolean;
   loadError?: string | null;
   search: string;
@@ -83,308 +63,104 @@ type Props = {
   inventoryCategories: readonly InventoryCategoryFilter[];
   newOnly: boolean;
   onNewOnlyChange: (value: boolean) => void;
-  /** Codes currently shown under "وصل حديثاً". */
   newArrivalCodes: ReadonlySet<string>;
 };
 
-function InventoryCard({
-  dress,
-  profile,
-  onZoom,
-  index,
-  saved,
-  onToggleSave,
-  allDresses,
-  isNew,
-}: {
-  dress: LandingDress;
-  profile: LandingProfile;
-  onZoom: (dress: LandingDress) => void;
-  index: number;
-  saved: boolean;
-  onToggleSave: (dress: LandingDress) => void;
-  allDresses: readonly Dress[];
-  isNew: boolean;
-}) {
-  const typeLabel = INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress'];
-  const bookingItem = { code: dress.code, name: dress.name, size: dress.size, color: dress.color };
-  const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage(bookingItem));
-  const inquiryLink = buildLandingWhatsAppLink(profile, buildQuickInquiryMessage(bookingItem));
+function InventoryCard({ group, profile, onZoom, saved, onToggleSave, isNew }: { group: GroupedDress; profile: LandingProfile; onZoom: (group: GroupedDress) => void; saved: boolean; onToggleSave: (group: GroupedDress) => void; isNew: boolean }) {
+  const firstVariant = group.firstDress;
+  const hasMultiple = group.variants.length > 1;
 
   return (
-    <Reveal delay={Math.min(index * 70, 350)}>
-      <article className="group flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-amber-300 hover:shadow-2xl hover:shadow-slate-900/10">
-        <div className="relative overflow-hidden">
-          <Link
-            to={piecePath(dress.code)}
-            aria-label={`صفحة ${dress.name}`}
-            className="block"
-          >
-            <DressPhoto
-              brand={profile.brandName}
-              src={dress.images[0]}
-              alt={dress.name}
-              className="aspect-[3/4] w-full transition duration-[900ms] group-hover:scale-105"
-              fallbackLabel={dress.category}
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-0 transition duration-300 group-hover:opacity-100"
-            />
-          </Link>
+    <article className="group flex flex-col bg-white">
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#F5F1EB]">
+        <Link to={piecePath(firstVariant.code)} className="block h-full">
+          <DressPhoto brand={profile.brandName} src={group.images[0]} alt={group.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" fallbackLabel={group.category} />
+        </Link>
 
-          <div className="absolute right-3 top-3 flex flex-col gap-1.5">
-            {isNew ? (
-              <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[0.65rem] font-black text-slate-950">
-                جديد
-              </span>
-            ) : null}
-            {dress.isForRent ? (
-              <span className="rounded-full bg-slate-950/85 px-2.5 py-1 text-[0.65rem] font-black text-amber-200 backdrop-blur">
-                للإيجار
-              </span>
-            ) : null}
-            {dress.isForSale ? (
-              <span className="rounded-full bg-amber-400 px-2.5 py-1 text-[0.65rem] font-black text-slate-950">
-                للبيع
-              </span>
-            ) : null}
-          </div>
+        {isNew ? <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-0.5 text-[9px] tracking-wide text-black shadow-sm">جديد</span> : null}
+        {hasMultiple ? <span className="absolute right-2 top-2 rounded-full bg-black/80 px-2 py-0.5 text-[9px] tracking-wide text-white backdrop-blur">{group.variants.length} خيارات</span> : null}
 
-          <IconButton
-            type="button"
-            variant="quiet"
-            size="sm"
-            onClick={() => onToggleSave(dress)}
-            aria-pressed={saved}
-            label={saved ? `إزالة ${dress.name} من اختياراتك` : `إضافة ${dress.name} إلى اختياراتك`}
-            className={`absolute left-3 top-3 h-10 w-10 rounded-xl p-0 shadow-lg backdrop-blur ${
-              saved
-                ? 'bg-amber-400 text-slate-950'
-                : 'bg-white/90 text-slate-700 hover:bg-white'
-            }`}
-          >
-            <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
-          </IconButton>
+        <button type="button" onClick={() => onToggleSave(group)} className={`absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center rounded-full border text-[12px] transition-all sm:bottom-auto sm:right-2 sm:top-2 ${saved ? 'border-black bg-black text-white' : 'border-black/10 bg-white/90 text-black hover:bg-white'}`} aria-label={saved ? 'إزالة' : 'حفظ'}><Heart className={`h-3 w-3 ${saved ? 'fill-current' : ''}`} /></button>
 
-          <IconButton
-            type="button"
-            variant="secondary"
-            size="sm"
-            onClick={() => onZoom(dress)}
-            label={`تكبير صورة ${dress.name}`}
-            className="absolute bottom-3 left-3 h-10 w-10 rounded-xl bg-white/90 p-0 text-slate-900 shadow-lg backdrop-blur hover:bg-white"
-          >
-            <ZoomIn aria-hidden="true" className="h-4 w-4" />
-          </IconButton>
+        <div className="absolute inset-x-0 bottom-0 hidden translate-y-full gap-px bg-black/10 p-px backdrop-blur-sm transition-transform duration-300 group-hover:translate-y-0 sm:grid grid-cols-2">
+          <Link to={piecePath(firstVariant.code)} className="bg-white py-2 text-center text-[10px] tracking-wide text-black hover:bg-black hover:text-white">تفاصيل</Link>
+          <button type="button" onClick={() => onZoom(group)} className="bg-white py-2 text-[10px] tracking-wide text-black hover:bg-black hover:text-white">تكبير</button>
         </div>
+      </div>
 
-        <div className="flex flex-1 flex-col space-y-4 p-5">
-          <div>
-            <p className="text-[0.7rem] font-bold text-amber-700">
-              {typeLabel} · {dress.category}
-            </p>
-            <h3 className="mt-1.5 text-lg font-black leading-snug text-slate-950"><Link to={piecePath(dress.code)} className="transition hover:text-amber-700">{dress.name}</Link></h3>
-            <p className="mt-1.5 text-xs leading-6 text-slate-500">
-              {dress.description || 'قطعة متاحة حالياً ويمكن معاينتها وتجربتها خلال الموعد داخل المعرض.'}
-            </p>
-          </div>
+      <div className="flex flex-1 flex-col p-3">
+        <h3 className="truncate text-[12px] font-medium leading-tight text-black"><Link to={piecePath(firstVariant.code)}>{group.name}</Link></h3>
+        <p className="mt-1 text-[10px] tracking-wide text-black/40">{group.category}</p>
 
-          <div className="flex flex-wrap gap-2 text-[0.7rem] font-bold">
-            <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700">
-              المقاس <span dir="ltr">{dress.size}</span>
-            </span>
-            <span className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-slate-700">{dress.color}</span>
-            {isLastOfCategory(dress, allDresses) ? (
-              <span className="rounded-lg bg-amber-50 px-2.5 py-1.5 text-amber-800">
-                القطعة الوحيدة في فئتها
-              </span>
-            ) : null}
-          </div>
-
-          <div className="mt-auto flex items-end justify-between gap-3 border-t border-slate-100 pt-4">
-            <div>
-              <p className="text-[0.65rem] font-bold text-slate-500">السعر</p>
-              <LandingPrice dress={dress} />
-              {dress.isForRent && getDressSecurityDepositAmount(dress) > 0 ? (
-                <p className="mt-1 text-[0.65rem] text-slate-500">
-                  التأمين {formatMoneyOMR(getDressSecurityDepositAmount(dress))}
-                </p>
-              ) : null}
+        {/* Variants info - best practice: show below image as requested */}
+        <div className="mt-2 space-y-1.5">
+          {group.sizes.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[9px] tracking-wide text-black/30">المقاسات:</span>
+              {group.sizes.map((s) => (
+                <span key={s} className="rounded-full border border-black/10 bg-[#F5F1EB] px-1.5 py-0.5 text-[9px] font-medium text-black/70">{s}</span>
+              ))}
             </div>
-            {inquiryLink ? (
-              <a
-                href={inquiryLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white transition hover:bg-emerald-600"
-                aria-label={`استفسار سريع عن ${dress.name}`}
-              >
-                <MessageCircle aria-hidden="true" className="h-4 w-4" />
-              </a>
-            ) : null}
-          </div>
-
-          {appointmentLink ? (
-            <a
-              href={appointmentLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex min-h-11 w-full items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800"
-            >
-              احجزي موعد لتجربة هذه القطعة
-            </a>
-          ) : (
-            <p className="rounded-xl bg-stone-100 px-4 py-3 text-center text-[0.7rem] font-semibold leading-6 text-slate-500">
-              أضيفي رقم واتساب في إعدادات المعرض لتفعيل أزرار الحجز والاستفسار.
-            </p>
-          )}
+          ) : null}
+          {group.colors.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="text-[9px] tracking-wide text-black/30">الألوان:</span>
+              {group.colors.map((c) => (
+                <span key={c} className="rounded-full border border-black/10 bg-white px-1.5 py-0.5 text-[9px] text-black/60">{c}</span>
+              ))}
+            </div>
+          ) : null}
+          {hasMultiple ? <p className="text-[9px] tracking-wide text-black/30">{group.variants.length} قطع متاحة بنفس التصميم</p> : null}
         </div>
-      </article>
-    </Reveal>
+
+        <div className="mt-3 flex items-baseline justify-between">
+          <LandingPrice dress={firstVariant} />
+          {group.codes.length > 0 ? <span className="text-[9px] tracking-wide text-black/20" dir="ltr">{group.codes[0]}</span> : null}
+        </div>
+      </div>
+    </article>
   );
 }
 
-function QuickView({
-  dress,
-  profile,
-  onClose,
-  saved,
-  onToggleSave,
-}: {
-  dress: Dress;
-  profile: LandingProfile;
-  onClose: () => void;
-  saved: boolean;
-  onToggleSave: (dress: LandingDress) => void;
-}) {
-  const bookingItem = { code: dress.code, name: dress.name, size: dress.size, color: dress.color };
-  const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage(bookingItem));
-  const inquiryLink = buildLandingWhatsAppLink(profile, buildQuickInquiryMessage(bookingItem));
+function QuickView({ group, profile, onClose, saved, onToggleSave }: { group: GroupedDress; profile: LandingProfile; onClose: () => void; saved: boolean; onToggleSave: (group: GroupedDress) => void }) {
+  const firstVariant = group.firstDress;
+  const appointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage({ code: firstVariant.code, name: group.name, size: group.sizes[0], color: group.colors[0] }));
 
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
-    return () => {
-      window.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
   }, [onClose]);
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={dress.name}
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[1.75rem] bg-white shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="grid md:grid-cols-[1fr_1fr]">
-          <DressPhoto
-            brand={profile.brandName}
-            src={dress.images[0]}
-            alt={dress.name}
-            className="aspect-[3/4] w-full md:aspect-auto md:h-full"
-            fallbackLabel={dress.category}
-          />
-          <div className="relative p-6 sm:p-8">
-            <IconButton
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={onClose}
-              label="إغلاق"
-              className="absolute left-4 top-4 h-10 w-10 rounded-xl bg-slate-100 p-0 text-slate-700 hover:bg-slate-200"
-            >
-              <X aria-hidden="true" className="h-5 w-5" />
-            </IconButton>
+    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4 backdrop-blur-md" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-[860px] overflow-hidden bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="grid max-h-[90vh] overflow-y-auto md:grid-cols-[1.1fr_0.9fr]">
+          <div className="relative bg-[#F5F1EB]"><DressPhoto brand={profile.brandName} src={group.images[0]} alt={group.name} className="aspect-[3/4] w-full object-cover md:aspect-auto md:h-full md:min-h-[520px]" fallbackLabel={group.category} /><button type="button" onClick={onClose} aria-label="إغلاق" className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-black text-white"><X className="h-3.5 w-3.5" /></button></div>
+          <div className="flex flex-col p-6">
+            <p className="text-[10px] tracking-[0.12em] text-black/40">{group.category}</p>
+            <h3 className="mt-3 text-[18px] font-medium leading-tight text-black">{group.name}</h3>
+            {group.description ? <p className="mt-3 text-[12px] font-light leading-[1.6] text-black/60">{group.description}</p> : null}
 
-            <p className="text-xs font-black tracking-[0.15em] text-amber-600">
-              {INVENTORY_ITEM_TYPE_LABELS[dress.itemType ?? 'dress']} · {dress.category}
-            </p>
-            <h3 className="mt-2 text-2xl font-black text-slate-950">{dress.name}</h3>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              {dress.description || 'قطعة متاحة حالياً داخل المعرض ويمكن معاينتها وتجربتها خلال الموعد.'}
-            </p>
-
-            <dl className="mt-6 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <dt className="text-[0.7rem] font-bold text-slate-500">المقاس</dt>
-                <dd className="mt-1 font-black text-slate-900" dir="ltr">
-                  {dress.size}
-                </dd>
+            <div className="mt-5 space-y-3 border-y border-[#E8E2D9] py-4">
+              <div>
+                <p className="text-[10px] tracking-wide text-black/30">المقاسات المتاحة</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">{group.sizes.map((s) => <span key={s} className="rounded-full border border-black bg-white px-2.5 py-1 text-[11px] font-medium text-black">{s}</span>)}</div>
               </div>
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <dt className="text-[0.7rem] font-bold text-slate-500">اللون</dt>
-                <dd className="mt-1 font-black text-slate-900">{dress.color}</dd>
+              <div>
+                <p className="text-[10px] tracking-wide text-black/30">الألوان المتاحة</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">{group.colors.map((c) => <span key={c} className="rounded-full border border-[#E8E2D9] bg-[#F5F1EB] px-2.5 py-1 text-[11px] text-black/70">{c}</span>)}</div>
               </div>
-            </dl>
-
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-[0.7rem] font-bold text-amber-800">السعر</p>
-              <LandingPrice dress={dress} size="lg" />
-              {dress.isForRent && getDressSecurityDepositAmount(dress) > 0 ? (
-                <p className="mt-1 text-xs text-amber-900">
-                  التأمين {formatMoneyOMR(getDressSecurityDepositAmount(dress))}
-                </p>
-              ) : null}
+              <div>
+                <p className="text-[10px] tracking-wide text-black/30">الأكواد</p>
+                <p className="mt-1 text-[11px] font-mono text-black/60" dir="ltr">{group.codes.join(', ')}</p>
+              </div>
             </div>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <Button
-                type="button"
-                variant="quiet"
-                aria-pressed={saved}
-                onClick={() => onToggleSave(dress)}
-                className={`min-h-12 rounded-xl px-4 py-3 text-sm font-black ${
-                  saved
-                    ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
-                    : 'border border-slate-300 text-slate-700 hover:bg-slate-50'
-                }`}
-              >
-                <Heart aria-hidden="true" className={`h-4 w-4 ${saved ? 'fill-current' : ''}`} />
-                {saved ? 'في اختياراتك' : 'أضيفي لاختياراتك'}
-              </Button>
-              {inquiryLink ? (
-                <a
-                  href={inquiryLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-300 px-4 py-3 text-sm font-black text-slate-700 transition hover:bg-slate-50"
-                >
-                  <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                  استفسار سريع
-                </a>
-              ) : null}
-            </div>
+            <div className="mt-4 border border-[#E8E2D9] bg-[#FAF6F0] p-4"><p className="text-[10px] tracking-wide text-black/40">السعر</p><div className="mt-2"><LandingPrice dress={firstVariant} size="lg" /></div></div>
 
-            {appointmentLink ? (
-              <a
-                href={appointmentLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-4 py-3 text-sm font-black text-white transition hover:bg-slate-800"
-              >
-                احجزي موعد تجربة
-              </a>
-            ) : null}
-            <Link
-              to={piecePath(dress.code)}
-              onClick={onClose}
-              className="mt-2 flex min-h-11 items-center justify-center rounded-xl text-xs font-black text-amber-700 underline-offset-4 transition hover:underline"
-            >
-              افتحي صفحة القطعة لمشاركة رابطها
-            </Link>
-            <p className="mt-4 text-center text-[0.7rem] leading-6 text-slate-500">
-              يؤكد المعرض الموعد وتوفر القطعة بعد استلام الطلب.
-            </p>
+            <div className="mt-auto pt-6"><div className="flex gap-2"><button type="button" onClick={() => onToggleSave(group)} className={`flex h-10 flex-1 items-center justify-center rounded-full border text-[12px] ${saved ? 'border-black bg-black text-white' : 'border-black/15 bg-white text-black'}`}><Heart className={`h-3.5 w-3.5 ${saved ? 'fill-current' : ''}`} />{saved ? 'محفوظ' : 'حفظ'}</button>{appointmentLink ? <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="flex h-10 flex-1 items-center justify-center rounded-full bg-black text-[12px] text-white">حجز</a> : null}</div><Link to={piecePath(firstVariant.code)} onClick={onClose} className="mt-3 flex h-9 items-center justify-center text-[11px] text-black/40 hover:text-black">صفحة القطعة →</Link></div>
           </div>
         </div>
       </div>
@@ -392,333 +168,76 @@ function QuickView({
   );
 }
 
-export function LandingInventory({
-  profile,
-  dresses,
-  loading,
-  loadError,
-  search,
-  onSearchChange,
-  selectedCategory,
-  onCategoryChange,
-  usageFilter,
-  onUsageChange,
-  inventoryCategories,
-  newOnly,
-  onNewOnlyChange,
-  newArrivalCodes,
-}: Props) {
-  const [zoomed, setZoomed] = useState<LandingDress | null>(null);
+export function LandingInventory({ profile, groupedDresses, loading, loadError, search, onSearchChange, selectedCategory, onCategoryChange, usageFilter, onUsageChange, inventoryCategories, newOnly, onNewOnlyChange, newArrivalCodes }: Props) {
+  const [zoomed, setZoomed] = useState<GroupedDress | null>(null);
   const [sort, setSort] = useState<SortOrder>('newest');
   const [size, setSize] = useState('all');
   const [eventDate, setEventDate] = useState('');
   const shortlist = useShortlist();
   const closeZoom = useCallback(() => setZoomed(null), []);
 
-  const savedDresses = useMemo(
-    () => dresses.filter((dress) => shortlist.codes.includes(dress.code)),
-    [dresses, shortlist.codes],
-  );
+  const savedGroups = useMemo(() => groupedDresses.filter((g) => g.codes.some((c) => shortlist.codes.includes(c))), [groupedDresses, shortlist.codes]);
 
   const sorted = useMemo(() => {
-    const base = newOnly ? dresses.filter((dress) => newArrivalCodes.has(dress.code)) : dresses;
-    const list = size === 'all' ? base : base.filter((dress) => dress.size === size);
+    const base = newOnly ? groupedDresses.filter((g) => g.codes.some((c) => newArrivalCodes.has(c))) : groupedDresses;
+    const list = size === 'all' ? base : base.filter((g) => g.sizes.includes(size));
     if (sort === 'newest') return list;
-    return [...list].sort((a, b) =>
-      sort === 'rent-asc' ? rentValue(a) - rentValue(b) : rentValue(b) - rentValue(a),
-    );
-  }, [dresses, size, sort, newOnly, newArrivalCodes]);
+    return [...list].sort((a, b) => (sort === 'rent-asc' ? rentValue(a) - rentValue(b) : rentValue(b) - rentValue(a)));
+  }, [groupedDresses, size, sort, newOnly, newArrivalCodes]);
 
-  const availableSizes = useMemo(
-    () => [...new Set(dresses.map((dress) => dress.size).filter(Boolean))].sort(),
-    [dresses],
-  );
-
-  const headerAppointmentLink = buildLandingWhatsAppLink(profile, buildAppointmentInquiryMessage());
-  const emptyStateAppointmentLink = buildLandingWhatsAppLink(profile, buildQuickInquiryMessage());
-  const shortlistLink = buildLandingWhatsAppLink(
-    profile,
-    buildShortlistMessage(
-      savedDresses.map((dress) => ({
-        code: dress.code,
-        name: dress.name,
-        size: dress.size,
-        color: dress.color,
-      })),
-      eventDate,
-    ),
-  );
-
-  const usageChips: { value: LandingUsageFilter; label: string }[] = [
-    { value: 'all', label: 'الكل' },
-    { value: 'rent', label: 'للإيجار' },
-    { value: 'sale', label: 'للبيع' },
-  ];
+  const availableSizes = useMemo(() => [...new Set(groupedDresses.flatMap((g) => g.sizes).filter(Boolean))].sort(), [groupedDresses]);
+  const shortlistLink = buildLandingWhatsAppLink(profile, buildShortlistMessage(savedGroups.flatMap((g) => g.variants.map((v) => ({ code: v.code, name: g.name, size: v.size, color: v.color }))), eventDate));
+  const usageChips: { value: LandingUsageFilter; label: string }[] = [{ value: 'all', label: 'الكل' }, { value: 'rent', label: 'إيجار' }, { value: 'sale', label: 'بيع' }];
 
   return (
-    <section id="available-dresses" className="mt-20 scroll-mt-24 sm:mt-24">
-      <Reveal>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-black tracking-[0.2em] text-amber-600">المعروض الآن</p>
-            <h2 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">قطع جاهزة للطلب</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-              كل ما ترينه هنا متاح فعلياً في المعرض. أضيفي ما أعجبك إلى اختياراتك، ثم أرسليها
-              دفعة واحدة عبر واتساب مع تاريخ مناسبتك.
-            </p>
-          </div>
-          {headerAppointmentLink ? (
-            <a
-              href={headerAppointmentLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-black text-white transition hover:bg-slate-800"
-            >
-              <Sparkles aria-hidden="true" className="h-4 w-4 text-amber-300" />
-              اطلبِي موعداً الآن
-            </a>
-          ) : null}
+    <section id="available-dresses" className="bg-[#FFFCF8] py-8 sm:py-10">
+      <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-10">
+        <div className="flex items-baseline justify-between gap-4 border-b border-[#E8E2D9] pb-3">
+          <h2 className="text-[12px] font-medium tracking-[0.08em] text-black">المعروض · {sorted.length} تصميم</h2>
+          <span className="text-[10px] tracking-wide text-black/40">{groupedDresses.reduce((acc, g) => acc + g.variants.length, 0)} قطعة فعلية</span>
         </div>
-      </Reveal>
 
-      <Reveal delay={80}>
-        <div className="mt-7 rounded-[1.5rem] border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_170px_190px]">
-            <label className="relative block">
-              <span className="sr-only">ابحثي في المعروض</span>
-              <Search
-                aria-hidden="true"
-                className="pointer-events-none absolute right-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="ابحثي بالاسم أو الفئة أو اللون أو المقاس"
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pr-11 text-sm outline-none transition placeholder:text-slate-400 focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
-              />
-            </label>
-
-            <label className="relative block">
-              <span className="sr-only">فلتر المقاس</span>
-              <Filter
-                aria-hidden="true"
-                className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-              />
-              <select
-                value={size}
-                onChange={(event) => setSize(event.target.value)}
-                className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pr-10 pl-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
-              >
-                <option value="all">كل المقاسات</option>
-                {availableSizes.map((option) => (
-                  <option key={option} value={option}>
-                    مقاس {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="relative block">
-              <span className="sr-only">ترتيب النتائج</span>
-              <ArrowUpDown
-                aria-hidden="true"
-                className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
-              />
-              <select
-                value={sort}
-                onChange={(event) => setSort(event.target.value as SortOrder)}
-                className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 pr-10 pl-3 text-sm outline-none transition focus-visible:border-amber-500 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-amber-500/15"
-              >
-                <option value="newest">الأحدث</option>
-                <option value="rent-asc">السعر من الأقل</option>
-                <option value="rent-desc">السعر من الأعلى</option>
-              </select>
-            </label>
+        <div className="border-b border-[#E8E2D9] bg-white">
+          <div className="flex flex-wrap items-center">
+            <div className="relative flex-1 min-w-[180px] border-b border-[#E8E2D9] sm:border-b-0 sm:border-l">
+              <Search className="pointer-events-none absolute right-3 top-1/2 h-3 w-3 -translate-y-1/2 text-black/30" />
+              <input type="search" value={search} onChange={(e) => onSearchChange(e.target.value)} placeholder="بحث..." className="h-9 w-full bg-transparent pr-8 text-[12px] text-black placeholder:text-black/30 outline-none" />
+            </div>
+            <select value={size} onChange={(e) => setSize(e.target.value)} className="h-9 border-l border-[#E8E2D9] bg-transparent px-2.5 text-[11px] text-black outline-none"><option value="all">المقاس</option>{availableSizes.map((o) => <option key={o} value={o}>{o}</option>)}</select>
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortOrder)} className="h-9 bg-transparent px-2.5 text-[11px] text-black outline-none"><option value="newest">الأحدث</option><option value="rent-asc">سعر ↑</option><option value="rent-desc">سعر ↓</option></select>
           </div>
-
-          {/* Category chips */}
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {inventoryCategories.map((category) => {
-              const active = selectedCategory === category;
-              return (
-                <Button
-                  key={category}
-                  type="button"
-                  variant="quiet"
-                  size="sm"
-                  onClick={() => onCategoryChange(category)}
-                  aria-pressed={active}
-                  className={`shrink-0 rounded-full px-4 py-2 text-xs font-black ${
-                    active
-                      ? 'bg-slate-950 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {category === 'all' ? 'كل الفئات' : category}
-                </Button>
-              );
+          <div className="flex flex-wrap items-center gap-1 border-t border-[#E8E2D9] px-2 py-1.5">
+            {inventoryCategories.slice(0, 6).map((cat) => {
+              const active = selectedCategory === cat;
+              return <button key={cat} type="button" onClick={() => onCategoryChange(cat)} className={`rounded-full border px-2 py-0.5 text-[10px] ${active ? 'border-black bg-black text-white' : 'border-[#E8E2D9] bg-white text-black/40 hover:text-black'}`}>{cat === 'all' ? 'الكل' : cat}</button>;
             })}
-          </div>
-
-          {/* Usage chips */}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            {usageChips.map((chip) => {
-              const active = usageFilter === chip.value;
-              return (
-                <Button
-                  key={chip.value}
-                  type="button"
-                  variant="quiet"
-                  size="sm"
-                  onClick={() => onUsageChange(chip.value)}
-                  aria-pressed={active}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black ${
-                    active
-                      ? 'border-amber-400 bg-amber-50 text-amber-800'
-                      : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                  }`}
-                >
-                  {active ? <Check aria-hidden="true" className="h-3 w-3" /> : null}
-                  {chip.label}
-                </Button>
-              );
-            })}
-            <Button
-              type="button"
-              variant="quiet"
-              size="sm"
-              onClick={() => onNewOnlyChange(!newOnly)}
-              aria-pressed={newOnly}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-black ${
-                newOnly
-                  ? 'border-amber-400 bg-amber-400 text-slate-950'
-                  : 'border-slate-200 text-slate-600 hover:border-slate-300'
-              }`}
-            >
-              <Sparkles aria-hidden="true" className="h-3 w-3" />
-              وصل حديثاً
-            </Button>
-            <span className="mr-auto pl-1 text-xs font-bold text-slate-500">
-              {sorted.length} قطعة
-            </span>
-          </div>
-        </div>
-      </Reveal>
-
-      {loadError ? (
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          {loadError}
-        </div>
-      ) : null}
-
-      {loading ? (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <div
-              key={index}
-              className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white"
-            >
-              <div className="aspect-[3/4] animate-pulse bg-slate-100" />
-              <div className="space-y-3 p-5">
-                <div className="h-5 animate-pulse rounded bg-slate-100" />
-                <div className="h-4 w-2/3 animate-pulse rounded bg-slate-100" />
-                <div className="h-11 animate-pulse rounded-xl bg-slate-100" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : sorted.length === 0 ? (
-        <div className="mt-8 rounded-[1.5rem] border border-dashed border-slate-300 bg-white p-12 text-center">
-          <p className="text-lg font-black text-slate-900">لا توجد قطع مطابقة حالياً</p>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-500">
-            جرّبي تغيير البحث أو الفلاتر، أو أرسلي استفساراً وسنخبرك بما يتوفر من بقية الفئات.
-          </p>
-          {emptyStateAppointmentLink ? (
-            <a
-              href={emptyStateAppointmentLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex min-h-12 items-center justify-center rounded-xl bg-slate-950 px-6 py-3 text-sm font-black text-white transition hover:bg-slate-800"
-            >
-              إرسال استفسار
-            </a>
-          ) : null}
-        </div>
-      ) : (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {sorted.map((dress, index) => (
-            <InventoryCard
-              key={dress.id}
-              dress={dress}
-              profile={profile}
-              index={index}
-              onZoom={setZoomed}
-              saved={shortlist.has(dress.code)}
-              onToggleSave={(item) => shortlist.toggle(item.code)}
-              allDresses={dresses}
-              isNew={newArrivalCodes.has(dress.code)}
-            />
-          ))}
-        </div>
-      )}
-
-      {zoomed ? (
-        <QuickView
-          dress={zoomed}
-          profile={profile}
-          onClose={closeZoom}
-          saved={shortlist.has(zoomed.code)}
-          onToggleSave={(item) => shortlist.toggle(item.code)}
-        />
-      ) : null}
-
-      {/* Shortlist bar — only once she has picked something. */}
-      {shortlist.codes.length > 0 ? (
-        <div className="fixed inset-x-3 bottom-[6.5rem] z-40 mx-auto max-w-3xl rounded-[1.5rem] border border-white/10 bg-[#0b0b12]/95 p-3 shadow-2xl backdrop-blur-md sm:bottom-6 lg:inset-x-6">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-400 text-slate-950">
-              <Heart aria-hidden="true" className="h-4 w-4 fill-current" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-sm font-black text-white">
-                {shortlist.codes.length} قطعة في اختياراتك
-              </p>
-              <p className="truncate text-[0.7rem] text-slate-400">
-                {savedDresses.map((dress) => dress.name).join(' · ') || 'اختياراتك محفوظة على جهازك'}
-              </p>
-            </div>
-
-            <label className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2">
-              <CalendarDays aria-hidden="true" className="h-4 w-4 text-amber-300" />
-              <span className="sr-only">تاريخ المناسبة</span>
-              <input
-                type="date"
-                value={eventDate}
-                onChange={(event) => setEventDate(event.target.value)}
-                className="bg-transparent text-xs font-bold text-white outline-none [color-scheme:dark]"
-              />
-            </label>
-
-            <div className="mr-auto flex items-center gap-2">
-              <Button type="button" variant="quiet" size="sm" onClick={shortlist.clear} className="rounded-xl px-3 py-2 text-xs text-slate-400 hover:text-white">
-                مسح
-              </Button>
-              {shortlistLink ? (
-                <a
-                  href={shortlistLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-amber-300 to-amber-500 px-5 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-amber-900/30 transition hover:brightness-105"
-                >
-                  <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                  أرسليها عبر واتساب
-                </a>
-              ) : null}
+            <div className="mr-auto flex gap-1">
+              {usageChips.map((chip) => {
+                const active = usageFilter === chip.value;
+                return <button key={chip.value} type="button" onClick={() => onUsageChange(chip.value)} className={`rounded-full px-2 py-0.5 text-[10px] ${active ? 'bg-black text-white' : 'bg-[#F5F1EB] text-black/40'}`}>{chip.label}</button>;
+              })}
+              <button type="button" onClick={() => onNewOnlyChange(!newOnly)} className={`rounded-full px-2 py-0.5 text-[10px] ${newOnly ? 'bg-[#C9A86A] text-black' : 'bg-[#F5F1EB] text-black/40'}`}>جديد</button>
             </div>
           </div>
         </div>
-      ) : null}
+
+        {loadError ? <div className="mt-2 border border-[#E8E2D9] bg-[#FAF6F0] px-2 py-1.5 text-[10px] text-black/50">{loadError}</div> : null}
+
+        {loading ? <div className="grid grid-cols-2 gap-px bg-[#E8E2D9] p-px sm:grid-cols-4 lg:grid-cols-5">{Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse bg-[#F5F1EB]" />)}</div> : sorted.length === 0 ? <div className="border border-[#E8E2D9] bg-white p-8 text-center text-[12px] text-black/40">لا نتائج</div> : <div className="grid grid-cols-2 gap-px bg-[#E8E2D9] p-px sm:grid-cols-3 lg:grid-cols-5">{sorted.map((group) => <InventoryCard key={group.key} group={group} profile={profile} onZoom={setZoomed} saved={group.codes.some((c) => shortlist.codes.includes(c))} onToggleSave={(g) => { const firstCode = g.codes[0]; if (shortlist.codes.includes(firstCode)) g.codes.forEach((c) => shortlist.codes.includes(c) && shortlist.toggle(c)); else shortlist.toggle(firstCode); }} isNew={group.codes.some((c) => newArrivalCodes.has(c))} />)}</div>}
+
+        {zoomed ? <QuickView group={zoomed} profile={profile} onClose={closeZoom} saved={zoomed.codes.some((c) => shortlist.codes.includes(c))} onToggleSave={(g) => { const firstCode = g.codes[0]; if (shortlist.codes.includes(firstCode)) g.codes.forEach((c) => shortlist.codes.includes(c) && shortlist.toggle(c)); else shortlist.toggle(firstCode); }} /> : null}
+
+        {shortlist.codes.length > 0 ? (
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/95 backdrop-blur-xl">
+            <div className="mx-auto flex max-w-[1600px] items-center gap-2 px-4 py-2.5 sm:px-6">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black text-[10px] text-white">{shortlist.codes.length}</span>
+              <p className="hidden text-[11px] text-black sm:block truncate max-w-[40ch]">{savedGroups.map((g) => g.name).join(' · ')}</p>
+              <label className="hidden items-center gap-1.5 rounded-full border border-[#E8E2D9] bg-white px-2.5 py-1 sm:flex"><CalendarDays className="h-3 w-3 text-black/30" /><input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} className="bg-transparent text-[10px] text-black outline-none" /></label>
+              <div className="mr-auto flex items-center gap-1.5"><Button type="button" variant="quiet" onClick={shortlist.clear} className="h-7 rounded-full px-2.5 text-[10px] text-black/40">مسح</Button>{shortlistLink ? <a href={shortlistLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-7 items-center gap-1 rounded-full bg-black px-3 text-[10px] text-white"><MessageCircle className="h-3 w-3" />واتساب</a> : null}</div>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

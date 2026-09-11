@@ -1,10 +1,5 @@
-import { Sparkles } from 'lucide-react';
 import { DEFAULT_BRAND_NAME } from '../../../features/preferences/useBrandName';
 
-/**
- * A catalogue photo with a graceful fallback: a piece without an uploaded
- * picture still reads as a boutique placeholder rather than a broken image.
- */
 export function DressPhoto({
   src,
   alt,
@@ -19,9 +14,7 @@ export function DressPhoto({
   className?: string;
   imgClassName?: string;
   fallbackLabel?: string;
-  /** The hero's lead photo is the largest contentful paint: load it eagerly. */
   priority?: boolean;
-  /** Showroom name shown on the placeholder for a piece without a photo. */
   brand?: string;
 }) {
   if (!src) {
@@ -29,14 +22,12 @@ export function DressPhoto({
       <div
         role="img"
         aria-label={alt}
-        className={`relative flex items-center justify-center overflow-hidden bg-gradient-to-br from-amber-200/70 via-stone-100 to-amber-100 ${className}`}
+        className={`relative flex items-center justify-center overflow-hidden bg-[#F5F1EB] ${className}`}
       >
-        <div aria-hidden="true" className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/50" />
-        <div aria-hidden="true" className="absolute -bottom-14 -left-8 h-44 w-44 rounded-full bg-amber-300/30" />
-        <div className="relative text-center text-amber-950">
-          <Sparkles aria-hidden="true" className="mx-auto h-8 w-8" />
-          <p className="mt-2 truncate text-sm font-black tracking-[0.2em]">{brand}</p>
-          {fallbackLabel ? <p className="mt-1 text-xs font-bold text-amber-800">{fallbackLabel}</p> : null}
+        <div className="absolute inset-0 bg-[radial-gradient(60%_60%_at_30%_20%,rgba(201,168,106,0.15),transparent_60%)]" />
+        <div className="relative text-center">
+          <p className="text-[11px] font-medium tracking-[0.2em] text-[#8B8680]">{brand}</p>
+          {fallbackLabel ? <p className="mt-2 text-[12px] font-[400] tracking-[-0.01em] text-[#0A0A0A]/60">{fallbackLabel}</p> : null}
         </div>
       </div>
     );

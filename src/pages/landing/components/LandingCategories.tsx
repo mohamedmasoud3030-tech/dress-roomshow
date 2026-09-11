@@ -1,88 +1,54 @@
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '../../../components/shared/Button';
 import type { Dress } from '../../../features/dresses/dress.types';
 import type { LandingProfile } from './types';
 import { DressPhoto } from './DressPhoto';
-import { Reveal } from './Reveal';
+import type { GroupedDress } from '../LandingPage';
 
 type Props = {
   profile: LandingProfile;
   dresses: Dress[];
+  groupedDresses?: GroupedDress[];
   onSelectCategory: (category: string) => void;
 };
 
-/** Visual entry points into the catalogue, each backed by a real piece. */
-export function LandingCategories({ profile, dresses, onSelectCategory }: Props) {
+export function LandingCategories({ profile, dresses, groupedDresses, onSelectCategory }: Props) {
+  const source = groupedDresses ?? dresses.map((d) => ({ category: d.category, name: d.name, images: d.images } as any));
+
   const categories = profile.categories.map((category) => {
-    const matching = dresses.filter((dress) => dress.category === category.name);
+    const matching = source.filter((dress: any) => dress.category === category.name);
+    const matchingDresses = dresses.filter((d) => d.category === category.name);
+    const photo = matchingDresses.find((d) => d.images[0])?.images[0] ?? matching.find((d: any) => d.images?.[0])?.images?.[0];
+    // Count designs, not pieces, for cleaner commerce
+    const designCount = groupedDresses ? matching.length : matchingDresses.length;
+    const pieceCount = matchingDresses.length;
     return {
       ...category,
-      count: matching.length,
-      photo: matching.find((dress) => dress.images[0])?.images[0],
+      designCount,
+      pieceCount,
+      photo,
       hasStock: matching.length > 0,
     };
   });
 
   return (
-    <section id="categories" className="mt-20 scroll-mt-24 sm:mt-24">
-      <Reveal>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-black tracking-[0.2em] text-amber-600">التشكيلة</p>
-            <h2 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">
-              تصفّحي حسب المناسبة
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-              فساتين زفاف وخطوبة وسهرة، وما يكملها من إكسسوارات وحقائب وأحذية وطرح — كل قطعة
-              معروضة بصورتها الحقيقية.
-            </p>
-          </div>
-          <Button type="button" variant="secondary" onClick={() => onSelectCategory('all')} className="self-start border-slate-300 px-4 py-2.5 text-sm font-black hover:border-slate-900 hover:text-slate-950 sm:self-auto">
-            عرض كل المعروض
-            <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-          </Button>
+    <section id="categories" className="bg-[#FFFCF8] py-8 sm:py-10">
+      <div className="mx-auto max-w-[1600px] px-6 sm:px-8 lg:px-10">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-[11px] font-medium tracking-[0.14em] text-black/60">الفئات</h2>
+          <button type="button" onClick={() => onSelectCategory('all')} className="text-[11px] text-black/40 hover:text-black">الكل →</button>
         </div>
-      </Reveal>
 
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {categories.map((category, index) => (
-          <Reveal key={category.name} delay={index * 60}>
-            <Button
-              type="button"
-              variant="quiet"
-              onClick={() => onSelectCategory(category.name)}
-              className="group relative block w-full overflow-hidden rounded-[1.5rem] p-0 text-right focus-visible:ring-4 focus-visible:ring-amber-400/50"
-              aria-label={`عرض قطع فئة ${category.name}`}
-            >
-              <span className="relative block aspect-[4/5] overflow-hidden bg-slate-100">
-                <DressPhoto
-            brand={profile.brandName}
-                  src={category.photo}
-                  alt={`قطع فئة ${category.name}`}
-                  className="h-full w-full transition duration-[900ms] group-hover:scale-110"
-                  fallbackLabel={category.name}
-                />
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/25 to-transparent"
-                />
-                <span className="absolute inset-x-0 bottom-0 p-4">
-                  <span className="block text-base font-black text-white sm:text-lg">
-                    {category.name}
-                  </span>
-                  <span className="mt-1 block text-[0.7rem] leading-5 text-slate-300">
-                    {category.hasStock ? `${category.count} قطعة معروضة` : 'تتوفر قريباً'}
-                  </span>
-                </span>
-                {category.hasStock ? (
-                  <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[0.65rem] font-black text-slate-900">
-                    متاح
-                  </span>
-                ) : null}
-              </span>
-            </Button>
-          </Reveal>
-        ))}
+        <div className="mt-4 grid grid-cols-2 gap-px bg-[#E8E2D9] p-px sm:grid-cols-4 lg:grid-cols-8">
+          {categories.map((cat) => (
+            <button key={cat.name} type="button" onClick={() => onSelectCategory(cat.name)} className="group relative aspect-[4/5] overflow-hidden bg-[#F5F1EB] text-right">
+              <DressPhoto brand={profile.brandName} src={cat.photo} alt={cat.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" fallbackLabel={cat.name} />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-2.5">
+                <p className="text-[12px] font-medium text-white leading-none">{cat.name}</p>
+                <p className="mt-1 text-[10px] text-white/60">{cat.hasStock ? `${cat.designCount} تصميم` : '—'}</p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

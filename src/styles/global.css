@@ -1,6 +1,6 @@
-/* Bundled Arabic font: these @import statements MUST precede every other
-   statement, otherwise PostCSS drops them and the offline PWA falls back
-   to a system font. */
+/* Bundled Arabic font: premium weights for boutique typography */
+@import '@fontsource/noto-sans-arabic/200.css';
+@import '@fontsource/noto-sans-arabic/300.css';
 @import '@fontsource/noto-sans-arabic/400.css';
 @import '@fontsource/noto-sans-arabic/500.css';
 @import '@fontsource/noto-sans-arabic/600.css';
@@ -11,13 +11,14 @@
 @tailwind components;
 @tailwind utilities;
 
-
 :root {
   font-family: 'Noto Sans Arabic', Tahoma, 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #0f172a;
-  background: #f6f5f4;
+  color: #0A0A0A;
+  background: #FFFCF8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -28,28 +29,13 @@ html,
 body {
   min-width: 320px;
   min-height: 100%;
-  background: #f6f5f4;
-  /* Mobile-first guard: no page-level horizontal scrolling on 360px phones. */
+  background: #FFFCF8;
   overflow-x: hidden;
-  /*
-   * `overflow-x: hidden` alone does NOT stop a touch drag from rubber-banding
-   * the page sideways on iOS, which is what made the app feel like it was
-   * sliding left and right during normal scrolling. Locking both axes of
-   * overscroll pins the page and also kills pull-to-refresh mid-form.
-   */
   overscroll-behavior: none;
-  /* Stops iOS from resizing text when the phone is rotated. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 
-/*
- * iOS Safari force-zooms the viewport whenever a focused form control renders
- * below 16px. Every field in this app used `text-sm` (14px), so tapping any
- * input zoomed the page in and left it zoomed — the "screen keeps zooming in
- * and out" report. Pinning the *rendered* font size to 16px on touch devices
- * removes the trigger without changing the desktop type scale.
- */
 @media (hover: none) and (pointer: coarse) {
   input:not([type='checkbox']):not([type='radio']),
   select,
@@ -58,24 +44,14 @@ body {
   }
 }
 
-/* Long codes, phone numbers and Arabic notes must wrap instead of widening the page. */
 h1, h2, h3, p, span, td, th, li, label {
   overflow-wrap: anywhere;
 }
 
 body {
   margin: 0;
-  /*
-   * A warmer, slightly deeper canvas. The previous near-white gradient sat at
-   * almost the same value as the white cards on top of it, so every screen read
-   * as one flat sheet with no depth — reported from a phone as "pale and all
-   * white". Cards now sit visibly above their background.
-   */
-  background:
-    radial-gradient(circle at top right, rgba(245, 158, 11, 0.16), transparent 34rem),
-    radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.10), transparent 32rem),
-    linear-gradient(180deg, #f6f5f4 0%, #eceaf1 100%);
-  background-attachment: fixed;
+  background: #FFFCF8;
+  /* No heavy gradients - premium boutique is clean */
 }
 
 a {
@@ -94,7 +70,6 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-/* Tapping twice quickly must never zoom a control on iOS. */
 button,
 a,
 label,
@@ -104,11 +79,34 @@ summary,
 }
 
 ::selection {
-  background: #fde68a;
-  color: #0f172a;
+  background: #0A0A0A;
+  color: #FFFCF8;
 }
+
 html[data-cloud-commit='pending'] #main-content,
 html[data-cloud-commit='pending'] nav {
   pointer-events: none;
   cursor: wait;
+}
+
+/* Premium scrollbar - minimal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #FFFCF8;
+}
+::-webkit-scrollbar-thumb {
+  background: #E8E2D9;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #0A0A0A;
+}
+
+/* Focus ring - premium minimal */
+:focus-visible {
+  outline: 1px solid #0A0A0A;
+  outline-offset: 2px;
 }
