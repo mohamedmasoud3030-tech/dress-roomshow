@@ -10,20 +10,25 @@ type Props = {
   onSelectCategory: (category: string) => void;
 };
 
+type CategorySourceItem = {
+  category: string;
+  name: string;
+  images: string[];
+};
+
 export function LandingCategories({ profile, dresses, groupedDresses, onSelectCategory }: Props) {
-  const source = groupedDresses ?? dresses.map((d) => ({ category: d.category, name: d.name, images: d.images } as any));
+  const source: CategorySourceItem[] = groupedDresses
+    ? groupedDresses.map((g) => ({ category: g.category, name: g.name, images: g.images }))
+    : dresses.map((d) => ({ category: d.category, name: d.name, images: d.images }));
 
   const categories = profile.categories.map((category) => {
-    const matching = source.filter((dress: any) => dress.category === category.name);
+    const matching = source.filter((item) => item.category === category.name);
     const matchingDresses = dresses.filter((d) => d.category === category.name);
-    const photo = matchingDresses.find((d) => d.images[0])?.images[0] ?? matching.find((d: any) => d.images?.[0])?.images?.[0];
-    // Count designs, not pieces, for cleaner commerce
+    const photo = matchingDresses.find((d) => d.images[0])?.images[0] ?? matching.find((item) => item.images[0])?.images[0];
     const designCount = groupedDresses ? matching.length : matchingDresses.length;
-    const pieceCount = matchingDresses.length;
     return {
       ...category,
       designCount,
-      pieceCount,
       photo,
       hasStock: matching.length > 0,
     };

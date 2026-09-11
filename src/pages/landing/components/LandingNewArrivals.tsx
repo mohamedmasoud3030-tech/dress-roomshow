@@ -1,4 +1,5 @@
 import { formatMoneyOMR } from '../../../shared/utils/format';
+import type { LandingDress } from '../landingDress.repository';
 import type { LandingProfile } from './types';
 import { DressPhoto } from './DressPhoto';
 import type { GroupedDress } from '../LandingPage';
@@ -10,7 +11,7 @@ export function LandingNewArrivals({
 }: {
   profile: LandingProfile;
   dresses: GroupedDress[];
-  onSelect: (dress: any) => void;
+  onSelect: (dress: LandingDress) => void;
 }) {
   if (dresses.length === 0) return null;
 
