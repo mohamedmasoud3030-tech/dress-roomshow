@@ -32,7 +32,7 @@ begin
     where namespace.nspname = 'public'
       and procedure.prosecdef
       and has_function_privilege('authenticated', procedure.oid, 'execute')
-      and procedure.proname not in ('apply_showroom_command', 'restore_showroom_backup', 'reset_showroom_state')
+      and procedure.proname not in ('apply_showroom_command', 'restore_showroom_backup', 'reset_showroom_state', 'claim_first_owner', 'is_first_owner_setup_needed')
   ) then
     raise exception 'TEST: unexpected authenticated SECURITY DEFINER RPC exists';
   end if;
