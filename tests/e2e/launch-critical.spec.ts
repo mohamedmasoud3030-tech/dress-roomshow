@@ -158,11 +158,12 @@ test('public catalogue stays customer-facing and sends an identifiable booking r
   expect(hasOld1 || hasOld2 || hasNew).toBeTruthy();
 
   // Try to find dress, but don't fail if not present - log for debugging
-  const dressHeading = page.getByRole('heading', { name: 'فستان سهرة كحلي' });
+  // Premium grouped design may show same dress in NewArrivals + Inventory (2 instances) → use first()
+  const dressHeading = page.getByRole('heading', { name: 'فستان سهرة كحلي' }).first();
   const dressVisible = await dressHeading.isVisible().catch(() => false);
   if (dressVisible) {
     await expect(dressHeading).toBeVisible({ timeout: 5000 });
-    await expect(page.getByRole('img', { name: 'فستان سهرة كحلي' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('img', { name: 'فستان سهرة كحلي' }).first()).toBeVisible({ timeout: 5000 });
     const bookingLink = page.getByRole('link', { name: /احجزي موعد لتجربة هذه القطعة|طلب موعد للتجربة|حجز/ }).first();
     if (await bookingLink.isVisible().catch(() => false)) {
       const bookingHref = await bookingLink.getAttribute('href');
