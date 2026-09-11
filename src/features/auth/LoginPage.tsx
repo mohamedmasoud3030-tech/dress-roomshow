@@ -8,6 +8,7 @@ import { useAuth } from './AuthContext';
 import { getSafeReturnPath } from './auth.model';
 import { requestPasswordReset } from './auth.service';
 import { useBrandName } from '../preferences/useBrandName';
+import { useAdminTheme } from '../../app/shell/useAdminTheme';
 
 /**
  * The real front door.
@@ -16,6 +17,7 @@ import { useBrandName } from '../preferences/useBrandName';
  * (see `RequireAuth`); this is the only screen reachable without one.
  */
 export function LoginPage() {
+  useAdminTheme();
   const brandName = useBrandName();
   const { status, message, signIn, signOut, retry } = useAuth();
   const location = useLocation();
@@ -68,21 +70,20 @@ export function LoginPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-stone-50 px-4 py-12" dir="rtl">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-l from-amber-200/50 via-transparent to-amber-100/60" />
-
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12" dir="rtl" style={{ background: 'var(--canvas)', color: 'var(--ink)' }}>
       <div className="relative w-full max-w-sm">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
-            <Lock aria-hidden="true" className="h-6 w-6" />
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl" style={{ background: 'var(--surface)', boxShadow: 'inset 0 0 0 1px var(--line)' }}>
+            <Lock aria-hidden="true" className="h-5 w-5" style={{ color: 'var(--gold)' }} />
           </div>
-          <h1 className="text-xl font-black text-slate-950" title={brandName}>{brandName}</h1>
-          <p className="mt-1 text-sm text-slate-600">تسجيل الدخول لإدارة المعرض</p>
+          <h1 className="text-xl font-semibold tracking-tight" title={brandName}>{brandName}</h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--muted)' }}>تسجيل الدخول لإدارة المعرض</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+          className="rounded-2xl border p-5 sm:p-6"
+          style={{ borderColor: 'var(--line)', background: 'var(--surface)' }}
         >
           {error !== null && (
             <UserFacingErrorAlert error={error} fallback="تعذر تسجيل الدخول." className="mb-4" />

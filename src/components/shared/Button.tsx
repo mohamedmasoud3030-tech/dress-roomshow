@@ -47,7 +47,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl font-bold transition disabled:cursor-not-allowed disabled:opacity-50',
+        'inline-flex items-center justify-center gap-2 rounded-xl font-semibold tracking-tight transition disabled:cursor-not-allowed disabled:opacity-50',
         AMBER_FOCUS_RING_CLASS_NAME,
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],

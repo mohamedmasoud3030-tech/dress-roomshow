@@ -27,7 +27,7 @@ export function SetupChecklistCard() {
   };
 
   return (
-    <article aria-label="جاهزية المعرض" className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 shadow-sm">
+    <article aria-label="جاهزية المعرض" className="rounded-2xl border border-amber-200 bg-amber-50/60 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <ListChecks aria-hidden="true" className="h-6 w-6 text-amber-700" />

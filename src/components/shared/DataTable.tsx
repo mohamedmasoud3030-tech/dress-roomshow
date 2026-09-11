@@ -42,7 +42,7 @@ export function DataTable<Row>({ rows, columns, rowKey, caption, emptyState, cla
           <thead className="bg-stone-50 text-xs text-slate-600">
             <tr>
               {columns.map((column) => (
-                <th key={column.key} scope="col" className={cn('whitespace-nowrap px-3 py-3 font-extrabold', column.className)}>
+                <th key={column.key} scope="col" className={cn('whitespace-nowrap px-3 py-3 font-semibold tracking-tight', column.className)}>
                   {column.header}
                 </th>
               ))}

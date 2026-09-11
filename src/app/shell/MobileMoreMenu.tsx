@@ -21,7 +21,8 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
       />
       <nav
         aria-label="القائمة الكاملة"
-        className="absolute inset-x-4 bottom-20 max-h-[70vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl"
+        className="absolute inset-x-4 bottom-20 max-h-[70vh] overflow-y-auto rounded-2xl border p-4 shadow-2xl"
+        style={{ borderColor: 'var(--line)', background: 'var(--surface)', color: 'var(--ink)' }}
       >
         <div className="space-y-5">
           {navigationGroups.map((group) => {
@@ -29,7 +30,9 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
             if (visibleItems.length === 0) return null;
             return (
               <div key={group.label}>
-                <p className="mb-2 px-1 text-[11px] font-extrabold text-slate-400">{group.label}</p>
+                <p className="mb-2 px-1 text-[11px] font-bold tracking-[0.14em]" style={{ color: 'var(--muted)' }}>
+                  {group.label}
+                </p>
                 <div className="grid grid-cols-3 gap-3">
                   {visibleItems.map((item) => (
                     <NavLink
@@ -37,10 +40,11 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
                       to={item.to}
                       end={item.to === '/'}
                       onClick={onClose}
-                      className={({ isActive }) =>
-                        `flex flex-col items-center gap-2 rounded-xl p-3 text-xs font-bold transition ${focusRing} ${
-                          isActive ? 'bg-amber-100 text-amber-900' : 'text-slate-600 hover:bg-stone-100'
-                        }`
+                      className={`flex flex-col items-center gap-2 rounded-xl p-3 text-xs font-bold transition ${focusRing}`}
+                      style={({ isActive }) =>
+                        isActive
+                          ? { background: 'var(--gold-dim)', color: 'var(--gold)' }
+                          : { color: 'var(--muted)' }
                       }
                     >
                       <item.icon aria-hidden="true" className="h-6 w-6" />
@@ -55,7 +59,8 @@ export function MobileMoreMenu({ open, onClose }: MobileMoreMenuProps) {
           <NavLink
             to={publicPageLink.to}
             onClick={onClose}
-            className={`flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-stone-50 p-3 text-xs font-bold text-slate-600 transition hover:bg-stone-100 ${focusRing}`}
+            className={`flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-bold transition ${focusRing}`}
+            style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}
           >
             <publicPageLink.icon aria-hidden="true" className="h-4 w-4" />
             <span>{publicPageLink.label}</span>

@@ -149,12 +149,12 @@ export function Modal({ open, onClose, title, children, className }: ModalProps)
           // Full-height sheet on phones, centered dialog from `sm` upwards.
           // The height follows the visual viewport, so the keyboard shrinks the
           // sheet rather than displacing it.
-          'relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-slate-200 bg-white shadow-2xl sm:max-h-[90vh] sm:rounded-2xl',
+          'relative flex w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-slate-200 bg-white sm:max-h-[90vh] sm:rounded-2xl',
           className,
         )}
       >
-        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-100 bg-white px-5 py-4">
-          <h2 id={titleId} className="text-base font-bold text-slate-950">
+        <header className="flex shrink-0 items-center justify-between gap-4 border-b border-slate-100 px-5 py-4">
+          <h2 id={titleId} className="text-base font-semibold tracking-tight text-slate-950">
             {title}
           </h2>
           <IconButton

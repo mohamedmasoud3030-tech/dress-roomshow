@@ -8,32 +8,39 @@ type SummaryCardProps = {
 };
 
 /**
- * Summary tile.
- *
- * The previous version faded every tone `to-white` on an almost-white page, so
- * the cards had no edge and the whole screen read as one flat white sheet —
- * reported from a phone as "the pages look pale, everything is white". Each
- * tone now keeps a real tinted surface and a solid accent bar, so a tile is
- * visibly a tile and its status is readable at a glance in daylight.
+ * Operating tile — one surface, one accent, no pastel sheet.
+ * Edges come from the room itself (ring + fill), so a tile is a tile
+ * in both night and day without a rainbow of backgrounds.
  */
-const toneStyles: Record<SummaryCardTone, { surface: string; accent: string; value: string }> = {
-  default: { surface: 'bg-white ring-slate-200', accent: 'bg-slate-400', value: 'text-slate-950' },
-  positive: { surface: 'bg-emerald-50/80 ring-emerald-200', accent: 'bg-emerald-500', value: 'text-emerald-800' },
-  warning: { surface: 'bg-amber-50/90 ring-amber-200', accent: 'bg-amber-500', value: 'text-amber-900' },
-  danger: { surface: 'bg-rose-50/90 ring-rose-200', accent: 'bg-rose-500', value: 'text-rose-800' },
-  accent: { surface: 'bg-sky-50/80 ring-sky-200', accent: 'bg-sky-500', value: 'text-sky-900' },
+const toneAccent: Record<SummaryCardTone, string> = {
+  default: 'var(--muted)',
+  positive: 'var(--ok)',
+  warning: 'var(--warn)',
+  danger: 'var(--danger)',
+  accent: 'var(--gold)',
 };
 
 export function SummaryCard({ label, value, hint, tone = 'default' }: SummaryCardProps) {
-  const styles = toneStyles[tone];
+  const accent = toneAccent[tone];
 
   return (
-    <article className={`min-w-0 rounded-2xl p-4 shadow-sm ring-1 transition sm:p-5 ${styles.surface}`}>
-      <div className={`mb-3 h-1 w-10 rounded-full ${styles.accent}`} />
-      <p className="text-xs font-bold text-slate-600 sm:text-sm">{label}</p>
+    <article
+      className="min-w-0 rounded-2xl p-4 ring-1 transition sm:p-5"
+      style={{ background: 'var(--surface)', boxShadow: 'none', ['--tw-ring-color' as string]: 'var(--line)' }}
+    >
+      <div className="mb-3 h-0.5 w-8 rounded-full" style={{ background: accent }} />
+      <p className="text-xs font-medium sm:text-sm" style={{ color: 'var(--muted)' }}>
+        {label}
+      </p>
       {/* Long money strings must shrink rather than overflow a 2-up phone grid. */}
-      <p className={`mt-1.5 truncate text-xl font-extrabold sm:text-2xl ${styles.value}`}>{value}</p>
-      {hint && <p className="mt-1.5 truncate text-xs text-slate-500">{hint}</p>}
+      <p className="mt-1.5 truncate text-xl font-semibold tracking-tight sm:text-2xl" style={{ color: tone === 'default' ? 'var(--ink)' : accent }}>
+        {value}
+      </p>
+      {hint && (
+        <p className="mt-1.5 truncate text-xs" style={{ color: 'var(--muted)' }}>
+          {hint}
+        </p>
+      )}
     </article>
   );
 }

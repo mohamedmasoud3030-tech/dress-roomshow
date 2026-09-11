@@ -21,6 +21,211 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Admin operating room. Landing keeps :root cream — this only applies inside AppShell/login. */
+html[data-admin] {
+  color-scheme: dark;
+  --canvas: #0b0f16;
+  --surface: #141a24;
+  --surface-2: #1b2330;
+  --ink: #eef3fb;
+  --muted: #9aa8bd;
+  --line: rgba(186, 204, 230, 0.14);
+  --gold: #c9a45a;
+  --gold-dim: rgba(201, 164, 90, 0.16);
+  --danger: #f0a3ae;
+  --ok: #7dceb0;
+  --warn: #e2b86a;
+  --field: #10151e;
+  --field-focus: #1a2230;
+  --btn: #c9a45a;
+  --btn-ink: #0b0f16;
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+html[data-admin][data-theme='day'] {
+  color-scheme: light;
+  --canvas: #f3eee6;
+  --surface: #fffaf3;
+  --surface-2: #f6f0e6;
+  --ink: #1c1915;
+  --muted: #6b645a;
+  --line: rgba(40, 32, 20, 0.12);
+  --gold: #8d6b2a;
+  --gold-dim: rgba(141, 107, 42, 0.12);
+  --danger: #b4233a;
+  --ok: #1f7a5c;
+  --warn: #9a6b16;
+  --field: #f7f1e8;
+  --field-focus: #ffffff;
+  --btn: #1c1915;
+  --btn-ink: #fffaf3;
+}
+
+html[data-admin],
+html[data-admin] body {
+  background: var(--canvas);
+  color: var(--ink);
+}
+
+html[data-admin] ::selection {
+  background: var(--gold);
+  color: var(--canvas);
+}
+
+html[data-admin] ::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+
+html[data-admin] ::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+}
+
+html[data-admin] :focus-visible {
+  outline-color: var(--gold);
+}
+
+/* Lift every existing page into one temperature without restyling landing. */
+html[data-admin] .bg-white { background-color: var(--surface) !important; }
+html[data-admin] .bg-white\/70 { background-color: color-mix(in srgb, var(--surface) 72%, transparent) !important; }
+html[data-admin] .bg-white\/80 { background-color: color-mix(in srgb, var(--surface) 82%, transparent) !important; }
+html[data-admin] .bg-white\/90 { background-color: color-mix(in srgb, var(--surface) 90%, transparent) !important; }
+html[data-admin] .bg-white\/95 { background-color: color-mix(in srgb, var(--surface) 95%, transparent) !important; }
+html[data-admin] .bg-stone-50,
+html[data-admin] .bg-stone-100,
+html[data-admin] .bg-slate-50 { background-color: var(--surface-2) !important; }
+html[data-admin] .bg-stone-200 { background-color: color-mix(in srgb, var(--surface-2) 80%, var(--ink) 8%) !important; }
+
+html[data-admin] .text-slate-950,
+html[data-admin] .text-slate-900,
+html[data-admin] .text-slate-800 { color: var(--ink) !important; }
+html[data-admin] .text-slate-700,
+html[data-admin] .text-slate-600,
+html[data-admin] .text-slate-500,
+html[data-admin] .text-slate-400 { color: var(--muted) !important; }
+
+html[data-admin] .border-slate-100,
+html[data-admin] .border-slate-200,
+html[data-admin] .border-slate-300,
+html[data-admin] .border-white\/70 { border-color: var(--line) !important; }
+html[data-admin] .ring-slate-200 { --tw-ring-color: var(--line) !important; }
+
+html[data-admin] .bg-slate-950 { background-color: var(--btn) !important; color: var(--btn-ink) !important; }
+html[data-admin] .hover\:bg-slate-800:hover { background-color: color-mix(in srgb, var(--btn) 86%, var(--ink)) !important; }
+
+html[data-admin] .bg-amber-50,
+html[data-admin] .bg-amber-50\/60,
+html[data-admin] .bg-amber-50\/70,
+html[data-admin] .bg-amber-100 { background-color: var(--gold-dim) !important; }
+html[data-admin] .text-amber-900,
+html[data-admin] .text-amber-800,
+html[data-admin] .text-amber-700 { color: var(--gold) !important; }
+html[data-admin] .border-amber-200,
+html[data-admin] .border-amber-300 { border-color: color-mix(in srgb, var(--gold) 40%, transparent) !important; }
+html[data-admin] .ring-amber-200 { --tw-ring-color: color-mix(in srgb, var(--gold) 40%, transparent) !important; }
+html[data-admin] .bg-amber-300 { background-color: var(--gold-dim) !important; color: var(--ink) !important; }
+
+html[data-admin] .bg-rose-50,
+html[data-admin] .bg-rose-50\/60,
+html[data-admin] .bg-rose-50\/90,
+html[data-admin] .bg-rose-100 { background-color: color-mix(in srgb, var(--danger) 14%, transparent) !important; }
+html[data-admin] .text-rose-900,
+html[data-admin] .text-rose-800,
+html[data-admin] .text-rose-700,
+html[data-admin] .text-rose-600 { color: var(--danger) !important; }
+html[data-admin] .border-rose-200,
+html[data-admin] .border-rose-300 { border-color: color-mix(in srgb, var(--danger) 35%, transparent) !important; }
+
+html[data-admin] .bg-emerald-50,
+html[data-admin] .bg-emerald-50\/80 { background-color: color-mix(in srgb, var(--ok) 14%, transparent) !important; }
+html[data-admin] .text-emerald-900,
+html[data-admin] .text-emerald-800,
+html[data-admin] .text-emerald-700,
+html[data-admin] .text-emerald-600 { color: var(--ok) !important; }
+html[data-admin] .border-emerald-200 { border-color: color-mix(in srgb, var(--ok) 35%, transparent) !important; }
+html[data-admin] .ring-emerald-200 { --tw-ring-color: color-mix(in srgb, var(--ok) 35%, transparent) !important; }
+
+html[data-admin] .bg-sky-50,
+html[data-admin] .bg-sky-50\/70,
+html[data-admin] .bg-sky-50\/80,
+html[data-admin] .bg-cyan-50,
+html[data-admin] .bg-cyan-100,
+html[data-admin] .bg-blue-50,
+html[data-admin] .bg-blue-100 { background-color: var(--surface-2) !important; }
+html[data-admin] .text-sky-900,
+html[data-admin] .text-sky-800,
+html[data-admin] .text-sky-700,
+html[data-admin] .text-cyan-900,
+html[data-admin] .text-cyan-800,
+html[data-admin] .text-cyan-700,
+html[data-admin] .text-blue-800,
+html[data-admin] .text-blue-700 { color: var(--ink) !important; }
+html[data-admin] .border-sky-200 { border-color: var(--line) !important; }
+
+html[data-admin] .bg-slate-100,
+html[data-admin] .bg-slate-200 { background-color: var(--surface-2) !important; }
+
+html[data-admin] .bg-violet-50,
+html[data-admin] .bg-violet-100,
+html[data-admin] .bg-indigo-50,
+html[data-admin] .bg-indigo-100,
+html[data-admin] .bg-purple-50,
+html[data-admin] .bg-purple-100 { background-color: var(--surface-2) !important; }
+html[data-admin] .text-violet-900,
+html[data-admin] .text-violet-800,
+html[data-admin] .text-violet-700,
+html[data-admin] .text-indigo-800,
+html[data-admin] .text-indigo-700 { color: var(--ink) !important; }
+
+html[data-admin] .bg-orange-50,
+html[data-admin] .bg-orange-100 { background-color: var(--gold-dim) !important; }
+html[data-admin] .text-orange-800,
+html[data-admin] .text-orange-700 { color: var(--warn) !important; }
+
+html[data-admin] .bg-emerald-100 { background-color: color-mix(in srgb, var(--ok) 12%, var(--surface-2)) !important; }
+html[data-admin] .bg-emerald-500,
+html[data-admin] .bg-emerald-600 { background-color: var(--ok) !important; color: var(--canvas) !important; }
+html[data-admin] .bg-amber-500 { background-color: var(--gold) !important; }
+html[data-admin] .bg-sky-500 { background-color: var(--muted) !important; }
+html[data-admin] .bg-rose-500 { background-color: var(--danger) !important; }
+html[data-admin] .bg-slate-400 { background-color: var(--muted) !important; }
+html[data-admin] .bg-slate-300 { background-color: color-mix(in srgb, var(--ink) 18%, var(--surface-2)) !important; }
+
+html[data-admin] .ring-amber-400,
+html[data-admin] .ring-amber-300 { --tw-ring-color: color-mix(in srgb, var(--gold) 55%, transparent) !important; }
+html[data-admin] .ring-offset-slate-50 { --tw-ring-offset-color: var(--canvas) !important; }
+
+html[data-admin] .hover\\:bg-stone-50:hover,
+html[data-admin] .hover\\:bg-stone-100:hover { background-color: var(--surface-2) !important; }
+
+html[data-admin] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+html[data-admin] select,
+html[data-admin] textarea {
+  appearance: none;
+  background-color: var(--field) !important;
+  color: var(--ink) !important;
+  color-scheme: dark;
+}
+html[data-admin][data-theme='day'] input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+html[data-admin][data-theme='day'] select,
+html[data-admin][data-theme='day'] textarea {
+  color-scheme: light;
+}
+html[data-admin] option {
+  background-color: var(--surface);
+  color: var(--ink);
+}
+
+html[data-admin] .shadow-sm,
+html[data-admin] .shadow-lg,
+html[data-admin] .shadow-2xl {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22) !important;
+}
+
+html[data-admin] .focus-visible\:bg-white:focus-visible {
+  background-color: var(--field-focus) !important;
+}
+
 * {
   box-sizing: border-box;
 }

@@ -56,10 +56,8 @@ function DressCard({ dress }: { dress: Dress }) {
           loading="lazy"
         />
       ) : (
-        <div className="flex h-40 sm:h-48 items-center justify-center bg-gradient-to-br from-amber-100/70 via-white to-stone-100">
-          <div className="rounded-full bg-white/80 p-5 sm:p-6 shadow-sm ring-1 ring-slate-200">
-            <Shirt aria-hidden="true" className="h-10 w-10 sm:h-12 sm:w-12 text-amber-700" />
-          </div>
+        <div className="flex h-40 sm:h-48 items-center justify-center bg-stone-50">
+          <Shirt aria-hidden="true" className="h-10 w-10 sm:h-12 sm:w-12 text-amber-700" />
         </div>
       )}
       <div className="space-y-4 p-5">

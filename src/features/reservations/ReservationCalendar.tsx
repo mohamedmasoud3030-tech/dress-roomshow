@@ -70,7 +70,7 @@ function DayCell({ day, view, onOpen }: { day: CalendarDay; view: CalendarView; 
       } ${day.isToday ? 'ring-2 ring-amber-500' : ''}`}
     >
       <div className="flex items-baseline justify-between gap-1">
-        <span className="text-xs font-extrabold text-slate-700">{dayNumber}</span>
+        <span className="text-xs font-semibold text-slate-700">{dayNumber}</span>
         {day.entries.length > 0 && (
           <span className="rounded-full bg-slate-100 px-1.5 text-[10px] font-bold text-slate-600">{day.entries.length}</span>
         )}
@@ -173,7 +173,7 @@ export function ReservationCalendar({ reservations, onOpenReservation }: Props) 
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm font-extrabold text-slate-800">{grid.label}</p>
-          <div role="group" aria-label="نمط عرض التقويم" className="flex rounded-2xl bg-slate-950 p-1 text-xs font-bold text-white">
+          <div role="group" aria-label="نمط عرض التقويم" className="flex rounded-xl border border-slate-200 bg-stone-50 p-1 text-xs font-semibold">
             {VIEWS.map((option) => (
               <Button
                 key={option}
@@ -182,7 +182,7 @@ export function ReservationCalendar({ reservations, onOpenReservation }: Props) 
                 size="sm"
                 aria-pressed={view === option}
                 onClick={() => setView(option)}
-                className={`min-h-9 rounded-xl px-3 ${view === option ? 'bg-amber-300 text-slate-950' : 'text-slate-300 hover:bg-white/10'}`}
+                className={`min-h-9 rounded-lg px-3 ${view === option ? 'bg-slate-950 text-white' : 'text-slate-500 hover:bg-stone-100'}`}
               >
                 {CALENDAR_VIEW_LABELS[option]}
               </Button>

@@ -84,7 +84,7 @@ export function Stepper({ steps, currentStep, onStepChange, idPrefix = 'wizard' 
                 {step.description && <p className="truncate text-[10px] text-slate-400">{step.description}</p>}
               </div>
               {index < steps.length - 1 && (
-                <div aria-hidden="true" className={`mx-1 h-[2px] min-w-6 flex-1 ${isCompleted ? 'bg-emerald-300' : 'bg-slate-200'}`} />
+                <div aria-hidden="true" className={`mx-1 h-px min-w-6 flex-1 ${isCompleted ? 'bg-slate-400' : 'bg-slate-200'}`} />
               )}
             </li>
           );

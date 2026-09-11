@@ -4,10 +4,7 @@ import { cn } from '../../lib/utils';
 /**
  * The standard card that every page section lives in.
  *
- * Pages were each inventing `rounded-2xl border border-slate-200 bg-white p-5
- * shadow-sm` by hand, and drifting: different padding, different heading sizes,
- * some sections with no heading element at all. One primitive keeps the rhythm
- * identical and guarantees each section is a labelled landmark.
+ * One surface, one rhythm. No orange title bar, no white sheet.
  */
 export function Section({
   title,
@@ -27,18 +24,18 @@ export function Section({
   return (
     <section
       aria-label={title}
-      className={cn('min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5', className)}
+      className={cn('min-w-0 rounded-2xl border p-4 sm:p-5', className)}
+      style={{ background: 'var(--surface)', borderColor: 'var(--line)' }}
     >
       {(title || action) && (
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            {title && (
-              <h2 className="flex items-center gap-2 text-base font-bold text-slate-950 sm:text-lg">
-                <span aria-hidden="true" className="h-4 w-1 rounded-full bg-amber-500" />
-                {title}
-              </h2>
+            {title && <h2 className="text-base font-semibold tracking-tight sm:text-lg">{title}</h2>}
+            {description && (
+              <p className="mt-1 text-xs leading-5" style={{ color: 'var(--muted)' }}>
+                {description}
+              </p>
             )}
-            {description && <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>

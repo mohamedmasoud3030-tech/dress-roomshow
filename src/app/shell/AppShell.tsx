@@ -8,12 +8,14 @@ import { DesktopNavigation } from './DesktopNavigation';
 import { MobileMoreMenu } from './MobileMoreMenu';
 import { MobileNavigation } from './MobileNavigation';
 import { focusRing } from './navigation';
+import { useAdminTheme } from './useAdminTheme';
 import { usePersistenceStatus } from './usePersistenceStatus';
 
 export function AppShell() {
   const location = useLocation();
   const persistenceStatus = usePersistenceStatus();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const adminTheme = useAdminTheme();
 
   const showPersistenceNotice =
     persistenceStatus.state === 'error' ||
@@ -21,10 +23,10 @@ export function AppShell() {
     persistenceStatus.state === 'local-only';
 
   return (
-    <div className="min-h-screen overflow-hidden text-slate-950" dir="rtl">
+    <div className="min-h-screen overflow-hidden" dir="rtl" style={{ background: 'var(--canvas)', color: 'var(--ink)' }}>
       <a
         href="#main-content"
-        className={`fixed right-4 top-4 z-50 -translate-y-24 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white shadow-lg transition focus:translate-y-0 ${focusRing}`}
+        className={`fixed right-4 top-4 z-50 -translate-y-24 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold shadow-lg transition focus:translate-y-0 ${focusRing}`}
       >
         الانتقال إلى المحتوى الرئيسي
       </a>
@@ -32,8 +34,7 @@ export function AppShell() {
       <DesktopNavigation />
 
       <main id="main-content" className="relative min-h-screen w-full min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0 lg:pr-72">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-l from-amber-200/50 via-transparent to-amber-100/60" />
-        <AppHeader />
+        <AppHeader theme={adminTheme.theme} onToggleTheme={adminTheme.toggle} />
 
         <PageContainer>
           {showPersistenceNotice && (

@@ -20,12 +20,14 @@ import {
 } from './showroomCloudState';
 import { reportClientError } from '../observability/clientObservability';
 import { createCommitGenerationGuard } from './commitGenerationGuard';
+import { useAdminTheme } from '@app/shell/useAdminTheme';
 
 function publishStatus(status: PersistenceStatus): void {
   window.dispatchEvent(new CustomEvent(PERSISTENCE_STATUS_EVENT, { detail: status }));
 }
 
 export function CloudDataGate({ children }: { children: ReactNode }) {
+  useAdminTheme();
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const revisionRef = useRef(0);
@@ -120,7 +122,7 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
 
   if (failure || !ready) {
     return (
-      <div className="min-h-screen bg-slate-50" dir="rtl">
+      <div className="min-h-screen bg-slate-50" dir="rtl" style={{ background: 'var(--canvas)', color: 'var(--ink)' }}>
         {failure ? (
           <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 p-6 text-center">
             <h1 className="text-2xl font-black text-slate-950">تم إيقاف التشغيل لحماية البيانات</h1>

@@ -17,7 +17,7 @@ const CONTROL =
 
 export function FilterBar({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('rounded-2xl border border-slate-200 bg-white p-4 shadow-sm', className)}>
+    <div className={cn('rounded-2xl border border-slate-200 bg-white p-4', className)}>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{children}</div>
     </div>
   );
