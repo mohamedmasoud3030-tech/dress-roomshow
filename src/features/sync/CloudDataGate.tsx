@@ -8,6 +8,7 @@ import {
   SHOWROOM_COMMAND_COMMITTED_EVENT,
   type ShowroomCommandCommitted,
 } from '@shared/persistence/cloudCommit';
+import { publishCloudSaveAck } from '@shared/persistence/cloudSaveAck';
 import { Button } from '../../components/shared/Button';
 import { RouteLoadingFallback } from '@app/router/RouteLoadingFallback';
 import {
@@ -93,6 +94,11 @@ export function CloudDataGate({ children }: { children: ReactNode }) {
           revisionRef.current = committed.revision;
           document.documentElement.dataset.cloudCommit = 'ready';
           publishStatus({ state: 'synced', message: 'تم حفظ العملية بنجاح.', updatedAt: new Date().toISOString() });
+          // UX-S2: this is the only place an operation may be called saved. It
+          // sits inside the success path, after the authoritative RPC returned a
+          // reconstructed snapshot and its revision; the catch below owns the
+          // failure copy and never reaches this line.
+          publishCloudSaveAck(detail.commandName, committed.revision);
         } catch (reason) {
           void reportClientError('cloud.commit', reason);
           commitGenerationRef.current.invalidate();

@@ -15,6 +15,25 @@
 | **UX-M3** | Staff-visible «عن التطبيق والدعم» card with real build identity and in-house escalation path; invents no contact channel (PD-6) | same suites |
 | UX-4 | Chip-insert caret normalization: fresh focus now rests the caret at the message end so a token never prepends by accident — a defect the DOM walkthrough caught | `tests/walkthrough-dom.test.mjs` |
 
+## Shipped 2026-09-12 (owner-directed UX slice) — VERIFIED
+
+| # | Item | Evidence |
+| --- | --- | --- |
+| **UX-M2** | Settings sub-navigation: nine anchored, focusable groups generated from one registry (`preferencesSections.ts`), sticky tab strip, keyboard focus lands in the opened group, destructive zone still last and alone | `tests/preferences-sections.test.mjs` (5, incl. real jsdom focus movement) |
+| **UX-M4** | Phone landing reaches the first dress card inside two viewport heights: capped hero crop, categories as one swipeable rail, FAQ collapsed with two answers, tighter about section — each with its `sm:` counterpart so desktop is unchanged | `tests/landing-mobile-length.test.mjs` (6): 1487 px vs a 1688 px budget; the same model rejects the previous layout at 2390 px |
+| **UX-S2** | «محفوظ على الخادم ✓» after a money command is confirmed by the server: `role="status"`, self-dismissing in 3.5 s, fixed copy with no figures, operational routes only | `tests/cloud-save-ack.test.mjs` (7, incl. jsdom show/replace/dismiss) |
+
+Gate after the slice: `tsc -b` clean, `eslint .` clean, **809/809 tests pass** (was 787), `vite build` OK.
+
+**Two honesty notes on UX-M4:**
+1. The height budget is an arithmetic model of the pinned classes, not a device capture. The real
+   390×844 / 360×740 evidence is still queue item **4.02** and remains open.
+2. The original acceptance criterion "sticky CTA always visible" is **superseded**: the owner
+   removed the persistent booking button after this roadmap was written (`LandingPage.tsx` records
+   the decision in a comment). It was deliberately not reintroduced. Related open finding:
+   `tests/landing-profile.test.mjs` still asserts that markup and passes only because the strings
+   survive inside the comment — either the CTA returns (owner call) or those two assertions go.
+
 ## NOW (next 1–2 sessions — high value, low risk, no owner input)
 
 ### UX-M1 — ~~Three-step setup checklist~~ — SHIPPED 2026-08-20 (see Shipped table)
@@ -29,7 +48,9 @@ Nothing else currently qualifies: every other open item needs either the device 
 
 ## NEXT (after device session — needs M10 evidence or owner yes/no)
 
-### UX-M2 — Preferences sub-navigation (tabs)
+> All three items below shipped on 2026-09-12. They are kept verbatim as the acceptance record the shipped tests were written against.
+
+### UX-M2 — ~~Preferences sub-navigation (tabs)~~ — SHIPPED 2026-09-12 (see Shipped table)
 - **What:** split the growing control plane into anchored sections: «النسخ والبيانات»،
   «الحسابات والأمان»، «الرسائل»، «الطباعة»، «الصفحة العامة»، «مراقبة النظام» (gauge + errors
   + server copies). In-page anchor tabs; routes optional.
@@ -38,12 +59,12 @@ Nothing else currently qualifies: every other open item needs either the device 
   keyboard focus moves to the anchored heading; existing tests updated (selectors preserved).
 - **Why not now:** pure restructure — bundle it with the M10 visual pass to verify once, not twice.
 
-### UX-M4 — Mobile landing length reduction
+### UX-M4 — ~~Mobile landing length reduction~~ — SHIPPED 2026-09-12 (see Shipped table; the sticky-CTA criterion is superseded)
 - **What:** collapse FAQ to `<details>` on <640px; cap service cards; keep sticky CTA.
 - **Acceptance:** on 390×844 the first piece card renders within 2 viewport heights; sticky CTA
   always visible; desktop unchanged; `mobile-polish` pins the behavior.
 
-### UX-S2 — «محفوظ على الخادم ✓» acknowledgment
+### UX-S2 — ~~«محفوظ على الخادم ✓» acknowledgment~~ — SHIPPED 2026-09-12 (see Shipped table)
 - **What:** reuse the persistence-status channel to flash a quiet success toast after audited
   money-touching commands when sync confirms; silent when offline (existing amber banner owns
   offline).

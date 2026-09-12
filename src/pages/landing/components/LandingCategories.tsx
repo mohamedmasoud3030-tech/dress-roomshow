@@ -42,9 +42,16 @@ export function LandingCategories({ profile, dresses, groupedDresses, onSelectCa
           <button type="button" onClick={() => onSelectCategory('all')} className="text-[11px] text-black/40 hover:text-black">الكل →</button>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-px bg-[#E8E2D9] p-px sm:grid-cols-4 lg:grid-cols-8">
+        {/* Phones get one swipeable row instead of a two-column wall: with eight
+            categories the grid cost four screen-heights of scrolling before a
+            visitor reached a single dress (UX-M4). From `sm` up it is the same
+            grid it always was. */}
+        <div
+          aria-label="فئات المعروض"
+          className="mt-4 flex gap-px overflow-x-auto bg-[#E8E2D9] p-px [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:grid-cols-4 lg:grid-cols-8"
+        >
           {categories.map((cat) => (
-            <button key={cat.name} type="button" onClick={() => onSelectCategory(cat.name)} className="group relative aspect-[4/5] overflow-hidden bg-[#F5F1EB] text-right">
+            <button key={cat.name} type="button" onClick={() => onSelectCategory(cat.name)} className="group relative aspect-[4/5] w-[44%] shrink-0 overflow-hidden bg-[#F5F1EB] text-right sm:w-auto">
               <DressPhoto brand={profile.brandName} src={cat.photo} alt={cat.name} className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" fallbackLabel={cat.name} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-2.5">

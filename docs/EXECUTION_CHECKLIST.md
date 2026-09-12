@@ -710,3 +710,60 @@ this entry is the session index.
 - Not resolved (unchanged, and correctly so — these need a human, not a script): the Auth dashboard
   public-signup toggle, the seven real-device QA items (4.02/4.04/4.05/5.02/5.03/5.06), and the
   GitHub Actions billing-level outage.
+
+## UX roadmap NOW items + checklist overwrite guard (2026-09-12, fifth)
+
+Owner-directed bounded slice: the three open NOW/NEXT items from `PRODUCT_UX_ROADMAP.md`, plus a
+gate that stops the 2026-09-12 checklist overwrite from ever being silent again. Queue items
+4.02/4.04/4.05/5.02/5.03/5.06 stay open and device-blocked; nothing here claims device evidence.
+
+- [x] **UX-M2 — settings sub-navigation.** The settings screen is now nine anchored, focusable
+  groups (`preferencesSections.ts` registry: data & backups, operating rules, accounts & security,
+  messages, printing, public page, monitoring, about, and the destructive zone last). The tab strip
+  is generated from that registry, is sticky under the app header, and a tab press moves keyboard
+  focus into the group it opened instead of leaving it at the top of the page.
+  - Evidence: `tests/preferences-sections.test.mjs` (5) — registry order/uniqueness/Arabic-only
+    labels, real jsdom focus movement between two rendered groups, destructive styling, one
+    rendered group per registry entry with no duplicate anchor ids, and presence of every card a
+    tab points at. Existing pins preserved (`aria-label="أقسام الإعدادات"`, `id="data-backup"`,
+    `id="danger-zone"`, `<SystemErrorsSummary />`, `<StorageCapacityIndicator />`).
+  - Note: the `#storage-capacity` and `#image-storage` cards kept their own ids as sub-anchors; the
+    four ids that moved up to their group wrapper were removed from the cards to avoid duplicates.
+- [x] **UX-M4 — phone landing length.** The first dress card now sits inside two 390×844 viewport
+  heights: the hero portrait crop is capped on phones (`aspect-[4/3] max-h-[300px]`, restored to
+  `4/5` from `sm` up), the eight-category phone grid became one swipeable rail (grid returns from
+  `sm`), the FAQ starts collapsed and shows two answers on phones, and the about section tightened.
+  Every change is paired with its `sm:` counterpart, so desktop is unchanged by construction.
+  - Evidence: `tests/landing-mobile-length.test.mjs` (6) — a per-section height budget computed
+    from the pinned classes: **1487 px before the first card against a 1688 px budget (201 px
+    headroom)**, plus an assertion that the same model rejects the pre-change layout (2390 px).
+  - **Honesty:** the budget is an arithmetic model of the layout, not a device capture. The real
+    390×844 / 360×740 capture is still **4.02** and stays open.
+  - **Superseded acceptance criterion:** the roadmap line "sticky CTA always visible" predates the
+    owner's explicit removal of the persistent booking button (`LandingPage.tsx` carries that
+    decision as a comment). The CTA was deliberately **not** reintroduced here.
+- [x] **UX-S2 — «محفوظ على الخادم ✓».** A quiet `role="status"` acknowledgement appears only after
+  the authoritative command RPC returns a reconstructed snapshot and revision, only for
+  money-touching commands, and dismisses itself in 3.5 s. Fixed Arabic copy with no figures in it;
+  mounted on operational routes only; the offline case stays with the amber persistence banner.
+  - Evidence: `tests/cloud-save-ack.test.mjs` (7) — money/non-money classification, copy carries no
+    digits or currency, dismiss window inside the 4 s ceiling, publish filtering, real jsdom
+    show/replace/dismiss behaviour, and a source contract proving the publish sits in the commit
+    success path and never in the catch.
+- [x] **Checklist overwrite guard.** `tests/checklist-integrity.test.mjs` (4) now fails the default
+  gate if this file drops below 600 lines / 40 kB, loses any of the 24 pinned `##` sections, loses
+  its queue markers or evidence table, or falls below 100 completed / 8 open items.
+  - Root cause recorded: the 2026-09-12 loss came from the GitHub contents API replacing a file
+    wholesale with only the new section as `content`. A prose file has no test, so nothing noticed.
+    Documentation edits to this file must be patches, not full-content rewrites.
+- **Gate after the slice:** `tsc -b` clean, `eslint .` clean, **809/809 tests pass** (was 787; +22),
+  `vite build` OK (169 precache entries). Preview smoke: `/`, `/landing`, `/manifest.webmanifest`
+  all 200, `html lang="ar" dir="rtl"`, and the new strings are present in the shipped chunks
+  (`index-*.js`, `PreferencesPage-*.js`, `LandingPage-*.js`).
+- **Finding left open on purpose (needs an owner decision, not a script):**
+  `tests/landing-profile.test.mjs` asserts `/fixed inset-x-4/` and `/احجزي موعد عبر واتساب/` against
+  `LandingPage.tsx`, but both strings now exist only inside a code comment recording the button's
+  removal — so those two assertions pass without testing rendered markup. Either the persistent
+  booking CTA comes back (owner call) or the two assertions should be deleted. Not changed here.
+- **Still BLOCKED-EXTERNAL (unchanged):** 4.02/4.04/4.05, 5.02/5.03/5.06, the Auth public-signup
+  toggle, M4/M5/M6, and the GitHub Actions allocation outage (`runner_name: ""`, `steps: []`).

@@ -42,12 +42,14 @@
 | ID | الشدة | العنصر | الحالة |
 | --- | --- | --- | --- |
 | UX-M1 | متوسط | Setup checklist على dashboard فارغ | Roadmap |
-| UX-M2 | متوسط | تقسيم صفحة الإعدادات إلى مجموعات/tabs | Roadmap (IA) |
+| UX-M2 | متوسط | تقسيم صفحة الإعدادات إلى مجموعات/tabs | **شُحن 2026-09-12** — `tests/preferences-sections.test.mjs` (5) |
 | UX-M3 | متوسط | سطح «عن التطبيق والدعم» داخل النظام | Roadmap |
-| UX-M4 | متوسط | اختصار landing على الهاتف (FAQ collapse) | Roadmap ◔ |
-| UX-S2 | منخفض | «محفوظ على الخادم ✓» بعد العمليات المالية | Roadmap |
+| UX-M4 | متوسط | اختصار landing على الهاتف (FAQ collapse) | **شُحن 2026-09-12** — `tests/landing-mobile-length.test.mjs` (6)؛ الالتقاط على جهاز حقيقي يبقى 4.02 ◔ |
+| UX-S2 | منخفض | «محفوظ على الخادم ✓» بعد العمليات المالية | **شُحن 2026-09-12** — `tests/cloud-save-ack.test.mjs` (7) |
 | UX-L3 | منخفض | Undo/recover للأرشفة أكثر وضوحًا | Roadmap |
 | ~~PX-*~~ | — | كل عيوب 17 أغسطس الأربعة High + الخمسة quick wins | **مغلقة ومثبتة في الكود** |
+
+> صفوف UX-M1/UX-M3 ما زالت تقول «Roadmap» وهي مشحونة منذ 2026-08-20 (تأريخ قديم لم يُحدَّث)؛ لم تُعدَّل هنا لأن هذه الجلسة لم تتحقق منهما.
 
 ## Evidence register (what proves the numbers)
 
