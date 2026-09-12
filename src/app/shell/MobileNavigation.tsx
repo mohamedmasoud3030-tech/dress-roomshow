@@ -24,7 +24,7 @@ export function MobileNavigation({ onOpenMenu }: MobileNavigationProps) {
             key={item.to}
             to={item.to}
             end={item.to === '/'}
-            className={({ isActive }) =>
+            className={() =>
               `flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[11px] font-bold transition duration-200 ${focusRing}`
             }
             style={({ isActive }) =>
