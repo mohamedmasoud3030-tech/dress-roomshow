@@ -651,6 +651,16 @@ order (queue items NEXT 4.02 and PENDING 4.04/4.05 remain device-blocked and unc
       proofs P0/P-A1/P-A2a/P-A2b/P-RLS, rollback, sign-off). Awaiting owner yes/no for the
       ~15-minute supervised dashboard session.
 
+## Delivery-authorship gate (2026-09-12)
+
+Two environment traps cost the repo a blocked production deployment and weeks of silently dead CI. Both are recorded here so no future session re-diagnoses them.
+
+- **Vercel `Require an author` is live.** A commit whose author email is not attached to a GitHub account (e.g. `lena@local`, `fix-bot@arena.ai`, any `*.local`) makes Vercel report `Deployment was blocked / GitHub couldn't verify an account for the commit`. Before pushing to `main`, verify with `git log -1 --format='%an <%ae>'`. The working identity is the owner's noreply address `250202280+mohamedmasoud3030-tech@users.noreply.github.com`.
+- **Actions jobs can die before allocation.** Failed jobs on 2026-09-12 show `runner_name: ""`, `steps: []`, an empty log archive, and a ~2 s wall clock. That is not a code failure — a job that allocated normally on 2026-09-11 reported `runner_name: GitHub Actions 1000038803`. Do not "fix the code" in response to such a run: check `github.com/settings/billing/actions` and Settings → Actions → General first, and gate on the local suite (`npm test`, `npm run build`) while Actions is unavailable.
+- **`main` tip repaired**: the build was red for one error only — `src/app/shell/MobileNavigation.tsx(27,25): error TS6133` — which killed `npm run build` (`tsc -b` is the first half of that script) and therefore the production deployment. Fixed in `01bd342`. Local gate after the fix: `tsc -b` clean, `eslint .` clean, `npm run build` OK, `npm test` 787 pass / 0 fail.
+- **Branch clutter explained**: the repository has exactly one branch (`main`); the 153 `archive/*` refs are tags left behind when agent branches were deleted, and 46 of them point at commits already inside `main` (no information in them). Deleting those is safe; do not read the tag list as evidence that work was overwritten.
+- **SEC-01 is merged, the checklist was stale**: `2628fb6` ("security: constrain Supabase authority surface") plus migrations `0021`–`0024` are already in `main`. Only the field evidence (`npm run test:supabase-authority`, `verify:deployed-*`) is outstanding, and that is the sole reason the item below stays open.
+
 ## Security authority remediation (2026-08-22, owner-directed stop-line)
 
 - [ ] **IN PROGRESS — SEC-01:** Secure account bootstrap, authoritative write boundary, and deployed public-profile schema drift on branch `arena/security-authority-remediation-20260822`.
