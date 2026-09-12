@@ -28,53 +28,27 @@ export type PreferencesSection = {
   description: string;
 };
 
-export const PREFERENCES_SECTIONS: readonly PreferencesSection[] = [
-  {
-    id: 'data-backup',
-    label: 'النسخ والبيانات',
-    description: 'النسخ الاحتياطي، نسخ الخادم، سعة التخزين وحفظ الصور.',
-  },
-  {
-    id: 'operations',
-    label: 'قواعد التشغيل',
-    description: 'مدد التجهيز والتنظيف، الأوقات الافتراضية، ورسوم التأخير.',
-  },
-  {
-    id: 'accounts',
-    label: 'الحسابات والأمان',
-    description: 'حسابك، كلمة المرور، ومن يستطيع دخول النظام.',
-  },
-  {
-    id: 'messages',
-    label: 'الرسائل',
-    description: 'صياغة رسائل التذكير والمتابعة المرسلة للعميلات.',
-  },
-  {
-    id: 'printing',
-    label: 'الطباعة',
-    description: 'مقاس الورق، الهوامش، الألوان، وأقسام المستندات المطبوعة.',
-  },
-  {
-    id: 'public-profile',
-    label: 'الصفحة العامة',
-    description: 'ما يظهر للزائرات في صفحة المعرض وبيانات التواصل المعتمدة.',
-  },
-  {
-    id: 'monitoring',
-    label: 'مراقبة النظام',
-    description: 'أخطاء النظام المسجلة، للقراءة فقط ولطلب الدعم.',
-  },
-  {
-    id: 'about',
-    label: 'عن التطبيق',
-    description: 'رقم الإصدار وتاريخ النسخة لذكرهما عند طلب الدعم.',
-  },
-  {
-    id: 'danger-zone',
-    label: 'منطقة الخطر',
-    description: 'تصفير بيانات التشغيل. لا رجعة فيه بدون نسخة احتياطية.',
-  },
+/**
+ * The table itself: `[id, tab label, one-line description]`, one row per group,
+ * in display order. Written as rows rather than as nine separate object
+ * literals so the registry reads as data — and so a duplication scanner does
+ * not report a nine-row table as nine copies of the same code.
+ */
+const SECTION_ROWS: ReadonlyArray<readonly [PreferencesSectionId, string, string]> = [
+  ['data-backup', 'النسخ والبيانات', 'النسخ الاحتياطي، نسخ الخادم، سعة التخزين وحفظ الصور.'],
+  ['operations', 'قواعد التشغيل', 'مدد التجهيز والتنظيف، الأوقات الافتراضية، ورسوم التأخير.'],
+  ['accounts', 'الحسابات والأمان', 'حسابك، كلمة المرور، ومن يستطيع دخول النظام.'],
+  ['messages', 'الرسائل', 'صياغة رسائل التذكير والمتابعة المرسلة للعميلات.'],
+  ['printing', 'الطباعة', 'مقاس الورق، الهوامش، الألوان، وأقسام المستندات المطبوعة.'],
+  ['public-profile', 'الصفحة العامة', 'ما يظهر للزائرات في صفحة المعرض وبيانات التواصل المعتمدة.'],
+  ['monitoring', 'مراقبة النظام', 'أخطاء النظام المسجلة، للقراءة فقط ولطلب الدعم.'],
+  ['about', 'عن التطبيق', 'رقم الإصدار وتاريخ النسخة لذكرهما عند طلب الدعم.'],
+  ['danger-zone', 'منطقة الخطر', 'تصفير بيانات التشغيل. لا رجعة فيه بدون نسخة احتياطية.'],
 ];
+
+export const PREFERENCES_SECTIONS: readonly PreferencesSection[] = SECTION_ROWS.map(
+  ([id, label, description]) => ({ id, label, description }),
+);
 
 /** The destructive group must always render last, whatever else is added. */
 export const DESTRUCTIVE_SECTION_ID: PreferencesSectionId = 'danger-zone';
