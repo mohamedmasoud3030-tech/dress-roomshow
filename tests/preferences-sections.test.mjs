@@ -15,6 +15,7 @@ import {
   getPreferencesSection,
   preferencesSectionHeadingId,
 } from '../src/features/preferences/preferencesSections.ts';
+import { runGuardedSettingsAction } from '../src/features/preferences/runSettingsAction.ts';
 
 const read = (path) => readFile(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
@@ -144,4 +145,61 @@ test('the cards the tabs point at are all still on the page', async () => {
     page.indexOf('<PreferencesSectionGroup id="danger-zone">'),
   ];
   assert.deepEqual([...order].sort((a, b) => a - b), order, 'monitoring, about and the danger zone render in that order');
+});
+
+test('the shared settings-action contract reports exactly one outcome and always clears the busy flag', async () => {
+  const makeReporters = () => {
+    const calls = [];
+    return {
+      calls,
+      reporters: {
+        setFeedback: (message) => calls.push(['feedback', message]),
+        setError: (error) => calls.push(['error', error]),
+      },
+    };
+  };
+
+  // A confirmed success shows its line and clears any previous error.
+  let settled = 0;
+  let target = makeReporters();
+  await runGuardedSettingsAction(target.reporters, async () => 'تم الحفظ.', () => { settled += 1; });
+  assert.deepEqual(target.calls, [['feedback', 'تم الحفظ.'], ['error', null]]);
+  assert.equal(settled, 1, 'the busy flag clears after a success');
+
+  // A failure shows the failure and drops the success line — never both.
+  settled = 0;
+  target = makeReporters();
+  const boom = new Error('تعذر الحفظ.');
+  await runGuardedSettingsAction(target.reporters, async () => { throw boom; }, () => { settled += 1; });
+  assert.deepEqual(target.calls, [['error', boom], ['feedback', null]]);
+  assert.equal(settled, 1, 'the busy flag clears after a failure');
+
+  // The operator cancelling a confirm dialog leaves the screen untouched.
+  settled = 0;
+  target = makeReporters();
+  await runGuardedSettingsAction(target.reporters, async () => null, () => { settled += 1; });
+  assert.deepEqual(target.calls, [], 'a cancel reports nothing and clears no stale error');
+  assert.equal(settled, 1, 'a cancel must still release the busy flag');
+
+  // A synchronous throw must not strand the button in its loading state either.
+  settled = 0;
+  target = makeReporters();
+  await runGuardedSettingsAction(target.reporters, () => { throw new Error('sync'); }, () => { settled += 1; });
+  assert.equal(settled, 1);
+});
+
+test('all four settings data actions route through that one contract', async () => {
+  const page = await read('src/features/preferences/PreferencesPage.tsx');
+
+  assert.equal(
+    page.split('runSettingsAction(async () => {').length - 1,
+    4,
+    'export, server-copy restore, server-copy download and backup import share one outcome path',
+  );
+  assert.match(page, /runGuardedSettingsAction\(\{ setFeedback, setError \}/, 'the page delegates to the tested function');
+  assert.doesNotMatch(
+    page,
+    /setError\(reason\);\s*\n\s*setFeedback\(null\);/,
+    'the hand-written copy of the contract must not come back',
+  );
 });

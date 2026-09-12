@@ -37,6 +37,7 @@ import {
   focusPreferencesSection,
 } from './preferencesSections';
 import { PreferencesSectionGroup } from './PreferencesSectionGroup';
+import { runGuardedSettingsAction } from './runSettingsAction';
 
 type CloudCopiesState =
   | { status: 'loading' }
@@ -56,6 +57,51 @@ function formatCopyBytes(bytes: number | null): string {
 }
 
 const preferenceFieldClassName = 'mt-2 min-h-11 w-full rounded-xl border border-slate-300 px-3 outline-none transition focus-visible:border-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500/30';
+
+/**
+ * One labelled numeric setting.
+ *
+ * The operating-rules and late-fee cards used to hand-write nine near-identical
+ * `<label><input type="number" …/></label>` blocks; the repetition is what made
+ * this file's duplication measurable at all, and it made a change to the shared
+ * field styling a nine-place edit.
+ */
+function NumberPreferenceField({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  step,
+  inputMode,
+  disabled,
+}: {
+  label: string;
+  value: number;
+  onChange: (next: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+  inputMode?: 'decimal' | 'numeric';
+  disabled?: boolean;
+}) {
+  return (
+    <label className="text-sm font-bold text-slate-700">
+      {label}
+      <input
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        inputMode={inputMode}
+        disabled={disabled}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className={preferenceFieldClassName}
+      />
+    </label>
+  );
+}
 
 export function PreferencesPage() {
   const [preferences, setPreferences] = useState<AppPreferences>(() => getAppPreferences());
@@ -82,53 +128,46 @@ export function PreferencesPage() {
     void refreshCloudCopies();
   }, []);
 
+  /**
+   * Every settings action reports its outcome the same way: one success line or
+   * the failure, never both, and the busy flag always clears. Returning `null`
+   * means "the operator cancelled" — the screen is left exactly as it was, with
+   * no message and no error cleared, which is what the previous early `return`
+   * inside the try block did. The contract itself is unit-tested in
+   * `tests/preferences-sections.test.mjs` via `runGuardedSettingsAction`.
+   */
+  const runSettingsAction = (action: () => Promise<string | null>, onSettled?: () => void) =>
+    runGuardedSettingsAction({ setFeedback, setError }, action, onSettled);
+
   const exportBackup = async () => {
     setIsExporting(true);
-    try {
+    await runSettingsAction(async () => {
       const { cloudCopy } = await exportBackupForDownload({ source: 'manual' });
-      setFeedback(`تم تجهيز النسخة الاحتياطية الكاملة للتحميل. احتفظي بها في مكان آمن.${describeCloudCopyStatus(cloudCopy)}`);
-      setError(null);
       if (cloudCopy === 'saved') void refreshCloudCopies();
-    } catch (reason: unknown) {
-      setError(reason);
-      setFeedback(null);
-    } finally {
-      setIsExporting(false);
-    }
+      return `تم تجهيز النسخة الاحتياطية الكاملة للتحميل. احتفظي بها في مكان آمن.${describeCloudCopyStatus(cloudCopy)}`;
+    }, () => setIsExporting(false));
   };
 
   const restoreCloudCopy = async (name: string) => {
     if (!window.confirm('سيتم استبدال بيانات التطبيق الحالية بالكامل بنسخة الخادم المختارة. هل أنتِ متأكدة؟')) return;
     setBusyCopy(name);
-    try {
+    await runSettingsAction(async () => {
       const parsed = await downloadCloudBackupCopy(name);
       if (parsed === null) throw new Error('تعذر تنزيل نسخة الخادم أو قراءتها.');
       await importDatabaseBackupCommand(parsed);
       setPreferences(getAppPreferences());
-      setFeedback('تمت الاستعادة من نسخة الخادم بنجاح. أعيدي تحميل الصفحة عند الحاجة لمراجعة جميع الأقسام.');
-      setError(null);
-    } catch (reason: unknown) {
-      setError(reason);
-      setFeedback(null);
-    } finally {
-      setBusyCopy(null);
-    }
+      return 'تمت الاستعادة من نسخة الخادم بنجاح. أعيدي تحميل الصفحة عند الحاجة لمراجعة جميع الأقسام.';
+    }, () => setBusyCopy(null));
   };
 
   const downloadCloudCopy = async (name: string) => {
     setBusyCopy(name);
-    try {
+    await runSettingsAction(async () => {
       const parsed = await downloadCloudBackupCopy(name);
       if (parsed === null) throw new Error('تعذر تنزيل نسخة الخادم أو قراءتها.');
       downloadJson(name, parsed);
-      setFeedback('تم تنزيل نسخة الخادم إلى هذا الجهاز.');
-      setError(null);
-    } catch (reason: unknown) {
-      setError(reason);
-      setFeedback(null);
-    } finally {
-      setBusyCopy(null);
-    }
+      return 'تم تنزيل نسخة الخادم إلى هذا الجهاز.';
+    }, () => setBusyCopy(null));
   };
 
   const importBackup = async (file?: File) => {
@@ -139,19 +178,15 @@ export function PreferencesPage() {
       if (importInput.current) importInput.current.value = '';
       return;
     }
-    try {
+    await runSettingsAction(async () => {
       const parsed: unknown = JSON.parse(await file.text());
-      if (!window.confirm('سيتم استبدال بيانات التطبيق الحالية بالكامل بالنسخة المختارة. هل أنتِ متأكدة؟')) return;
+      if (!window.confirm('سيتم استبدال بيانات التطبيق الحالية بالكامل بالنسخة المختارة. هل أنتِ متأكدة؟')) return null;
       await importDatabaseBackupCommand(parsed);
       setPreferences(getAppPreferences());
-      setFeedback('تم استيراد النسخة الاحتياطية بنجاح. أعيدي تحميل الصفحة عند الحاجة لمراجعة جميع الأقسام.');
-      setError(null);
-    } catch (reason: unknown) {
-      setError(reason);
-      setFeedback(null);
-    } finally {
+      return 'تم استيراد النسخة الاحتياطية بنجاح. أعيدي تحميل الصفحة عند الحاجة لمراجعة جميع الأقسام.';
+    }, () => {
       if (importInput.current) importInput.current.value = '';
-    }
+    });
   };
 
   const resetAllData = () => {
@@ -327,11 +362,29 @@ export function PreferencesPage() {
         <article className="scroll-mt-24 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-lg font-bold">قواعد التشغيل</h2>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <label className="text-sm font-bold text-slate-700">مدة التجهيز قبل التسليم (أيام)<input type="number" min="0" max="14" value={preferences.preparationDaysBeforePickup} onChange={(event) => setPreferences((current) => ({ ...current, preparationDaysBeforePickup: Number(event.target.value) }))} className={preferenceFieldClassName} /></label>
-            <label className="text-sm font-bold text-slate-700">مدة التنظيف بعد الإرجاع (أيام)<input type="number" min="0" max="14" value={preferences.cleaningDaysAfterReturn} onChange={(event) => setPreferences((current) => ({ ...current, cleaningDaysAfterReturn: Number(event.target.value) }))} className={preferenceFieldClassName} /></label>
+                        <NumberPreferenceField
+              label="مدة التجهيز قبل التسليم (أيام)"
+              min={0}
+              max={14}
+              value={preferences.preparationDaysBeforePickup}
+              onChange={(next) => setPreferences((current) => ({ ...current, preparationDaysBeforePickup: next }))}
+            />
+                        <NumberPreferenceField
+              label="مدة التنظيف بعد الإرجاع (أيام)"
+              min={0}
+              max={14}
+              value={preferences.cleaningDaysAfterReturn}
+              onChange={(next) => setPreferences((current) => ({ ...current, cleaningDaysAfterReturn: next }))}
+            />
             <label className="text-sm font-bold text-slate-700">وقت الاستلام الافتراضي<input type="time" value={preferences.defaultPickupTime} onChange={(event) => setPreferences((current) => ({ ...current, defaultPickupTime: event.target.value }))} className={preferenceFieldClassName} /></label>
             <label className="text-sm font-bold text-slate-700">وقت الإرجاع الافتراضي<input type="time" value={preferences.defaultReturnTime} onChange={(event) => setPreferences((current) => ({ ...current, defaultReturnTime: event.target.value }))} className={preferenceFieldClassName} /></label>
-            <label className="text-sm font-bold text-slate-700">حد العنصر الراكد بالأيام<input type="number" min="1" max="3650" value={preferences.dormantDressDays} onChange={(event) => setPreferences((current) => ({ ...current, dormantDressDays: Number(event.target.value) }))} className={preferenceFieldClassName} /></label>
+                        <NumberPreferenceField
+              label="حد العنصر الراكد بالأيام"
+              min={1}
+              max={3650}
+              value={preferences.dormantDressDays}
+              onChange={(next) => setPreferences((current) => ({ ...current, dormantDressDays: next }))}
+            />
           </div>
           <p className="mt-3 rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">
             مدة التجهيز ومدة التنظيف تُوسّعان فترة الحجز المحجوبة تلقائياً، فلا يُقبل حجز جديد لنفس الفستان أو الملحق داخل هذه المدد.
@@ -356,66 +409,50 @@ export function PreferencesPage() {
                 <option value="percent_of_rental_per_day">نسبة من الإيجار لكل يوم</option>
               </select>
             </label>
-            <label className="text-sm font-bold text-slate-700">
-              المبلغ اليومي (ر.ع)
-              <input
-                type="number"
-                min="0"
-                step="0.001"
-                inputMode="decimal"
-                disabled={preferences.lateFeePolicy.mode !== 'fixed_per_day'}
-                value={preferences.lateFeePolicy.amountPerDay}
-                onChange={(event) => setPreferences((current) => ({
-                  ...current,
-                  lateFeePolicy: { ...current.lateFeePolicy, amountPerDay: Number(event.target.value) },
-                }))}
-                className={preferenceFieldClassName}
-              />
-            </label>
-            <label className="text-sm font-bold text-slate-700">
-              النسبة اليومية (%)
-              <input
-                type="number"
-                min="0"
-                max="100"
-                inputMode="decimal"
-                disabled={preferences.lateFeePolicy.mode !== 'percent_of_rental_per_day'}
-                value={preferences.lateFeePolicy.percentPerDay}
-                onChange={(event) => setPreferences((current) => ({
-                  ...current,
-                  lateFeePolicy: { ...current.lateFeePolicy, percentPerDay: Number(event.target.value) },
-                }))}
-                className={preferenceFieldClassName}
-              />
-            </label>
-            <label className="text-sm font-bold text-slate-700">
-              مهلة السماح (أيام)
-              <input
-                type="number"
-                min="0"
-                max="30"
-                value={preferences.lateFeePolicy.graceDays}
-                onChange={(event) => setPreferences((current) => ({
-                  ...current,
-                  lateFeePolicy: { ...current.lateFeePolicy, graceDays: Number(event.target.value) },
-                }))}
-                className={preferenceFieldClassName}
-              />
-            </label>
-            <label className="text-sm font-bold text-slate-700">
-              الحد الأقصى (% من الإيجار)
-              <input
-                type="number"
-                min="0"
-                max="1000"
-                value={preferences.lateFeePolicy.maxPercentOfRental}
-                onChange={(event) => setPreferences((current) => ({
-                  ...current,
-                  lateFeePolicy: { ...current.lateFeePolicy, maxPercentOfRental: Number(event.target.value) },
-                }))}
-                className={preferenceFieldClassName}
-              />
-            </label>
+            <NumberPreferenceField
+              label="المبلغ اليومي (ر.ع)"
+              min={0}
+              step={0.001}
+              inputMode="decimal"
+              disabled={preferences.lateFeePolicy.mode !== 'fixed_per_day'}
+              value={preferences.lateFeePolicy.amountPerDay}
+              onChange={(next) => setPreferences((current) => ({
+                ...current,
+                lateFeePolicy: { ...current.lateFeePolicy, amountPerDay: next },
+              }))}
+            />
+            <NumberPreferenceField
+              label="النسبة اليومية (%)"
+              min={0}
+              max={100}
+              inputMode="decimal"
+              disabled={preferences.lateFeePolicy.mode !== 'percent_of_rental_per_day'}
+              value={preferences.lateFeePolicy.percentPerDay}
+              onChange={(next) => setPreferences((current) => ({
+                ...current,
+                lateFeePolicy: { ...current.lateFeePolicy, percentPerDay: next },
+              }))}
+            />
+            <NumberPreferenceField
+              label="مهلة السماح (أيام)"
+              min={0}
+              max={30}
+              value={preferences.lateFeePolicy.graceDays}
+              onChange={(next) => setPreferences((current) => ({
+                ...current,
+                lateFeePolicy: { ...current.lateFeePolicy, graceDays: next },
+              }))}
+            />
+            <NumberPreferenceField
+              label="الحد الأقصى (% من الإيجار)"
+              min={0}
+              max={1000}
+              value={preferences.lateFeePolicy.maxPercentOfRental}
+              onChange={(next) => setPreferences((current) => ({
+                ...current,
+                lateFeePolicy: { ...current.lateFeePolicy, maxPercentOfRental: next },
+              }))}
+            />
           </div>
           <p className="mt-3 rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">
             يقترح النظام قيمة رسوم التأخير عند تسجيل الاسترجاع، ويظل بإمكانك تعديلها أو إلغاؤها. صفر في الحد الأقصى يعني بلا سقف.

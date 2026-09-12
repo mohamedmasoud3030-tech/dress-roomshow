@@ -756,10 +756,18 @@ gate that stops the 2026-09-12 checklist overwrite from ever being silent again.
   - Root cause recorded: the 2026-09-12 loss came from the GitHub contents API replacing a file
     wholesale with only the new section as `content`. A prose file has no test, so nothing noticed.
     Documentation edits to this file must be patches, not full-content rewrites.
-- **Gate after the slice:** `tsc -b` clean, `eslint .` clean, **809/809 tests pass** (was 787; +22),
+- **Gate after the slice:** `tsc -b` clean, `eslint .` clean, **811/811 tests pass** (was 787; +24),
   `vite build` OK (169 precache entries). Preview smoke: `/`, `/landing`, `/manifest.webmanifest`
   all 200, `html lang="ar" dir="rtl"`, and the new strings are present in the shipped chunks
   (`index-*.js`, `PreferencesPage-*.js`, `LandingPage-*.js`).
+- **SonarCloud quality gate, caught after the first push:** the PR failed on *4.8% duplication on
+  new code* (limit 3%). The duplication was pre-existing — `PreferencesPage.tsx` repeated one
+  try/catch/feedback shape across four handlers and hand-wrote nine near-identical numeric
+  fields — but re-indenting those lines for the new group wrappers made SonarCloud count them as
+  new. Fixed by removing the duplication rather than shrinking the diff: the outcome contract moved
+  to `runSettingsAction.ts` (now unit-tested for success, failure, operator-cancel and the busy
+  flag), and the numeric fields render through one `NumberPreferenceField`. Measured before/after
+  with `jscpd`: 5 clones touching the changed files → **0**.
 - **Finding left open on purpose (needs an owner decision, not a script):**
   `tests/landing-profile.test.mjs` asserts `/fixed inset-x-4/` and `/احجزي موعد عبر واتساب/` against
   `LandingPage.tsx`, but both strings now exist only inside a code comment recording the button's

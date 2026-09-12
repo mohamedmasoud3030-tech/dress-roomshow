@@ -23,7 +23,7 @@
 | **UX-M4** | Phone landing reaches the first dress card inside two viewport heights: capped hero crop, categories as one swipeable rail, FAQ collapsed with two answers, tighter about section — each with its `sm:` counterpart so desktop is unchanged | `tests/landing-mobile-length.test.mjs` (6): 1487 px vs a 1688 px budget; the same model rejects the previous layout at 2390 px |
 | **UX-S2** | «محفوظ على الخادم ✓» after a money command is confirmed by the server: `role="status"`, self-dismissing in 3.5 s, fixed copy with no figures, operational routes only | `tests/cloud-save-ack.test.mjs` (7, incl. jsdom show/replace/dismiss) |
 
-Gate after the slice: `tsc -b` clean, `eslint .` clean, **809/809 tests pass** (was 787), `vite build` OK.
+Gate after the slice: `tsc -b` clean, `eslint .` clean, **811/811 tests pass** (was 787), `vite build` OK, and `jscpd` reports 0 clones touching the changed files (the SonarCloud "duplication on new code" gate was 4.8% before the shared handler/field extraction).
 
 **Two honesty notes on UX-M4:**
 1. The height budget is an arithmetic model of the pinned classes, not a device capture. The real
