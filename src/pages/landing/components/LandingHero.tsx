@@ -17,14 +17,16 @@ export function LandingHero({ profile, dresses, rentableCount }: Props) {
   return (
     <section id="top" className="relative bg-[#0A0A0A] text-[#FFFCF8]">
       <div className="relative mx-auto grid max-w-[1600px] grid-cols-1 lg:grid-cols-[1.05fr_0.95fr]">
-        {/* Copy - compact */}
-        <div className="flex flex-col justify-center px-6 pb-10 pt-[88px] sm:px-8 sm:pb-12 sm:pt-[96px] lg:px-10 lg:pb-14 xl:px-12">
+        {/* Copy - compact. The phone padding is deliberately tighter: on a
+            390×844 screen every pixel spent here pushes the first dress card
+            further below the fold (UX-M4). */}
+        <div className="flex flex-col justify-center px-6 pb-6 pt-[72px] sm:px-8 sm:pb-12 sm:pt-[96px] lg:px-10 lg:pb-14 xl:px-12">
           <div className="flex items-center gap-2">
             <span className="h-px w-6 bg-[#C9A86A]" />
             <span className="text-[10px] tracking-[0.18em] text-[#C9A86A]">{profile.brandName} · صحار</span>
           </div>
 
-          <h1 className="mt-5 max-w-[16ch] text-[32px] font-[300] leading-[1.05] tracking-[-0.03em] sm:text-[42px] lg:text-[48px]">
+          <h1 className="mt-4 max-w-[16ch] text-[32px] font-[300] leading-[1.05] tracking-[-0.03em] sm:mt-5 sm:text-[42px] lg:text-[48px]">
             {profile.heroTitle}
           </h1>
 
@@ -32,7 +34,7 @@ export function LandingHero({ profile, dresses, rentableCount }: Props) {
             {profile.heroDescription}
           </p>
 
-          <div className="mt-7 flex items-center gap-3">
+          <div className="mt-5 flex items-center gap-3 sm:mt-7">
             {appointmentLink ? (
               <a href={appointmentLink} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 items-center justify-center rounded-full bg-white px-5 text-[12px] font-medium text-[#0A0A0A] hover:bg-white/90">
                 تواصلي
@@ -44,9 +46,10 @@ export function LandingHero({ profile, dresses, rentableCount }: Props) {
           </div>
         </div>
 
-        {/* Visual - compact */}
-        <div className="relative flex items-center justify-center bg-[#0E0E0E] px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
-          <div className="relative w-full max-w-[440px] aspect-[4/5] overflow-hidden bg-[#141414]">
+        {/* Visual - compact. On a phone the portrait crop is the single tallest
+            thing above the inventory, so it is capped there and only there. */}
+        <div className="relative flex items-center justify-center bg-[#0E0E0E] px-6 py-5 sm:px-8 sm:py-8 lg:px-10 lg:py-10">
+          <div className="relative aspect-[4/3] max-h-[300px] w-full max-w-[440px] overflow-hidden bg-[#141414] sm:aspect-[4/5] sm:max-h-none">
             {heroDress?.images[0] ? (
               <DressPhoto brand={profile.brandName} src={heroDress.images[0]} alt={heroDress.name} className="h-full w-full object-cover" priority />
             ) : (

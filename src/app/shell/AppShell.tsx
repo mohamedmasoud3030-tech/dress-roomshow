@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { PersistenceErrorBoundary } from '../../components/shared/PersistenceErrorBoundary';
 import { PageContainer } from '../../components/shared/PageContainer';
 import { StorageCapacityIndicator } from '../../components/shared/StorageCapacityIndicator';
+import { CloudSaveAckToast } from '../../components/shared/CloudSaveAckToast';
 import { AppHeader } from './AppHeader';
 import { DesktopNavigation } from './DesktopNavigation';
 import { MobileMoreMenu } from './MobileMoreMenu';
@@ -53,6 +54,9 @@ export function AppShell() {
 
       <MobileNavigation onOpenMenu={() => setMobileMenuOpen(true)} />
       <MobileMoreMenu open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      {/* Operational routes only: the public landing page never commits a
+          money command, so it must never show this acknowledgement. */}
+      <CloudSaveAckToast />
     </div>
   );
 }
