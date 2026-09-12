@@ -1,9 +1,6 @@
 import test from 'node:test';
+import { readSource } from './helpers/readSource.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath, URL } from 'node:url';
-
-const read = (path) => readFile(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
 /**
  * UX-M4 — the phone landing must reach the first dress card quickly.
@@ -70,7 +67,7 @@ test('the budget model would have rejected the pre-UX-M4 layout', () => {
 });
 
 test('the phone hero is capped and the desktop hero is untouched', async () => {
-  const hero = await read('src/pages/landing/components/LandingHero.tsx');
+  const hero = await readSource('src/pages/landing/components/LandingHero.tsx');
 
   assert.match(hero, /pt-\[72px\][^"]*sm:pt-\[96px\]/, 'the tighter top padding is phone-only');
   assert.match(hero, /pb-6[^"]*sm:pb-12/, 'the tighter bottom padding is phone-only');
@@ -80,7 +77,7 @@ test('the phone hero is capped and the desktop hero is untouched', async () => {
 });
 
 test('phone categories are one swipeable row, and stay a grid from sm up', async () => {
-  const categories = await read('src/pages/landing/components/LandingCategories.tsx');
+  const categories = await readSource('src/pages/landing/components/LandingCategories.tsx');
 
   assert.match(categories, /flex gap-px overflow-x-auto/, 'phones get a horizontal rail');
   assert.match(categories, /sm:grid sm:grid-cols-4 lg:grid-cols-8/, 'the original grid returns from sm up');
@@ -90,7 +87,7 @@ test('phone categories are one swipeable row, and stay a grid from sm up', async
 });
 
 test('the phone FAQ starts collapsed and shows two answers', async () => {
-  const faq = await read('src/pages/landing/components/LandingFaq.tsx');
+  const faq = await readSource('src/pages/landing/components/LandingFaq.tsx');
 
   assert.match(faq, /MOBILE_VISIBLE_QUESTIONS = 2/, 'a phone shows two answers, not three');
   assert.match(faq, /hidden sm:block/, 'the third answer is phone-hidden and desktop-visible');
@@ -100,7 +97,7 @@ test('the phone FAQ starts collapsed and shows two answers', async () => {
 });
 
 test('the about section tightens on phones only', async () => {
-  const about = await read('src/pages/landing/components/LandingAboutServices.tsx');
+  const about = await readSource('src/pages/landing/components/LandingAboutServices.tsx');
 
   assert.match(about, /py-8 sm:py-12/, 'section padding is phone-only tighter');
   assert.match(about, /py-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:py-8/, 'the inner block keeps its desktop rhythm');

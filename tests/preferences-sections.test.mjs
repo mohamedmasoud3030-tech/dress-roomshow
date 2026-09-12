@@ -2,9 +2,8 @@
 import { dom, renderElement, resetDomEnvironment } from './helpers/jsdom-react.mjs';
 
 import test from 'node:test';
+import { readSource } from './helpers/readSource.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath, URL } from 'node:url';
 import React from 'react';
 
 import { PreferencesSectionGroup } from '../src/features/preferences/PreferencesSectionGroup.tsx';
@@ -16,8 +15,6 @@ import {
   preferencesSectionHeadingId,
 } from '../src/features/preferences/preferencesSections.ts';
 import { runGuardedSettingsAction } from '../src/features/preferences/runSettingsAction.ts';
-
-const read = (path) => readFile(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
 test('the settings groups are one ordered registry and the destructive one is last', () => {
   const ids = PREFERENCES_SECTIONS.map((section) => section.id);
@@ -98,7 +95,7 @@ test('the destructive group keeps its own visual warning', async () => {
 });
 
 test('every registry group is actually rendered, once, in registry order', async () => {
-  const page = await read('src/features/preferences/PreferencesPage.tsx');
+  const page = await readSource('src/features/preferences/PreferencesPage.tsx');
 
   const rendered = [...page.matchAll(/<PreferencesSectionGroup id="([a-z-]+)"/g)].map((m) => m[1]);
   assert.deepEqual(rendered, PREFERENCES_SECTIONS.map((section) => section.id), 'rendered order matches the registry');
@@ -115,7 +112,7 @@ test('every registry group is actually rendered, once, in registry order', async
 });
 
 test('the cards the tabs point at are all still on the page', async () => {
-  const page = await read('src/features/preferences/PreferencesPage.tsx');
+  const page = await readSource('src/features/preferences/PreferencesPage.tsx');
 
   // Each of these is the payload of one tab. If a group is added to the
   // registry without its card, the tab scrolls to an empty heading.
@@ -189,7 +186,7 @@ test('the shared settings-action contract reports exactly one outcome and always
 });
 
 test('all four settings data actions route through that one contract', async () => {
-  const page = await read('src/features/preferences/PreferencesPage.tsx');
+  const page = await readSource('src/features/preferences/PreferencesPage.tsx');
 
   assert.equal(
     page.split('runSettingsAction(async () => {').length - 1,

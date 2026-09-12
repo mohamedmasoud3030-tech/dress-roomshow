@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath, URL } from 'node:url';
+import { readSource } from './helpers/readSource.mjs';
 
-const CHECKLIST = fileURLToPath(new URL('../docs/EXECUTION_CHECKLIST.md', import.meta.url));
+const CHECKLIST = 'docs/EXECUTION_CHECKLIST.md';
 
 /**
  * Execution-checklist integrity guard.
@@ -54,7 +53,7 @@ const MIN_BYTES = 40_000;
 const MIN_CHECKED = 100;
 const MIN_OPEN = 8;
 
-const read = () => readFile(CHECKLIST, 'utf8');
+const read = () => readSource(CHECKLIST);
 
 test('the execution checklist survived the edit (size floor)', async () => {
   const content = await read();

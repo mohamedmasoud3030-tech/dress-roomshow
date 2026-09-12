@@ -2,9 +2,8 @@
 import { act, dom, renderElement, resetDomEnvironment } from './helpers/jsdom-react.mjs';
 
 import test from 'node:test';
+import { readSource } from './helpers/readSource.mjs';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath, URL } from 'node:url';
 import React from 'react';
 
 import { CloudSaveAckToast } from '../src/components/shared/CloudSaveAckToast.tsx';
@@ -16,8 +15,6 @@ import {
   isMoneyTouchingCommand,
   publishCloudSaveAck,
 } from '../src/shared/persistence/cloudSaveAck.ts';
-
-const read = (path) => readFile(fileURLToPath(new URL(`../${path}`, import.meta.url)), 'utf8');
 
 const MONEY_COMMANDS = [
   'payment.record',
@@ -138,7 +135,7 @@ test('the toast appears for a server ack and dismisses itself', async () => {
 });
 
 test('the acknowledgement is published only after the server confirms the write', async () => {
-  const gate = await read('src/features/sync/CloudDataGate.tsx');
+  const gate = await readSource('src/features/sync/CloudDataGate.tsx');
 
   const start = gate.indexOf('const handleCommit');
   const end = gate.indexOf('window.addEventListener(SHOWROOM_COMMAND_COMMITTED_EVENT');
@@ -157,8 +154,8 @@ test('the acknowledgement is published only after the server confirms the write'
 });
 
 test('the toast lives on operational routes and never on the public landing', async () => {
-  const shell = await read('src/app/shell/AppShell.tsx');
-  const app = await read('src/app/App.tsx');
+  const shell = await readSource('src/app/shell/AppShell.tsx');
+  const app = await readSource('src/app/App.tsx');
 
   assert.match(shell, /<CloudSaveAckToast \/>/, 'mounted once, above every operational route');
   assert.doesNotMatch(app, /CloudSaveAckToast/, 'the anonymous landing page never commits money, so it never shows this');
