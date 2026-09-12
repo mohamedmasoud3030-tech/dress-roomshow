@@ -774,4 +774,25 @@ gate that stops the 2026-09-12 checklist overwrite from ever being silent again.
   removal — so those two assertions pass without testing rendered markup. Either the persistent
   booking CTA comes back (owner call) or the two assertions should be deleted. Not changed here.
 - **Still BLOCKED-EXTERNAL (unchanged):** 4.02/4.04/4.05, 5.02/5.03/5.06, the Auth public-signup
-  toggle, M4/M5/M6, and the GitHub Actions allocation outage (`runner_name: ""`, `steps: []`).
+  toggle, M4/M5/M6.
+- **Correction to the CI note above (same session, after the PR was pushed):** the claim that every
+  red check on the PR was the Actions outage was **wrong for one of them**. Of the four failures,
+  three were allocation deaths (`build`, `verify`, `clean-schema-authority`: `runner_name: ""`,
+  `steps: 0`, ~2 s), but the fourth — **SonarCloud "Quality Gate failed", 4.8% duplication on new
+  code against a 3% limit** — was a real finding about this diff, found through
+  `GET /commits/{sha}/check-runs`, not through the Actions API. Do not generalise an outage across
+  checks that report from a different system.
+  - Cause, from `api/duplications/show`: `preferencesSections.ts` lines 32–71 and 37–76 duplicate
+    each other — nine consecutive five-line object literals in one table, which a token-based
+    detector reads as a repeated block. The pre-existing duplication in `PreferencesPage.tsx`
+    (one hand-written try/catch shape across four handlers, nine near-identical numeric fields)
+    also counted, because re-indenting those lines made them "new".
+  - Fixed by removing the duplication, not by shrinking the diff: `runSettingsAction.ts` (now
+    unit-tested), `NumberPreferenceField`, the registry written as rows, and a shared
+    `tests/helpers/readSource.mjs`. SonarCloud: **4.8% → 3.9% → passed**.
+  - **The Actions outage cleared on its own during the session.** On the final head `eb11a7b` the
+    `verify` job allocated a real runner (`GitHub Actions 1000039238`, 14 steps) and every step is
+    green: operational tests, TypeScript unused-symbol gate, lint, build, browser install, and the
+    browser/mobile/PWA end-to-end checks. `build` and `clean-schema-authority` are green too. The
+    billing-level outage recorded earlier in this file is therefore no longer current — re-check it
+    before assuming it.
